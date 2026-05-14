@@ -78,8 +78,10 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
             <button
               key={s}
               onClick={() => setFilter(s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                filter === s ? `${cfg.bg} ${cfg.border} ${cfg.color}` : "bg-card border-border text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all duration-300 transform ${
+                filter === s 
+                  ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-sm scale-[1.02]` 
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-secondary/50 hover:scale-[1.01]"
               }`}
             >
               {s !== "all" && <span>{orderStatusConfig[s as OrderStatus].icon}</span>}
@@ -100,9 +102,14 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
           {filtered.map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
-              <div key={order.id} className={`bg-card border rounded-xl overflow-hidden ${cfg.border}`}>
+              <div key={order.id} className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${cfg.border} ${order.status === "pending" ? "ring-1 ring-yellow-400/30" : ""}`}>
                 <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
-                  <span className={cfg.color}>{cfg.icon}</span>
+                  <span className={`relative flex items-center justify-center ${cfg.color}`}>
+                    {order.status === "pending" && (
+                      <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
+                    )}
+                    <span className="relative">{cfg.icon}</span>
+                  </span>
                   <span className={`text-sm font-bold ${cfg.color}`}>Meja {order.tableId}</span>
                   <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                     order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
