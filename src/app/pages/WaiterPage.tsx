@@ -215,8 +215,17 @@ export default function WaiterPage() {
       {/* Content */}
       <main className="flex-1 p-4 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center h-40 text-muted-foreground gap-2 text-sm">
-            <RefreshCw size={16} className="animate-spin" /> Memuat pesanan...
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl overflow-hidden animate-pulse">
+                <div className="h-10 bg-secondary border-b border-border"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-secondary rounded w-1/4"></div>
+                  <div className="h-3 bg-secondary rounded w-3/4"></div>
+                  <div className="h-3 bg-secondary rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : displayOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
@@ -234,12 +243,17 @@ export default function WaiterPage() {
               return (
                 <div
                   key={order.id}
-                  className={`bg-card border rounded-xl overflow-hidden transition-all ${cfg.border} ${isNew ? "ring-1 ring-yellow-500/30" : ""
+                  className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${cfg.border} ${isNew ? "ring-1 ring-yellow-500/30" : ""
                     }`}
                 >
                   {/* Order header */}
                   <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
-                    <span className={cfg.color}>{cfg.icon}</span>
+                    <span className={`relative flex items-center justify-center ${cfg.color}`}>
+                      {isNew && (
+                        <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
+                      )}
+                      <span className="relative">{cfg.icon}</span>
+                    </span>
                     <span className={`text-sm font-bold ${cfg.color}`}>Meja {order.tableId}</span>
                     {isNew && (
                       <span className="ml-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-yellow-500/20 animate-pulse">
