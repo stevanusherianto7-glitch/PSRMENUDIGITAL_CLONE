@@ -13,9 +13,6 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     if (!enabled) return;
     if (!("speechSynthesis" in window)) return;
 
-    // Biarkan browser mengantre suara (queue) agar tidak saling memotong
-    // window.speechSynthesis.cancel(); 
-
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
     utterance.rate = 0.88;
@@ -44,13 +41,20 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     window.speechSynthesis.speak(utterance);
   }, [enabled]);
 
+  // Hentikan semua suara jika fitur dimatikan
+  useEffect(() => {
+    if (!enabled && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  }, [enabled]);
+
   const announceOrder = useCallback((order: Order) => {
     const items = order.items
       .map(i => `${i.name} ${i.qty === 1 ? "satu" : i.qty === 2 ? "dua" : i.qty === 3 ? "tiga" : i.qty === 4 ? "empat" : i.qty === 5 ? "lima" : String(i.qty)}`)
       .join(", ");
     const source = order.type === "guest" ? "dari tamu" : order.type === "waiter" ? "dari pelayan" : "dari kasir";
-    const mode = order.orderMode === "take-away" ? ", take away" : "";
-    const chefNote = order.notes ? `. Catatan chef: ${order.notes}` : "";
+    const mode = order.orderMode === "take-away" ? ", di bungkus" : ", makan di tempat";
+    const chefNote = order.notes ? `. Catatan untuk chef: ${order.notes}` : "";
     const text = `Pesanan baru masuk, ${source}${mode}! Meja ${order.tableId}: ${items}${chefNote}. Mohon segera diproses.`;
     speak(text);
   }, [speak]);
