@@ -40,7 +40,7 @@ import type {
 } from "../types";
 
 // ─── Vercel URL untuk QR Code tamu ────────────────────────────────────────────
-const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
+const GUEST_BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital-clone.vercel.app";
 
 export const orderModeConfig = {
   "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
