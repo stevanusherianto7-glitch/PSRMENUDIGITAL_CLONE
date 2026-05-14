@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
@@ -18,8 +18,15 @@ interface KasirModuleProps {
 }
 
 export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirModuleProps) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem("pawon_cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [cat, setCat] = useState("Semua");
+
+  useEffect(() => {
+    localStorage.setItem("pawon_cart", JSON.stringify(cart));
+  }, [cart]);
   const [payMethod, setPayMethod] = useState<string | null>(null);
   const [paid, setPaid] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,7 +83,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
     setLastTxId(txId);
     setSaving(false);
     setPaid(true);
-    setTimeout(() => { setPaid(false); setCart([]); setPayMethod(null); setLastTxId(null); setChefNotes(""); setOrderMode("dine-in"); }, 3000);
+    setTimeout(() => { setPaid(false); setCart([]); localStorage.removeItem("pawon_cart"); setPayMethod(null); setLastTxId(null); setChefNotes(""); setOrderMode("dine-in"); }, 3000);
   }
 
   const payMethods = [
