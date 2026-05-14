@@ -39,8 +39,8 @@ export function MejaModule({ tables, onUpdateStatus }: MejaModuleProps) {
           const count = tables.filter(t => t.status === s).length;
           const labels = { available: "Kosong", occupied: "Terisi", service: "Butuh Layanan", reserved: "Reservasi" };
           return (
-            <div key={s} className={`rounded-xl p-4 border ${cfg.bg} ${cfg.border} flex items-center gap-3`}>
-              <span className={`text-2xl font-bold ${cfg.color} font-['Poppins']`}>{count}</span>
+            <div key={s} className={`rounded-xl p-4 border ${cfg.bg} ${cfg.border} flex items-center gap-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-md group`}>
+              <span className={`text-2xl font-bold ${cfg.color} font-['Poppins'] transition-transform duration-300 group-hover:scale-110`}>{count}</span>
               <span className="text-xs text-muted-foreground">{labels[s]}</span>
             </div>
           );
@@ -63,7 +63,7 @@ export function MejaModule({ tables, onUpdateStatus }: MejaModuleProps) {
           {tables.map(t => {
             const cfg = tableStatusConfig[t.status];
             return (
-              <div key={t.id} className={`rounded-xl border p-4 transition-all ${cfg.bg} ${cfg.border} ${selected?.id === t.id ? "ring-1 ring-white/20" : ""}`}>
+              <div key={t.id} className={`rounded-xl border p-4 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg ${cfg.bg} ${cfg.border} ${selected?.id === t.id ? `ring-2 ${cfg.color.replace('text-', 'ring-')} shadow-md` : "hover:border-foreground/10"}`}>
                 <div className="flex items-start justify-between">
                   <button onClick={() => setSelected(selected?.id === t.id ? null : t)} className="flex-1 text-left">
                     <span className="font-bold text-lg font-['Poppins']">{t.id}</span>
