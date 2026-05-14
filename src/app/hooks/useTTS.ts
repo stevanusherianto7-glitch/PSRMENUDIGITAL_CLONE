@@ -13,8 +13,8 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     if (!enabled) return;
     if (!("speechSynthesis" in window)) return;
 
-    // Biarkan browser mengantre suara (queue) agar tidak saling memotong
-    // window.speechSynthesis.cancel(); 
+    // Cancel utterance yang sedang berjalan agar tidak tumpang tindih
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
