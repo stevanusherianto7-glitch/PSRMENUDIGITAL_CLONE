@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "../../utils/supabase/info";
 import type { Order, CartItem, OrderType, OrderMode } from "./types";
 
 const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-203e170b`;

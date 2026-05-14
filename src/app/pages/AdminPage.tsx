@@ -12,7 +12,7 @@ import {
   Calendar, Calculator, Briefcase
 } from "lucide-react";
 import QRCode from "react-qr-code";
-import { supabase } from "../../utils/supabase";
+import { supabase } from "../../../utils/supabase";
 import logoImg from "../../imports/icon-maskable-192.png";
 import { format } from "date-fns";
 import {
@@ -1126,7 +1126,7 @@ function QrMenuModule({ tables }: { tables: TableData[] }) {
     const printContent = tables.map(t => `
       <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #ccc; border-radius:16px; padding:24px; margin:12px; width:280px; height:320px;">
         <p style="font-family:Poppins,sans-serif; font-size:20px; font-weight:700; margin:0 0 4px; color:#1F2937;">Buku Menu Digital</p>
-        <p style="font-family:Poppins,sans-serif; font-size:14px; font-weight:600; color:#6B7280; margin:0 0 16px;">Kedai Elvera 57 Resto</p>
+        <p style="font-family:Poppins,sans-serif; font-size:14px; font-weight:600; color:#6B7280; margin:0 0 16px;">Kedai Elvera 57</p>
         <div style="background:#fff; padding:8px; border-radius:8px;">
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/menu/${t.id}`)}" width="180" height="180" />
         </div>

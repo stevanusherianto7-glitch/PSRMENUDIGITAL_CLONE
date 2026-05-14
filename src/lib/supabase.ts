@@ -71,7 +71,7 @@ import { createClient } from '@supabase/supabase-js';
  */
 
 // Using credentials from auto-generated config file
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../utils/supabase/info';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabaseKey = publicAnonKey;
