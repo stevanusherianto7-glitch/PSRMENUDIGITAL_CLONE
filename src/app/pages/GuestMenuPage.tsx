@@ -168,7 +168,6 @@ export default function GuestMenuPage() {
                       alt="Kedai Elvera 57"
                       className="w-16 h-16 rounded-2xl object-cover border-2 border-foreground/10"
                     />
-                    <span className="absolute -top-1 -right-1 text-lg">👋</span>
                   </div>
                   <h2
                     className="text-xl font-extrabold text-foreground leading-tight font-poppins"
