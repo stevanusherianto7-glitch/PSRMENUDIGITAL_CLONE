@@ -128,7 +128,7 @@ export default function LoginPage() {
                   key={r.id}
                   type="button"
                   onClick={() => { setRole(r.id); setError(""); setPassword(""); }}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all ${
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md ${
                     active
                       ? "bg-primary/8 border-primary text-primary shadow-[0_4px_16px_-8px_rgba(181,70,42,0.4)]"
                       : "card-premium hover:border-primary/30 text-muted-foreground"
