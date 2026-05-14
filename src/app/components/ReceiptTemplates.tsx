@@ -90,53 +90,80 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold text-sm mb-0.5">KEDAI ELVERA 57</div>
-      <div className="text-center text-xs mb-1">Resto & Cafe</div>
+      <div className="text-center text-xs mb-0.5">Jl. Pertanian No. 57</div>
+      <div className="text-center text-xs mb-0.5">Lebak Bulus, Jakarta Selatan</div>
+      <div className="text-center text-xs mb-1">WA: 0895-3763-48626</div>
+      <div className="text-center text-xs mb-2 font-semibold">Order #{tx.id}</div>
+      
+      <div className="border-b border-dashed mb-1"></div>
+      
       <div className="text-xs mb-1">
         <div>Tgl: {new Date(tx.created_at).toLocaleDateString("id-ID")}</div>
-        <div>Jam: {new Date(tx.created_at).toLocaleTimeString("id-ID")}</div>
-        <div>Meja: {tx.table_id || "Walk-in"}</div>
+        <div>Jam: {new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</div>
+        <div>Bill: {tx.id.toUpperCase()}</div>
         <div>Kasir: Admin</div>
-        <div>ID: {tx.id.toUpperCase()}</div>
       </div>
+      
       <div className="border-b border-dashed mb-1"></div>
+      
+      {/* Table Headers */}
+      <div className="text-xs font-bold flex justify-between mb-0.5">
+        <span className="w-1/3">Transaksi</span>
+        <span className="w-1/12 text-right">Qty</span>
+        <span className="w-1/4 text-right">Harga</span>
+        <span className="w-1/4 text-right">Total</span>
+      </div>
+      
+      <div className="border-b border-dashed mb-1"></div>
+      
+      {/* Table Body */}
       <div className="text-xs">
         {tx.items.map((item, i) => (
-          <div key={i} className="mb-1">
-            <div>{item.name}</div>
-            <div className="flex justify-between">
-              <span>{item.qty} x {rp(item.price)}</span>
-              <span>{rp(item.price * item.qty)}</span>
-            </div>
+          <div key={i} className="flex justify-between mb-0.5">
+            <span className="w-1/3 truncate">{item.name.toUpperCase()}</span>
+            <span className="w-1/12 text-right">{item.qty}</span>
+            <span className="w-1/4 text-right">{item.price.toLocaleString("id-ID")}</span>
+            <span className="w-1/4 text-right">{(item.price * item.qty).toLocaleString("id-ID")}</span>
           </div>
         ))}
       </div>
+      
       <div className="border-b border-dashed my-1"></div>
+      
       <div className="text-xs space-y-0.5">
         <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>{rp(tx.subtotal)}</span>
+          <span>Subtotal:</span>
+          <span>{tx.subtotal.toLocaleString("id-ID")}</span>
         </div>
         {tx.discount_amount ? (
           <div className="flex justify-between">
-            <span>Diskon</span>
-            <span>-{rp(tx.discount_amount)}</span>
+            <span>Diskon ({tx.discount || 0}%):</span>
+            <span>-{tx.discount_amount.toLocaleString("id-ID")}</span>
           </div>
         ) : null}
-        <div className="flex justify-between">
-          <span>PB1 (10%)</span>
-          <span>{rp(tx.tax)}</span>
-        </div>
         <div className="flex justify-between font-bold text-sm mt-1 border-t border-dashed pt-0.5">
           <span>TOTAL</span>
-          <span>{rp(tx.total)}</span>
+          <span>{tx.total.toLocaleString("id-ID")}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Metode Bayar:</span>
+          <span>{tx.method.toUpperCase()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Bayar:</span>
+          <span>{tx.total.toLocaleString("id-ID")}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Kembali:</span>
+          <span>0</span>
         </div>
       </div>
+      
       <div className="border-b border-dashed my-1"></div>
-      <div className="text-xs text-center font-bold py-0.5 border border-black my-1">
-        Bayar: {tx.method.toUpperCase()}
-      </div>
-      <div className="text-[8pt] text-center mt-3">
-        Terima Kasih<br />Silahkan Berkunjung Kembali
+      
+      <div className="text-[8pt] text-center mt-2">
+        Dukung UMKM Indonesia<br />
+        Tulang Punggung Ekonomi Nasional
       </div>
     </div>
   );

@@ -2,11 +2,16 @@ import { useState, useEffect } from "react";
 import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
-  ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy
+  ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
+  Printer, ShoppingBag
 } from "lucide-react";
 import { rp, menuCategories } from "../data";
 import { createOrder } from "../api";
 import { PromoModal } from "./PromoModal";
+import { PrinterSettingsModal } from "./PrinterSettingsModal";
+import { GuestReceipt, KitchenReceipt } from "./ReceiptTemplates";
+import { printService } from "../utils/printService";
+import { toast } from "sonner";
 import { orderModeConfig } from "../pages/AdminPage";
 import type { MenuItem, CartItem, Transaction, Promo, TableData } from "../types";
 
@@ -35,6 +40,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   const [chefNotes, setChefNotes] = useState("");
   const [selectedPromo, setSelectedPromo] = useState<Promo | null>(null);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const [isPrinterModalOpen, setIsPrinterModalOpen] = useState(false);
+  const [currentTx, setCurrentTx] = useState<Transaction | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
 
   const filtered = cat === "Semua" ? menuItems : menuItems.filter(m => m.category === cat);
@@ -77,13 +86,73 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
     };
     await onTransaction(tx);
     // Also save as order
+    const orderObj = { 
+      id: txId, 
+      tableId: orderMode === "take-away" ? null : selectedTable, 
+      items: cart, 
+      subtotal, 
+      total, 
+      notes: chefNotes, 
+      orderMode, 
+      type: "kasir",
+      created_at: new Date().toISOString()
+    };
     try {
-      await createOrder({ tableId: orderMode === "take-away" ? null : selectedTable, items: cart, subtotal, total, notes: chefNotes, orderMode, type: "kasir" });
+      await createOrder(orderObj);
     } catch (e) { console.log("Order create error:", e); }
     setLastTxId(txId);
+    setCurrentTx(tx);
+    setCurrentOrder(orderObj);
     setSaving(false);
     setPaid(true);
-    setTimeout(() => { setPaid(false); setCart([]); localStorage.removeItem("pawon_cart"); setPayMethod(null); setLastTxId(null); setChefNotes(""); setOrderMode("dine-in"); }, 3000);
+    
+    // Auto print if connected
+    try {
+      await printService.printTransaction(tx);
+      await printService.printKitchenReceipt(orderObj);
+    } catch (e) {
+      console.log("Auto print failed:", e);
+    }
+
+    setTimeout(() => { 
+      setPaid(false); 
+      setCart([]); 
+      localStorage.removeItem("pawon_cart"); 
+      setPayMethod(null); 
+      setLastTxId(null); 
+      setCurrentTx(null);
+      setCurrentOrder(null);
+      setChefNotes(""); 
+      setOrderMode("dine-in"); 
+    }, 10000);
+  }
+
+  async function handlePrintReceipt() {
+    if (!currentTx) return;
+    try {
+      await printService.printTransaction(currentTx);
+      toast.success("Struk berhasil dicetak");
+    } catch (error) {
+      toast.error("Gagal mencetak: " + (error as Error).message);
+    }
+  }
+
+  async function handlePrintKitchenReceipt() {
+    if (!currentOrder) return;
+    try {
+      await printService.printKitchenReceipt(currentOrder);
+      toast.success("Struk dapur berhasil dicetak");
+    } catch (error) {
+      toast.error("Gagal mencetak: " + (error as Error).message);
+    }
+  }
+
+  function handlePrintPDF(type: 'customer' | 'kitchen') {
+    setPrintType(type);
+    setTimeout(() => {
+      window.print();
+      setPrintType(null);
+    }, 100);
   }
 
   const payMethods = [
@@ -91,6 +160,9 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
     { id: "QRIS", icon: <Smartphone size={14} /> },
     { id: "Debit", icon: <CreditCard size={14} /> },
     { id: "E-Wallet", icon: <Wallet size={14} /> },
+    { id: "GoFood", icon: <ShoppingBag size={14} className="text-green-500" /> },
+    { id: "GrabFood", icon: <ShoppingBag size={14} className="text-emerald-600" /> },
+    { id: "ShopeeFood", icon: <ShoppingBag size={14} className="text-orange-500" /> },
   ];
 
   return (
@@ -159,10 +231,42 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
           </div>
         </div>
         {paid ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
-            <CheckCircle2 size={40} className="text-green-400" />
-            <p className="font-semibold text-sm text-green-400">Pembayaran Berhasil!</p>
-            {lastTxId && <p className="text-xs text-muted-foreground font-mono bg-secondary px-3 py-1.5 rounded-lg border border-border">{lastTxId}</p>}
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 overflow-y-auto">
+            <CheckCircle2 size={32} className="text-green-400" />
+            <p className="font-semibold text-xs text-green-400">Pembayaran Berhasil!</p>
+            {lastTxId && <p className="text-[10px] text-muted-foreground font-mono bg-secondary px-2 py-1 rounded-lg border border-border">{lastTxId}</p>}
+            
+            <div className="w-full space-y-1.5 mt-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Customer</p>
+              <button
+                onClick={handlePrintReceipt}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <Printer size={10} /> Thermal
+              </button>
+              <button
+                onClick={() => handlePrintPDF('customer')}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <ExternalLink size={10} /> PDF
+              </button>
+            </div>
+
+            <div className="w-full space-y-1.5 mt-2">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Kitchen</p>
+              <button
+                onClick={handlePrintKitchenReceipt}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <Printer size={10} /> Thermal
+              </button>
+              <button
+                onClick={() => handlePrintPDF('kitchen')}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <ExternalLink size={10} /> PDF
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -199,13 +303,23 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
                 />
               </div>
               {/* Tombol Buka Pop-up Promo */}
-              <div className="mb-3">
+              <div className="mb-2">
                 <button
                   onClick={() => setIsPromoModalOpen(true)}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-all"
                 >
                   <Tag size={12} className="text-primary" />
                   {selectedPromo ? `Promo: ${selectedPromo.name}` : "Pilih Promo"}
+                </button>
+              </div>
+              {/* Tombol Pengaturan Printer */}
+              <div className="mb-3">
+                <button
+                  onClick={() => setIsPrinterModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-all"
+                >
+                  <Printer size={12} className="text-primary" />
+                  Pengaturan Printer
                 </button>
               </div>
               <div className="space-y-1.5 text-xs">
@@ -219,7 +333,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
                 <div className="flex justify-between text-muted-foreground"><span>PPN 10%</span><span>{rp(tax)}</span></div>
                 <div className="flex justify-between font-bold text-sm border-t border-border pt-1.5"><span>Total</span><span className="text-green-400">{rp(total)}</span></div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5">
                 {payMethods.map(m => (
                   <button key={m.id} onClick={() => setPayMethod(m.id)} className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs border transition-all ${payMethod === m.id ? "bg-primary border-primary text-white" : "bg-secondary border-border text-muted-foreground hover:text-foreground"}`}>
                     {m.icon} {m.id}
@@ -242,6 +356,22 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
         selectedPromo={selectedPromo}
         onSelect={setSelectedPromo}
       />
+
+      {isPrinterModalOpen && (
+        <PrinterSettingsModal onClose={() => setIsPrinterModalOpen(false)} />
+      )}
+
+      {/* Render Receipt untuk Print Browser (PDF) */}
+      {printType === 'customer' && currentTx && (
+        <div className="receipt-print-wrapper">
+          <GuestReceipt tx={currentTx} />
+        </div>
+      )}
+      {printType === 'kitchen' && currentOrder && (
+        <div className="receipt-print-wrapper">
+          <KitchenReceipt order={currentOrder} />
+        </div>
+      )}
     </div>
   );
 }

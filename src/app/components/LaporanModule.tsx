@@ -1,5 +1,9 @@
-import { ArrowUpRight, Database } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Database, Printer, ExternalLink, RefreshCw } from "lucide-react";
 import { rp, BEST_SELLER_DATA, PAYMENT_DATA } from "../data";
+import { printService } from "../../utils/printService";
+import { ClosingReceipt } from "./ReceiptTemplates";
+import { toast } from "sonner";
 import type { Transaction } from "../types";
 
 interface LaporanModuleProps {
@@ -70,6 +74,9 @@ function WeeklySalesChart({ data }: { data: { day: string; sales: number }[] }) 
 }
 
 export function LaporanModule({ transactions }: LaporanModuleProps) {
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printType, setPrintType] = useState<'pdf' | null>(null);
+
   const weekDays = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
   const weeklyData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i));
@@ -87,8 +94,62 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   const txCount = transactions.length;
   const avgTx = txCount > 0 ? Math.round(transactions.reduce((s, tx) => s + tx.total, 0) / txCount) : 100640;
 
+  // Calculate closing data
+  const closingData = {
+    date: new Date().toLocaleDateString("id-ID"),
+    penjualanBersih: transactions.reduce((s, tx) => s + tx.subtotal, 0) || 37942000,
+    pb1: transactions.reduce((s, tx) => s + tx.tax, 0) || 3794200,
+    qris: transactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0) || 15000000,
+    tunai: transactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0) || 12000000,
+    kartu: transactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0) || 10942000,
+    totalTransaksi: txCount || 377,
+    totalItem: transactions.reduce((s, tx) => s + tx.items.reduce((si, item) => si + item.qty, 0), 0) || 500,
+    hpp: 0,
+    labaKotor: 0
+  };
+  closingData.hpp = Math.round(closingData.penjualanBersih * 0.4); // Mock HPP 40%
+  closingData.labaKotor = closingData.penjualanBersih - closingData.hpp;
+
+  async function handlePrintThermal() {
+    setIsPrinting(true);
+    try {
+      await printService.printClosingReceipt(closingData);
+      toast.success("Laporan closing berhasil dicetak");
+    } catch (error) {
+      toast.error("Gagal mencetak: " + (error as Error).message);
+    } finally {
+      setIsPrinting(false);
+    }
+  }
+
+  function handlePrintPDF() {
+    setPrintType('pdf');
+    setTimeout(() => {
+      window.print();
+      setPrintType(null);
+    }, 100);
+  }
+
   return (
     <div className="space-y-5">
+      {/* Header Buttons */}
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={handlePrintThermal}
+          disabled={isPrinting}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+        >
+          {isPrinting ? <RefreshCw size={12} className="animate-spin" /> : <Printer size={12} />}
+          Cetak Closing (Thermal)
+        </button>
+        <button
+          onClick={handlePrintPDF}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+        >
+          <ExternalLink size={12} />
+          Cetak Closing (PDF)
+        </button>
+      </div>
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: "Penjualan Minggu Ini", val: rp(weekTotal || 37942000), trend: "+18.3% vs minggu lalu" },
@@ -141,6 +202,12 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
           </div>
         </div>
       </div>
+      {/* Render Closing Receipt untuk Print Browser (PDF) */}
+      {printType === 'pdf' && (
+        <div className="receipt-print-wrapper">
+          <ClosingReceipt data={closingData} />
+        </div>
+      )}
     </div>
   );
 }
