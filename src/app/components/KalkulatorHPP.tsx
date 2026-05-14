@@ -10,6 +10,27 @@ interface Ingredient {
   quantityNeeded: number;
 }
 
+function calculateHPPData(
+  ingredients: Ingredient[],
+  shrinkagePercent: number,
+  laborCost: number,
+  overheadCost: number,
+  yieldPortions: number,
+  targetMargin: number
+) {
+  const baseHpp = ingredients.reduce((sum, item) => {
+    const pricePerUnit = item.conversionValue > 0 ? item.purchasePrice / item.conversionValue : 0;
+    return sum + (item.quantityNeeded * pricePerUnit);
+  }, 0);
+
+  const wasteCost = baseHpp * (shrinkagePercent / 100);
+  const totalHpp = baseHpp + wasteCost + laborCost + overheadCost;
+  const hppPerPortion = yieldPortions > 0 ? Math.round(totalHpp / yieldPortions) : 0;
+  const recommendedSellingPrice = targetMargin < 100 ? Math.round(hppPerPortion / (1 - targetMargin / 100)) : 0;
+
+  return { baseHpp, wasteCost, totalHpp, hppPerPortion, recommendedSellingPrice };
+}
+
 export const KalkulatorHPP = () => {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [shrinkagePercent, setShrinkagePercent] = useState<number>(5); // Default 5% susut
@@ -51,18 +72,14 @@ export const KalkulatorHPP = () => {
     loadIngredients();
   }, []);
 
-  // Rumus HPP POSGO
-  const baseHpp = ingredients.reduce((sum, item) => {
-    const pricePerUnit = item.conversionValue > 0 ? item.purchasePrice / item.conversionValue : 0;
-    return sum + (item.quantityNeeded * pricePerUnit);
-  }, 0);
-
-  const wasteCost = baseHpp * (shrinkagePercent / 100);
-  const totalHpp = baseHpp + wasteCost + laborCost + overheadCost;
-  const hppPerPortion = yieldPortions > 0 ? Math.round(totalHpp / yieldPortions) : 0;
-  
-  // Tambahan Proaktif: Rekomendasi Harga Jual berdasarkan Target Margin
-  const recommendedSellingPrice = targetMargin < 100 ? Math.round(hppPerPortion / (1 - targetMargin / 100)) : 0;
+  const { baseHpp, wasteCost, totalHpp, hppPerPortion, recommendedSellingPrice } = calculateHPPData(
+    ingredients,
+    shrinkagePercent,
+    laborCost,
+    overheadCost,
+    yieldPortions,
+    targetMargin
+  );
 
   const handleAddIngredient = () => {
     const newItem: Ingredient = {
