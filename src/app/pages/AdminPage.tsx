@@ -216,7 +216,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadOrders();
-    const interval = setInterval(loadOrders, 8000);
+    const interval = setInterval(loadOrders, 30000);
     return () => clearInterval(interval);
   }, [loadOrders]);
 
@@ -224,6 +224,7 @@ export default function AdminPage() {
   useEffect(() => {
     let mejaChannel: ReturnType<typeof supabase.channel> | null = null;
     let txChannel: ReturnType<typeof supabase.channel> | null = null;
+    let ordersChannel: ReturnType<typeof supabase.channel> | null = null;
 
     async function initSupabase() {
       setSeeding(true);
@@ -311,6 +312,11 @@ export default function AdminPage() {
             setTransactions(prev => [newTx, ...prev].slice(0, 200));
           }).subscribe();
 
+        ordersChannel = supabase.channel("orders-admin-" + Date.now())
+          .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, payload => {
+            loadOrders();
+          }).subscribe();
+
       } catch (err) {
         console.warn("Supabase tidak terhubung:", err);
         setConnected(false);
@@ -322,6 +328,7 @@ export default function AdminPage() {
     return () => {
       if (mejaChannel) supabase.removeChannel(mejaChannel);
       if (txChannel) supabase.removeChannel(txChannel);
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
     };
   }, []);
 
