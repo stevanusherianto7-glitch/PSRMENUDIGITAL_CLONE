@@ -54,9 +54,20 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
       .join(", ");
     const source = order.type === "guest" ? "dari tamu" : order.type === "waiter" ? "dari pelayan" : "dari kasir";
     const mode = order.orderMode === "take-away" ? ", dibungkus" : ", makan di tempat";
-    const chefNote = order.notes ? `. Catatan untuk shef: ${order.notes}` : "";
-    const text = `Pesanan baru masuk, ${source}${mode}! Meja ${order.tableId}: ${items}${chefNote}. Mohon segera diproses.`;
-    speak(text);
+    const chefNote = order.notes ? `Catatan untuk shef: ${order.notes}` : "";
+    
+    const parts = [
+      `Pesanan baru masuk, ${source} ${mode}`,
+      `Meja ${order.tableId}`,
+      `${items}`,
+      chefNote,
+      `Mohon segera diproses.`
+    ].filter(Boolean);
+    
+    // Ucapkan tiap bagian dengan jeda 4 detik agar ada waktu jeda antar informasi
+    parts.forEach((part, index) => {
+      setTimeout(() => speak(part), index * 4000);
+    });
   }, [speak]);
 
   // Detect pesanan baru ketika orders berubah
