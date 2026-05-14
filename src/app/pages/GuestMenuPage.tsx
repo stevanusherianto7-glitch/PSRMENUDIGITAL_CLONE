@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
@@ -155,6 +155,27 @@ export default function GuestMenuPage() {
   function handleStartOrder() {
     setOrderMode(welcomeMode);
     setShowWelcome(false);
+  }
+
+  // Check if tableId is missing and show error
+  if (tableError || !tableId || !tableId.trim()) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+          <h2 className="text-lg font-bold text-foreground mb-2">QR Code Tidak Valid</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Maaf, kode QR yang Anda scan tidak memiliki informasi meja. Silakan scan QR code yang valid dari meja.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
