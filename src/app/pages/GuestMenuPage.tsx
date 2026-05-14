@@ -28,6 +28,7 @@ export default function GuestMenuPage() {
   const [welcomeMode, setWelcomeMode] = useState<OrderMode>("dine-in");
   const [welcomeStep, setWelcomeStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
+  const [tableError, setTableError] = useState(false);
 
   const filtered = category === "Semua" ? menuItems : menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -81,7 +82,10 @@ export default function GuestMenuPage() {
 
   // Poll my orders
   const loadMyOrders = useCallback(async () => {
-    if (!tableId) return;
+    if (!tableId) {
+      setTableError(true);
+      return;
+    }
     try {
       const orders = await fetchOrders(undefined, tableId);
       const active = orders.filter(o =>
@@ -113,7 +117,11 @@ export default function GuestMenuPage() {
   }
 
   async function placeOrder() {
-    if (!tableId || cart.length === 0) return;
+    if (!tableId) {
+      setTableError(true);
+      return;
+    }
+    if (cart.length === 0) return;
     setPlacing(true);
     try {
       const order = await createOrder({
