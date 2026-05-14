@@ -1,4 +1,5 @@
 import EscPosEncoder from 'esc-pos-encoder';
+import { toast } from "sonner";
 
 // Declare bluetoothSerial for TypeScript
 declare let bluetoothSerial: any;
@@ -84,14 +85,28 @@ class PrintService {
    * Kirim data raw (ArrayBuffer) ke printer
    */
   async printRaw(data: ArrayBuffer): Promise<boolean> {
-    if (!this.checkPlatform() || !this.isConnected) {
-      throw new Error('Printer tidak terhubung atau platform tidak mendukung.');
+    if (!this.checkPlatform()) {
+      toast.error('Platform tidak mendukung Bluetooth (harus di HP Android).');
+      throw new Error('Platform tidak mendukung.');
     }
+    if (!this.isConnected) {
+      toast.error('Printer belum terhubung di aplikasi. Silahkan hubungkan lewat Pengaturan Printer.');
+      throw new Error('Printer tidak terhubung.');
+    }
+    
+    toast.info('Mengirim data ke printer...');
+    
     return new Promise((resolve, reject) => {
       bluetoothSerial.write(
         data,
-        () => resolve(true),
-        (err: any) => reject(err)
+        () => {
+          toast.success('Data berhasil dikirim ke printer.');
+          resolve(true);
+        },
+        (err: any) => {
+          toast.error(`Gagal mengirim data: ${err}`);
+          reject(err);
+        }
       );
     });
   }
