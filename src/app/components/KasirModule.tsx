@@ -10,7 +10,7 @@ import { createOrder } from "../api";
 import { PromoModal } from "./PromoModal";
 import { PrinterSettingsModal } from "./PrinterSettingsModal";
 import { GuestReceipt, KitchenReceipt } from "./ReceiptTemplates";
-import { printService } from "../utils/printService";
+import { printService } from "../../utils/printService";
 import { toast } from "sonner";
 import { orderModeConfig } from "../pages/AdminPage";
 import type { MenuItem, CartItem, Transaction, Promo, TableData } from "../types";
