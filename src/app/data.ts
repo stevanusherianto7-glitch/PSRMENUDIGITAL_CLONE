@@ -7,314 +7,298 @@ const addDays = (d: Date, n: number) => {
   return r.toISOString().slice(0, 10);
 };
 
-// ─── Foto dari Local Imports ────────────────────────────────────────────────────
-const imgAqua          = "/imports/Aqua.png";
-const imgBakmiGodog    = "/imports/Bakmi_Godog_Jawa.png";
-const imgBakmiGoreng   = "/imports/Bakmi_Goreng_Jawa.png";
-const imgCleo          = "/imports/Cleo.png";
-const imgEsTeh         = "/imports/Es_Teh.jpg";
-const imgFanta         = "/imports/Fanta_Sprite_Cola.png";
-const imgTehHijau      = "/imports/Green_tea.png";
-const imgGulaiMangut   = "/imports/Gulai_Mangut_Semarang.png";
-const imgEsJeruk       = "/imports/Jeruk_Peras.png";
-const imgJusBelimbing  = "/imports/Jus_Belimbing.jpg";
-const imgJusBuahNaga   = "/imports/Jus_Buah_Naga.jpg";
-const imgJusStroberi   = "/imports/Jus_stroberi.jpg";
-const imgLemonTea      = "/imports/Lemon_tea.png";
-const imgAyamLengkuas  = "/imports/Nasi_Ayam_Lengkuas_Semarang.png";
-const imgAyamPenyet    = "/imports/Nasi_Ayam_Penyet_Semarang.png";
-const imgNasiGoreng    = "/imports/Nasi_Goreng_Jawa.png";
-const imgNasiGorengMawut = "/imports/Nasi_Goreng_Mawut_Semarang.png";
-const imgNipisMadu     = "/imports/Nipis_Madu.png";
-const imgPisangGoreng  = "/imports/Pisang_Goreng_Coklat_Keju.png";
-const imgPulpyOrange   = "/imports/Pulpy_Orange.png";
-const imgRawon         = "/imports/Rawon_Semarang.png";
-const imgRotiBakar     = "/imports/Roti_Bakar_Coklat_Keju.png";
-const imgSodaGembira   = "/imports/Soda_Gembira.jpg";
-const imgSotoAyam      = "/imports/Soto_Ayam_Semarang.png";
-const imgSotoPindang   = "/imports/Soto_Pindang_Kudus.png";
-const imgTahuGimbal    = "/imports/Tahu_Gimbal_Semarang.jpg";
-const imgTehPoci       = "/imports/Teh_Poci.jpg";
-const imgTehPucuk      = "/imports/Teh_Pucuk.png";
-const imgWelcomeDrink  = "/imports/Welcome_Drink.jpg";
-
-// ─── SEED MENU ────────────────────────────────────────────────────────────────
+// ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
 export const SEED_MENU: MenuItem[] = [
-  // ── Makanan Utama ──
   {
-    id: "menu_001",
-    name: "Nasi Goreng Jawa",
-    category: "Makanan Utama",
-    price: 25000,
-    image: imgNasiGoreng,
-    available: true,
-    tag: "Favorit",
-    description: "Nasi goreng khas Jawa, harum bumbu rempah dengan telur mata sapi & acar segar.",
+    "id": "menu_001",
+    "name": "Nasi Goreng Jawa",
+    "category": "Makanan Utama",
+    "price": 25000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Goreng_Jawa.png",
+    "available": true,
+    "tag": "Favorit",
+    "description": "Nasi goreng khas Jawa, harum bumbu rempah dengan telur mata sapi & acar segar."
   },
   {
-    id: "menu_002",
-    name: "Bakmi Goreng Jawa",
-    category: "Makanan Utama",
-    price: 24000,
-    image: imgBakmiGoreng,
-    available: true,
-    description: "Mie goreng khas Jawa dengan telur, sayuran segar & kecap manis pilihan.",
+    "id": "menu_002",
+    "name": "Bakmi Goreng Jawa",
+    "category": "Makanan Utama",
+    "price": 24000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Bakmi_Goreng_Jawa.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Mie goreng khas Jawa dengan telur, sayuran segar & kecap manis pilihan."
   },
   {
-    id: "menu_003",
-    name: "Bakmi Godog Jawa",
-    category: "Makanan Utama",
-    price: 24000,
-    image: imgBakmiGodog,
-    available: true,
-    description: "Mie rebus kuah kaldu ayam hangat, cocok dinikmati di segala cuaca.",
+    "id": "menu_003",
+    "name": "Bakmi Godog Jawa",
+    "category": "Makanan Utama",
+    "price": 24000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Bakmi_Godog_Jawa.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Mie rebus kuah kaldu ayam hangat, cocok dinikmati di segala cuaca."
   },
   {
-    id: "menu_004",
-    name: "Soto Ayam Semarang",
-    category: "Makanan Utama",
-    price: 28000,
-    image: imgSotoAyam,
-    available: true,
-    tag: "Best Seller",
-    description: "Kuah bening segar dengan ayam suwir, tauge, bihun, dan perasan jeruk nipis.",
+    "id": "menu_004",
+    "name": "Soto Ayam Semarang",
+    "category": "Makanan Utama",
+    "price": 28000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Soto_Ayam_Semarang.png",
+    "available": true,
+    "tag": "Best Seller",
+    "description": "Kuah bening segar dengan ayam suwir, tauge, bihun, dan perasan jeruk nipis."
   },
   {
-    id: "menu_005",
-    name: "Rawon Semarang",
-    category: "Makanan Utama",
-    price: 32000,
-    image: imgRawon,
-    available: true,
-    description: "Sup daging sapi hitam keluwek khas Jawa Timur, kaya rempah & disajikan dengan tauge.",
+    "id": "menu_006",
+    "name": "Gulai Mangut Semarang",
+    "category": "Makanan Utama",
+    "price": 35000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Gulai_Mangut_Semarang.png",
+    "available": true,
+    "tag": "Spesial",
+    "description": "Ikan asap dimasak gulai santan kuning rempah khas Semarang, gurih dan kaya cita rasa."
   },
   {
-    id: "menu_006",
-    name: "Gulai Mangut Semarang",
-    category: "Makanan Utama",
-    price: 35000,
-    image: imgGulaiMangut,
-    available: true,
-    tag: "Spesial",
-    description: "Ikan asap dimasak gulai santan kuning rempah khas Semarang, gurih dan kaya cita rasa.",
+    "id": "menu_007",
+    "name": "Nasi Ayam Lengkuas Semarang",
+    "category": "Makanan Utama",
+    "price": 30000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Ayam_Lengkuas_Semarang.png",
+    "available": true,
+    "tag": "Best Seller",
+    "description": "Ayam goreng lengkuas empuk & harum, perpaduan rempah khas Jawa Tengah."
   },
   {
-    id: "menu_007",
-    name: "Nasi Ayam Lengkuas Semarang",
-    category: "Makanan Utama",
-    price: 30000,
-    image: imgAyamLengkuas,
-    available: true,
-    tag: "Best Seller",
-    description: "Ayam goreng lengkuas empuk & harum, perpaduan rempah khas Jawa Tengah.",
+    "id": "menu_008",
+    "name": "Nasi Ayam Penyet Semarang",
+    "category": "Makanan Utama",
+    "price": 30000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Ayam_Penyet_Semarang.png",
+    "available": true,
+    "tag": "Best Seller",
+    "description": "Ayam kampung penyet bumbu merah khas Semarang, disajikan dengan nasi hangat & lalapan."
   },
   {
-    id: "menu_008",
-    name: "Nasi Ayam Penyet Semarang",
-    category: "Makanan Utama",
-    price: 30000,
-    image: imgAyamPenyet,
-    available: true,
-    tag: "Best Seller",
-    description: "Ayam kampung penyet bumbu merah khas Semarang, disajikan dengan nasi hangat & lalapan.",
+    "id": "menu_010",
+    "name": "Tahu Gimbal Semarang",
+    "category": "Makanan Utama",
+    "price": 25000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Tahu_Gimbal_Semarang.jpg",
+    "available": true,
+    "tag": "Favorit",
+    "description": "Tahu, telur, gimbal udang & lontong disiram bumbu kacang petis khas Semarang."
   },
   {
-    id: "menu_009",
-    name: "Soto Pindang Kudus",
-    category: "Makanan Utama",
-    price: 30000,
-    image: imgSotoPindang,
-    available: true,
-    description: "Soto daging sapi khas Kudus, kuah bening segar dengan kecambah & daun bawang.",
+    "id": "menu_012",
+    "name": "Jeruk Peras",
+    "category": "Minuman",
+    "price": 8000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Jeruk%20Peras.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Jeruk segar diperas langsung, dingin dan kaya vitamin C."
   },
   {
-    id: "menu_010",
-    name: "Tahu Gimbal Semarang",
-    category: "Makanan Utama",
-    price: 25000,
-    image: imgTahuGimbal,
-    available: true,
-    tag: "Favorit",
-    description: "Tahu, telur, gimbal udang & lontong disiram bumbu kacang petis khas Semarang.",
+    "id": "menu_013",
+    "name": "Jus Buah Naga",
+    "category": "Minuman",
+    "price": 15000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Jus%20Buah%20Naga.jpg",
+    "available": true,
+    "tag": undefined,
+    "description": "Jus buah naga segar berwarna merah muda cantik, kaya antioksidan."
   },
   {
-    id: "menu_021",
-    name: "Nasi Goreng Mawut Semarang",
-    category: "Makanan Utama",
-    price: 28000,
-    image: imgNasiGorengMawut,
-    available: true,
-    description: "Perpaduan nasi dan mie goreng dengan bumbu khas Semarang yang lezat.",
-  },
-
-  // ── Snack ──
-  {
-    id: "menu_027",
-    name: "Pisang Goreng Coklat Keju",
-    category: "Snack",
-    price: 15000,
-    image: imgPisangGoreng,
-    available: true,
-    description: "Pisang goreng crispy dibalut coklat leleh dan parutan keju, camilan favorit.",
+    "id": "menu_014",
+    "name": "Jus Belimbing",
+    "category": "Minuman",
+    "price": 15000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Jus%20Belimbing.jpg",
+    "available": true,
+    "tag": undefined,
+    "description": "Jus belimbing segar asam-manis, menyegarkan dan kaya vitamin C."
   },
   {
-    id: "menu_028",
-    name: "Roti Bakar Coklat Keju",
-    category: "Snack",
-    price: 18000,
-    image: imgRotiBakar,
-    available: true,
-    tag: "Favorit",
-    description: "Roti bakar garing dengan lelehan coklat & keju susu, gurih manis sempurna.",
-  },
-
-  // ── Minuman ──
-  {
-    id: "menu_011",
-    name: "Teh Pucuk",
-    category: "Minuman",
-    price: 5000,
-    image: imgTehPucuk,
-    available: true,
-    description: "Minuman teh kemasan segar pilihan, tersedia dingin.",
+    "id": "menu_015",
+    "name": "Jus stroberi",
+    "category": "Minuman",
+    "price": 18000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Jus%20stroberi.jpg",
+    "available": true,
+    "tag": undefined,
+    "description": "Jus stroberi segar berwarna merah cerah, manis sedikit asam."
   },
   {
-    id: "menu_012",
-    name: "Jeruk Peras",
-    category: "Minuman",
-    price: 8000,
-    image: imgEsJeruk,
-    available: true,
-    description: "Jeruk segar diperas langsung, dingin dan kaya vitamin C.",
+    "id": "menu_020",
+    "name": "Teh Poci",
+    "category": "Minuman",
+    "price": 15000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Teh%20Poci.jpg",
+    "available": true,
+    "tag": undefined,
+    "description": "Teh melati khas Jawa diseduh dalam poci tanah liat, disajikan hangat dengan gula batu."
   },
   {
-    id: "menu_013",
-    name: "Jus Buah Naga",
-    category: "Minuman",
-    price: 15000,
-    image: imgJusBuahNaga,
-    available: true,
-    description: "Jus buah naga segar berwarna merah muda cantik, kaya antioksidan.",
+    "id": "menu_022",
+    "name": "Pulpy Orange",
+    "category": "Minuman",
+    "price": 7000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Pulpy%20Orange.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Minuman jeruk kemasan dengan buah asli, segar dan bergizi."
   },
   {
-    id: "menu_014",
-    name: "Jus Belimbing",
-    category: "Minuman",
-    price: 15000,
-    image: imgJusBelimbing,
-    available: true,
-    description: "Jus belimbing segar asam-manis, menyegarkan dan kaya vitamin C.",
+    "id": "menu_023",
+    "name": "Fanta, Sprite, Cola",
+    "category": "Minuman",
+    "price": 7000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Fanta,%20Sprite,%20Cola.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Minuman bersoda pilihan: Fanta merah, Coca-Cola, atau Sprite segar."
   },
   {
-    id: "menu_015",
-    name: "Jus stroberi",
-    category: "Minuman",
-    price: 18000,
-    image: imgJusStroberi,
-    available: true,
-    description: "Jus stroberi segar berwarna merah cerah, manis sedikit asam.",
+    "id": "menu_025",
+    "name": "Cleo",
+    "category": "Minuman",
+    "price": 4000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Cleo.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Air mineral Cleo kemasan, pilihan hemat untuk melepas dahaga."
   },
   {
-    id: "menu_016",
-    name: "Lemon tea",
-    category: "Minuman",
-    price: 10000,
-    image: imgLemonTea,
-    available: true,
-    description: "Teh dengan perasan lemon segar, segar dan menyehatkan.",
+    "id": "menu_028",
+    "name": "Roti Bakar Coklat Keju",
+    "category": "Snack",
+    "price": 18000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Roti_Bakar_Coklat_Keju.png",
+    "available": true,
+    "tag": "Favorit",
+    "description": "Roti bakar garing dengan lelehan coklat & keju susu, gurih manis sempurna."
   },
   {
-    id: "menu_017",
-    name: "Green tea",
-    category: "Minuman",
-    price: 12000,
-    image: imgTehHijau,
-    available: true,
-    description: "Teh hijau pilihan, kaya antioksidan dengan rasa yang ringan dan menyegarkan.",
+    "id": "menu_011",
+    "name": "Teh Pucuk",
+    "category": "Minuman",
+    "price": 5000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Teh%20Pucuk.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Minuman teh kemasan segar pilihan, tersedia dingin."
   },
   {
-    id: "menu_018",
-    name: "Nipis Madu",
-    category: "Minuman",
-    price: 12000,
-    image: imgNipisMadu,
-    available: true,
-    description: "Perpaduan jeruk nipis segar dengan madu alami, menyehatkan dan menyegarkan.",
+    "id": "menu_016",
+    "name": "Lemon tea",
+    "category": "Minuman",
+    "price": 10000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Lemon%20tea.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Teh dengan perasan lemon segar, segar dan menyehatkan."
   },
   {
-    id: "menu_019",
-    name: "Soda Gembira",
-    category: "Minuman",
-    price: 15000,
-    image: imgSodaGembira,
-    available: true,
-    tag: "Favorit",
-    description: "Minuman soda susu warna-warni yang menyegarkan, cocok untuk semua usia.",
+    "id": "menu_017",
+    "name": "Green tea",
+    "category": "Minuman",
+    "price": 12000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Green%20tea.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Teh hijau pilihan, kaya antioksidan dengan rasa yang ringan dan menyegarkan."
   },
   {
-    id: "menu_020",
-    name: "Teh Poci",
-    category: "Minuman",
-    price: 15000,
-    image: imgTehPoci,
-    available: true,
-    description: "Teh melati khas Jawa diseduh dalam poci tanah liat, disajikan hangat dengan gula batu.",
+    "id": "menu_018",
+    "name": "Nipis Madu",
+    "category": "Minuman",
+    "price": 12000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nipis%20Madu.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Perpaduan jeruk nipis segar dengan madu alami, menyehatkan dan menyegarkan."
   },
   {
-    id: "menu_022",
-    name: "Pulpy Orange",
-    category: "Minuman",
-    price: 7000,
-    image: imgPulpyOrange,
-    available: true,
-    description: "Minuman jeruk kemasan dengan buah asli, segar dan bergizi.",
+    "id": "menu_019",
+    "name": "Soda Gembira",
+    "category": "Minuman",
+    "price": 15000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Soda%20Gembira.jpg",
+    "available": true,
+    "tag": "Favorit",
+    "description": "Minuman soda susu warna-warni yang menyegarkan, cocok untuk semua usia."
   },
   {
-    id: "menu_023",
-    name: "Fanta, Sprite, Cola",
-    category: "Minuman",
-    price: 7000,
-    image: imgFanta,
-    available: true,
-    description: "Minuman bersoda pilihan: Fanta merah, Coca-Cola, atau Sprite segar.",
+    "id": "menu_026",
+    "name": "Welcome Drink",
+    "category": "Minuman",
+    "price": 16000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Welcome%20Drink.jpg",
+    "available": true,
+    "tag": "Spesial",
+    "description": "Minuman selamat datang khas Kedai Elvera 57, perpaduan buah tropis yang menyegarkan."
   },
   {
-    id: "menu_024",
-    name: "Aqua",
-    category: "Minuman",
-    price: 5000,
-    image: imgAqua,
-    available: true,
-    description: "Air mineral AQUA kemasan, segar dan menyehatkan.",
+    "id": "menu_029",
+    "name": "Es Teh",
+    "category": "Minuman",
+    "price": 5000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Es%20Teh.jpg",
+    "available": true,
+    "tag": undefined,
+    "description": "Teh manis dingin segar, minuman andalan warung khas Jawa."
   },
   {
-    id: "menu_025",
-    name: "Cleo",
-    category: "Minuman",
-    price: 4000,
-    image: imgCleo,
-    available: true,
-    description: "Air mineral Cleo kemasan, pilihan hemat untuk melepas dahaga.",
+    "id": "menu_005",
+    "name": "Rawon Semarang",
+    "category": "Makanan Utama",
+    "price": 32000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Rawon_Semarang.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Sup daging sapi hitam keluwek khas Jawa Timur, kaya rempah & disajikan dengan tauge."
   },
   {
-    id: "menu_026",
-    name: "Welcome Drink",
-    category: "Minuman",
-    price: 16000,
-    image: imgWelcomeDrink,
-    available: true,
-    tag: "Spesial",
-    description: "Minuman selamat datang khas Kedai Elvera 57, perpaduan buah tropis yang menyegarkan.",
+    "id": "menu_009",
+    "name": "Soto Pindang Kudus",
+    "category": "Makanan Utama",
+    "price": 30000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Soto_Pindang_Kudus.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Soto daging sapi khas Kudus, kuah bening segar dengan kecambah & daun bawang."
   },
   {
-    id: "menu_029",
-    name: "Es Teh",
-    category: "Minuman",
-    price: 5000,
-    image: imgEsTeh,
-    available: true,
-    description: "Teh manis dingin segar, minuman andalan warung khas Jawa.",
+    "id": "menu_021",
+    "name": "Nasi Goreng Mawut Semarang",
+    "category": "Makanan Utama",
+    "price": 28000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Goreng_Mawut_Semarang.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Perpaduan nasi dan mie goreng dengan bumbu khas Semarang yang lezat."
   },
+  {
+    "id": "menu_027",
+    "name": "Pisang Goreng Coklat Keju",
+    "category": "Snack",
+    "price": 15000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Pisang_Goreng_Coklat_Keju.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Pisang goreng crispy dibalut coklat leleh dan parutan keju, camilan favorit."
+  },
+  {
+    "id": "menu_024",
+    "name": "Aqua",
+    "category": "Minuman",
+    "price": 5000,
+    "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Aqua.png",
+    "available": true,
+    "tag": undefined,
+    "description": "Air mineral AQUA kemasan, segar dan menyehatkan."
+  }
 ];
 
 export const SEED_TABLES: TableData[] = [
@@ -380,7 +364,6 @@ export const HOURLY_DATA = [
   { hour: "19:00", sales:  420000, tx: 4  },
 ];
 
-// Credentials (in a real app, these would be in the server)
 export const CREDENTIALS = {
   admin:   { password: "[REDACTED_ADMIN_PASSWORD]",   name: "Admin Kedai Elvera 57" },
   waiter:  { password: "[REDACTED_WAITER_PASSWORD]",  name: "Pelayan"           },

@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";
+
+// Menggunakan string path untuk logo agar tidak error di Vite
 const logoImg = "/imports/logo_kedai_Elvera57.png";
+
 import { CREDENTIALS } from "../data";
 import type { UserRole, UserSession } from "../types";
 
@@ -35,8 +38,11 @@ export default function LoginPage() {
     const session: UserSession = { role, name: cred.name };
     localStorage.setItem("pawon_session", JSON.stringify(session));
 
+    // Fix redirect logic agar role kitchen dan manager/owner terarah dengan benar
     if (role === "admin" || role === "manager" || role === "owner") navigate("/admin");
+    else if (role === "kitchen") navigate("/kitchen");
     else navigate("/waiter");
+    
     setLoading(false);
   }
 
@@ -59,9 +65,9 @@ export default function LoginPage() {
 
         <div className="relative space-y-10">
           <div>
-            <p className="eyebrow mb-4">Sejak 2018 · Madiun</p>
+            <p className="eyebrow mb-4">Sejak 2025 · Semarang</p>
             <h1 className="font-display text-5xl leading-[1.05] text-sidebar-foreground">
-              Cita rasa Kuliner,
+              Cita rasa Jawa,
               <br />
               <span className="text-gold italic">disajikan modern.</span>
             </h1>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import {
   LayoutDashboard, ShoppingCart, UtensilsCrossed, Grid3X3,
   Package, FileBarChart2, Bell, ChevronRight,
@@ -12,8 +12,11 @@ import {
   Calendar, Calculator, Briefcase
 } from "lucide-react";
 import QRCode from "react-qr-code";
-import { supabase } from "../../../utils/supabase";
-import logoImg from "../../imports/icon-maskable-192.png";
+import { supabase } from "../../lib/supabase";
+
+// Menggunakan string path untuk logo agar tidak error di Vite
+const logoImg = "/imports/logo_kedai_Elvera57.png";
+
 import { format } from "date-fns";
 import {
   SEED_MENU, SEED_TABLES, SEED_INVENTORY, SEED_PROMOS,
@@ -73,8 +76,6 @@ const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] =
   { id: "sdm", label: "SDM", icon: Users },
   { id: "hpp", label: "Kalkulator HPP", icon: Calculator },
 ];
-
-
 
 function WeeklySalesChart({ data }: { data: { day: string; sales: number }[] }) {
   const W = 600, H = 240, pl = 68, pr = 8, pt = 8, pb = 28;
@@ -139,8 +140,6 @@ function WeeklySalesChart({ data }: { data: { day: string; sales: number }[] }) 
   );
 }
 
-
-
 function ConnectionBadge({ connected }: { connected: boolean }) {
   return (
     <div className={`flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border ${connected ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
@@ -149,10 +148,6 @@ function ConnectionBadge({ connected }: { connected: boolean }) {
     </div>
   );
 }
-
-
-
-
 
 // ─── Kasir ────────────────────────────────────────────────────────────────────
 function KasirModule({ menuItems, onTransaction, promos, tables }: { menuItems: MenuItem[]; onTransaction: (tx: Transaction) => Promise<void>; promos: Promo[]; tables: TableData[] }) {
@@ -565,8 +560,6 @@ function MejaModule({ tables, onUpdateStatus }: { tables: TableData[]; onUpdateS
     </div>
   );
 }
-
-// ─── Katalog Menu — digantikan oleh <MenuManagement /> ────────────────────────
 
 // ─── Promo ────────────────────────────────────────────────────────────────────
 function PromoModule({ promos, onTogglePromo, onAddPromo }: { promos: Promo[]; onTogglePromo: (id: string) => void; onAddPromo: (promo: Promo) => void }) {
@@ -1787,7 +1780,6 @@ export default function AdminPage() {
               />
             )}
             {activeModule === "qr-menu" && <QrMenuModule tables={tables} />}
-
 
             {activeModule === "metrics" && (
               <div className="space-y-5">

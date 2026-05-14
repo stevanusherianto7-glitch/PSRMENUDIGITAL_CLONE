@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../utils/supabase';
+import { supabase } from "../../lib/supabase";
 import { Trash2, Plus, Calculator, RefreshCw, Info, ArrowUpRight, Percent, DollarSign } from 'lucide-react';
 
 interface Ingredient {
