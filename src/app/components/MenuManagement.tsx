@@ -163,7 +163,7 @@ function PhotoUploader({
               </>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} aria-label="Upload foto menu" />
           {error && <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertCircle size={10} />{error}</p>}
           {previewSrc && (
             <button type="button" onClick={() => setMode("preview")} className="text-[10px] text-primary hover:underline">
@@ -265,14 +265,14 @@ function MenuItemModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
           <div>
-            <h2 className="font-bold text-base text-foreground" style={{ fontFamily: "Poppins" }}>
+            <h2 className="font-bold text-base text-foreground font-poppins">
               {isNew ? "✨ Tambah Menu Baru" : "✏️ Edit Menu"}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               {isNew ? "Isi detail item menu baru" : `Mengedit: ${item.name}`}
             </p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tutup">
             <X size={18} />
           </button>
         </div>
@@ -304,11 +304,12 @@ function MenuItemModal({
           {/* Category + Price */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1.5 block">
+              <label htmlFor="menu-category" className="text-xs font-semibold text-foreground mb-1.5 block">
                 Kategori <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="menu-category"
                   value={form.category}
                   onChange={(e) => setField("category", e.target.value)}
                   className="w-full bg-secondary border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary/50 transition-colors appearance-none"
@@ -396,6 +397,7 @@ function MenuItemModal({
               className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
                 form.available ? "bg-green-500" : "bg-secondary border border-border"
               }`}
+              aria-label="Status Ketersediaan"
             >
               <span
                 className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${
@@ -564,7 +566,7 @@ function LayoutEditor({
               <div className="p-2.5">
                 <p className="text-xs font-semibold text-foreground leading-tight line-clamp-1">{item.name}</p>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-primary font-bold text-xs" style={{ fontFamily: "Poppins" }}>{rp(item.price)}</p>
+                  <p className="text-primary font-bold text-xs font-poppins">{rp(item.price)}</p>
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                     item.available ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"
                   }`}>
@@ -690,7 +692,7 @@ export function MenuManagement({
             <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3">
               <Icon size={16} className={s.color} />
               <div>
-                <p className={`text-xl font-bold ${s.color}`} style={{ fontFamily: "Poppins" }}>{s.val}</p>
+                <p className={`text-xl font-bold ${s.color} font-poppins`}>{s.val}</p>
                 <p className="text-[10px] text-muted-foreground">{s.label}</p>
               </div>
             </div>
@@ -727,7 +729,7 @@ export function MenuManagement({
                 className="bg-card border border-border rounded-lg pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-primary/50 transition-colors w-44"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Hapus pencarian">
                   <X size={11} />
                 </button>
               )}
@@ -792,7 +794,7 @@ export function MenuManagement({
                     <p className="font-semibold text-xs text-foreground leading-tight line-clamp-2">{item.name}</p>
                     <p className="text-[10px] text-muted-foreground">{item.category}</p>
                     <div className="flex items-center justify-between">
-                      <p className="font-bold text-sm text-primary" style={{ fontFamily: "Poppins" }}>{rp(item.price)}</p>
+                      <p className="font-bold text-sm text-primary font-poppins">{rp(item.price)}</p>
                       <button
                         onClick={() => handleToggle(item)}
                         disabled={toggling === item.id}
@@ -823,6 +825,7 @@ export function MenuManagement({
                       <button
                         onClick={() => openEdit(item)}
                         className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-semibold bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-amber-400/30 transition-colors"
+                        aria-label="Edit foto"
                       >
                         <Camera size={10} />
                       </button>

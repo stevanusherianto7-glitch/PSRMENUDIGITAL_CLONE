@@ -137,7 +137,7 @@ export default function WaiterPage() {
       <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-4 gap-3 flex-shrink-0">
         <img src={logoImg} alt="Kedai Elvera 57" className="w-8 h-8 rounded-lg object-cover" />
         <div className="flex-1">
-          <p className="font-bold text-sm text-foreground" style={{ fontFamily: "Poppins" }}>
+          <p className="font-bold text-sm text-foreground font-poppins">
             {session.role === "kitchen" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · Kedai Elvera 57
           </p>
           <p className="text-xs text-muted-foreground">{session.name}</p>
@@ -156,7 +156,7 @@ export default function WaiterPage() {
           <span className="hidden sm:inline">{ttsEnabled ? "Suara On" : "Suara Off"}</span>
         </button>
 
-        <button onClick={loadOrders} className="text-muted-foreground hover:text-foreground transition-colors p-2">
+        <button onClick={loadOrders} className="text-muted-foreground hover:text-foreground transition-colors p-2" aria-label="Segarkan pesanan">
           <RefreshCw size={15} />
         </button>
         {orders.length > 0 && (
@@ -167,7 +167,7 @@ export default function WaiterPage() {
             </span>
           </div>
         )}
-        <button onClick={logout} className="text-muted-foreground hover:text-red-400 transition-colors p-2">
+        <button onClick={logout} className="text-muted-foreground hover:text-red-400 transition-colors p-2" aria-label="Logout">
           <LogOut size={15} />
         </button>
       </header>
