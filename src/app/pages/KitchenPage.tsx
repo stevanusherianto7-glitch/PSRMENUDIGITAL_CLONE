@@ -4,29 +4,29 @@ import { BadgeCent, ChefHat, Clock, Flame, LogOut, RefreshCw, UtensilsCrossed } 
 import { fetchOrders, updateOrder } from "../api";
 import type { Order } from "../types";
 
-type KitchenFilter = "pending" | "in-progress" | "ready";
+type KitchenFilter = "pending" | "cooking" | "ready";
 
 const statusColors: Record<KitchenFilter, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-300",
-  "in-progress": "bg-blue-100 text-blue-800 border-blue-300",
-  ready: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  cooking: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  ready: "bg-blue-500/10 text-blue-400 border-blue-500/20",
 };
 
 const statusDot: Record<KitchenFilter, string> = {
-  pending: "bg-amber-500",
-  "in-progress": "bg-blue-500",
-  ready: "bg-emerald-500",
+  pending: "bg-yellow-500",
+  cooking: "bg-orange-500",
+  ready: "bg-blue-500",
 };
 
 const statusLabel: Record<KitchenFilter, string> = {
   pending: "Menunggu",
-  "in-progress": "Dimasak",
+  cooking: "Dimasak",
   ready: "Siap Saji",
 };
 
 const statusIcon: Record<KitchenFilter, typeof Clock> = {
   pending: Clock,
-  "in-progress": Flame,
+  cooking: Flame,
   ready: UtensilsCrossed,
 };
 
@@ -78,7 +78,7 @@ export default function KitchenPage() {
   const counts = useMemo(
     () => ({
       pending: orders.filter((o) => o.status === "pending").length,
-      "in-progress": orders.filter((o) => o.status === "in-progress").length,
+      cooking: orders.filter((o) => o.status === "cooking").length,
       ready: orders.filter((o) => o.status === "ready").length,
     }),
     [orders],
@@ -86,8 +86,8 @@ export default function KitchenPage() {
 
   const advanceStatus = async (order: Order) => {
     const next: Record<string, string> = {
-      pending: "in-progress",
-      "in-progress": "ready",
+      pending: "cooking",
+      cooking: "ready",
     };
     const target = next[order.status];
     if (!target) return;
@@ -101,8 +101,8 @@ export default function KitchenPage() {
 
   const revertStatus = async (order: Order) => {
     const prev: Record<string, string> = {
-      "in-progress": "pending",
-      ready: "in-progress",
+      cooking: "pending",
+      ready: "cooking",
     };
     const target = prev[order.status];
     if (!target) return;
@@ -119,7 +119,7 @@ export default function KitchenPage() {
     navigate("/login");
   };
 
-  const filters: KitchenFilter[] = ["pending", "in-progress", "ready"];
+  const filters: KitchenFilter[] = ["pending", "cooking", "ready"];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -192,9 +192,17 @@ export default function KitchenPage() {
       {/* Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
-            <RefreshCw className="w-8 h-8 animate-spin" />
-            <p className="text-sm">Memuat pesanan...</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl overflow-hidden animate-pulse">
+                <div className="h-10 bg-secondary border-b border-border"></div>
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-secondary rounded w-1/4"></div>
+                  <div className="h-3 bg-secondary rounded w-3/4"></div>
+                  <div className="h-3 bg-secondary rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
@@ -233,8 +241,8 @@ function OrderCard({
   const status = order.status as KitchenFilter;
   return (
     <div
-      className={`rounded-xl border-2 p-4 flex flex-col gap-3 shadow-sm transition-all hover:shadow-md ${
-        statusColors[status] ?? "bg-white border-gray-200"
+      className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
+        statusColors[status] ?? "bg-card border-border"
       }`}
     >
       {/* Card header */}
@@ -250,7 +258,7 @@ function OrderCard({
       </div>
 
       {/* Items */}
-      <div className="bg-white/60 rounded-lg p-3 space-y-1.5 flex-1">
+      <div className="bg-secondary/50 rounded-lg p-3 space-y-1.5 flex-1 border border-border/50">
         {order.items.map((item, idx) => (
           <div key={idx} className="flex justify-between text-sm">
             <span className="text-gray-700">
