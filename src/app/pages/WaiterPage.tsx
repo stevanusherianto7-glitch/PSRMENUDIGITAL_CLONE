@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import {
   ChefHat, Clock, CheckCircle2, XCircle,
   RefreshCw, LogOut, Bell, Flame, Bike, ShoppingBag,
   AlertTriangle, Volume2, VolumeX, Utensils, Package
 } from "lucide-react";
+
+// Menggunakan string path untuk logo agar tidak error di Vite
 const logoImg = "/imports/logo_kedai_Elvera57.png";
+
 import { rp } from "../data";
 import { fetchOrders, updateOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
@@ -43,7 +46,8 @@ export default function WaiterPage() {
     if (!s) { navigate("/"); return; }
     const parsed = JSON.parse(s) as UserSession;
     setSession(parsed);
-// Redirect manager/owner to admin page
+    
+    // Redirect manager/owner to admin page
     if (parsed.role === "manager" || parsed.role === "owner") {
       navigate("/admin");
       return;
@@ -134,7 +138,7 @@ export default function WaiterPage() {
         <img src={logoImg} alt="Kedai Elvera 57" className="w-8 h-8 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-bold text-sm text-foreground" style={{ fontFamily: "Poppins" }}>
-            {session.role === "cook" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · Kedai Elvera 57
+            {session.role === "kitchen" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · Kedai Elvera 57
           </p>
           <p className="text-xs text-muted-foreground">{session.name}</p>
         </div>
@@ -183,7 +187,7 @@ export default function WaiterPage() {
           { id: "waiter", label: "Siap Antar", icon: Bike, count: waiterOrders.length, color: "text-blue-400" },
         ].filter(t => {
           if (session?.role === "manager" || session?.role === "owner") return true;
-          if (session?.role === "cook") return t.id === "kitchen";
+          if (session?.role === "kitchen") return t.id === "kitchen";
           if (session?.role === "waiter") return t.id === "waiter";
           return false;
         }).map(t => {

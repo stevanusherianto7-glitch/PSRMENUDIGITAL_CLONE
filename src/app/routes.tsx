@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
+import KitchenPage from "./pages/KitchenPage";
 import WaiterPage from "./pages/WaiterPage";
 import GuestMenuPage from "./pages/GuestMenuPage";
 import QRStickerPage from "./pages/QRStickerPage";
@@ -28,6 +29,10 @@ export const router = createBrowserRouter([
   },
   {
     path: "/waiter",
+    Component: WaiterPage,
+  },
+  {
+    path: "/kitchen",
     Component: WaiterPage,
   },
   {
