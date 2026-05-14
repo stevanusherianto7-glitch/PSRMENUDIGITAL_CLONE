@@ -673,6 +673,7 @@ export default function AdminPage() {
               <MenuManagement
                 menuItems={menuItems}
                 connected={connected}
+                loading={seeding}
                 onSaveItem={handleSaveMenuItem}
                 onDeleteItem={handleDeleteMenuItem}
                 onToggleAvailability={handleToggleAvailability}
