@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";
-import logoImg from "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png";
+const logoImg = "/imports/logo_kedai_Elvera57.png";
 import { CREDENTIALS } from "../data";
 import type { UserRole, UserSession } from "../types";
 
@@ -35,7 +35,7 @@ export default function LoginPage() {
     const session: UserSession = { role, name: cred.name };
     localStorage.setItem("pawon_session", JSON.stringify(session));
 
-    if (role === "admin") navigate("/admin");
+    if (role === "admin" || role === "manager" || role === "owner") navigate("/admin");
     else navigate("/waiter");
     setLoading(false);
   }

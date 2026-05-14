@@ -5,7 +5,7 @@ import {
   RefreshCw, LogOut, Bell, Flame, Bike, ShoppingBag,
   AlertTriangle, Volume2, VolumeX, Utensils, Package
 } from "lucide-react";
-import logoImg from "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png";
+const logoImg = "/imports/logo_kedai_Elvera57.png";
 import { rp } from "../data";
 import { fetchOrders, updateOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
