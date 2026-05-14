@@ -1,0 +1,340 @@
+@custom-variant dark (&:is(.dark *));
+
+/* ──────────────────────────────────────────────────────────────
+   Kedai Elvera 57 — Heritage Modern Design System
+   Earth tones: terracotta, hijau pandan, krem, kayu jati
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  --font-size: 14px;
+
+  /* Surfaces — warm cream / parchment */
+  --background: #F7F1E6;          /* krem hangat */
+  --foreground: #2A1F18;          /* kayu jati gelap */
+  --card: #FFFBF3;                /* kertas krem */
+  --card-foreground: #2A1F18;
+  --popover: #FFFBF3;
+  --popover-foreground: #2A1F18;
+
+  /* Brand — orange Kedai Elvera 57 */
+  --primary: #E87722;             /* orange hangat khas */
+  --primary-foreground: #FFF8EE;
+
+  /* Secondary — krem netral */
+  --secondary: #E8E3D3;
+  --secondary-foreground: #2F3D27;
+
+  /* Muted — sand */
+  --muted: #EFE7D5;
+  --muted-foreground: #7A6A57;
+
+  /* Accent — hijau daun Pawon */
+  --accent: #3F7D45;              /* hijau segar */
+  --accent-foreground: #FFF8EE;
+
+  --destructive: #C0392B;
+  --destructive-foreground: #FFF8EE;
+
+  --border: rgba(74, 56, 41, 0.14);
+  --input: #FFFBF3;
+  --input-background: #FFFBF3;
+  --switch-background: #D9CFB8;
+
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+
+  --ring: #E87722;
+
+  /* Charts — orange-green earthy palette */
+  --chart-1: #E87722;             /* orange brand */
+  --chart-2: #3F7D45;             /* hijau brand */
+  --chart-3: #C68A3D;             /* tembaga */
+  --chart-4: #F4A058;             /* orange muda */
+  --chart-5: #6FA46C;             /* hijau sage */
+
+  --radius: 0.875rem;             /* sedikit lebih lembut */
+
+  /* Sidebar — paper darker */
+  --sidebar: #2A1F18;
+  --sidebar-foreground: #F7F1E6;
+  --sidebar-primary: #C68A3D;     /* tembaga aksen */
+  --sidebar-primary-foreground: #2A1F18;
+  --sidebar-accent: #3A2C20;
+  --sidebar-accent-foreground: #F7F1E6;
+  --sidebar-border: rgba(247, 241, 230, 0.08);
+  --sidebar-ring: #C68A3D;
+
+  /* Heritage-specific tokens */
+  --gold: #C68A3D;
+  --gold-soft: #E0B973;
+  --ink: #2A1F18;
+  --paper: #FFFBF3;
+}
+
+.dark {
+  --background: #1A1410;
+  --foreground: #F4ECD8;
+  --card: #241B14;
+  --card-foreground: #F4ECD8;
+  --popover: #241B14;
+  --popover-foreground: #F4ECD8;
+  --primary: #FF8F3D;
+  --primary-foreground: #1A1410;
+  --secondary: #2E241B;
+  --secondary-foreground: #D9CCB3;
+  --muted: #241B14;
+  --muted-foreground: #A89878;
+  --accent: #5FA168;
+  --accent-foreground: #1A1410;
+  --destructive: #D9594A;
+  --destructive-foreground: #1A1410;
+  --border: rgba(244, 236, 216, 0.12);
+  --input: #2E241B;
+  --input-background: #2E241B;
+  --switch-background: #4A3A2A;
+  --ring: #FF8F3D;
+  --chart-1: #FF8F3D;
+  --chart-2: #5FA168;
+  --chart-3: #E0B973;
+  --chart-4: #FFB880;
+  --chart-5: #8FBE94;
+  --sidebar: #14100C;
+  --sidebar-foreground: #F4ECD8;
+  --sidebar-primary: #E0B973;
+  --sidebar-primary-foreground: #1A1410;
+  --sidebar-accent: #2E241B;
+  --sidebar-accent-foreground: #F4ECD8;
+  --sidebar-border: rgba(244, 236, 216, 0.08);
+  --sidebar-ring: #E0B973;
+  --gold: #E0B973;
+  --gold-soft: #C68A3D;
+  --ink: #F4ECD8;
+  --paper: #241B14;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    background-image:
+      radial-gradient(at 0% 0%, rgba(232, 119, 34, 0.07) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(63, 125, 69, 0.06) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 2.5vw + 1rem, 2.75rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-size: clamp(1.375rem, 1.5vw + 0.8rem, 2rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  label {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  button {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  input, textarea, select {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(74, 56, 41, 0.18);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(74, 56, 41, 0.32);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Heritage utilities
+   ────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  /* Serif display untuk judul hero / brand */
+  .font-display {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* Eyebrow/kicker — huruf kapital kecil dengan tracking lebar */
+  .eyebrow {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* Garis emas dekoratif (divider) */
+  .gold-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+  }
+
+  .gold-rule-short {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  /* Motif batik halus sebagai background */
+  .batik-pattern {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 25% 25%, rgba(232, 119, 34, 0.08) 1px, transparent 1.5px),
+      radial-gradient(circle at 75% 75%, rgba(63, 125, 69, 0.07) 1px, transparent 1.5px),
+      radial-gradient(circle at 50% 50%, rgba(198, 138, 61, 0.05) 1.5px, transparent 2px);
+    background-size: 32px 32px, 32px 32px, 48px 48px;
+    background-position: 0 0, 16px 16px, 0 0;
+  }
+
+  .batik-pattern-dark {
+    background-image:
+      radial-gradient(circle at 25% 25%, rgba(224, 185, 115, 0.10) 1px, transparent 1.5px),
+      radial-gradient(circle at 75% 75%, rgba(122, 154, 102, 0.08) 1px, transparent 1.5px);
+    background-size: 32px 32px, 32px 32px;
+    background-position: 0 0, 16px 16px;
+  }
+
+  /* Kartu premium dengan inner highlight */
+  .card-premium {
+    background: linear-gradient(180deg, var(--paper) 0%, var(--card) 100%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.6) inset,
+      0 1px 2px rgba(42, 31, 24, 0.04),
+      0 8px 24px -12px rgba(42, 31, 24, 0.12);
+    border: 1px solid var(--border);
+  }
+
+  /* Tombol primer dengan tekstur halus */
+  .btn-heritage {
+    background: linear-gradient(180deg, #F08938 0%, var(--primary) 100%);
+    color: var(--primary-foreground);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.2) inset,
+      0 1px 2px rgba(42, 31, 24, 0.18),
+      0 6px 16px -6px rgba(232, 119, 34, 0.5);
+  }
+
+  .btn-heritage:hover {
+    filter: brightness(1.05);
+  }
+
+  /* Aksen emas pada teks (untuk angka/harga) */
+  .text-gold {
+    color: var(--gold);
+  }
+
+  /* Tipografi angka tabular */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}

@@ -1,0 +1,31 @@
+@keyframes draw {
+  from { stroke-dashoffset: 1500; }
+  to { stroke-dashoffset: 0; }
+}
+.animate-draw {
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+  animation: draw 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.animate-fade {
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.delay-0 { animation-delay: 1.50s; }
+.delay-1 { animation-delay: 1.55s; }
+.delay-2 { animation-delay: 1.60s; }
+.delay-3 { animation-delay: 1.65s; }
+.delay-4 { animation-delay: 1.70s; }
+.delay-5 { animation-delay: 1.75s; }
+.delay-6 { animation-delay: 1.80s; }
+.delay-7 { animation-delay: 1.85s; }
+.delay-8 { animation-delay: 1.90s; }
+.delay-9 { animation-delay: 1.95s; }
+.delay-10 { animation-delay: 2.00s; }
+.delay-11 { animation-delay: 2.05s; }
+.delay-12 { animation-delay: 2.10s; }
+.font-poppins { font-family: 'Poppins', sans-serif; }
