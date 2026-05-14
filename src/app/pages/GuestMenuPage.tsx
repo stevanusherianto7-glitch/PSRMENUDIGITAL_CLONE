@@ -5,7 +5,7 @@ import {
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
   Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList
 } from "lucide-react";
-import logoImg from "../../imports/icon-maskable-192.png";
+import logoImg from "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png";
 import { SEED_MENU, menuCategories, rp } from "../data";
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders } from "../api";
@@ -352,7 +352,7 @@ export default function GuestMenuPage() {
                 </button>
 
                 <p className="text-center text-[10px] text-muted-foreground mt-3">
-                  Meja {tableId} · Kedai Elvera 57 Resto · Semarang
+                  Meja {tableId} · Kedai Elvera 57 · Semarang
                 </p>
               </div>
             )}
@@ -365,7 +365,7 @@ export default function GuestMenuPage() {
         <div className="flex items-center gap-3">
           <img src={logoImg} alt="Kedai Elvera 57" className="w-9 h-9 rounded-lg object-cover" />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-foreground font-poppins">Kedai Elvera 57 Resto</p>
+            <p className="font-bold text-sm text-foreground font-poppins">Kedai Elvera 57</p>
             <p className="text-xs text-muted-foreground">Meja {tableId} · Scan & Order</p>
           </div>
           {myOrders.length > 0 && (

@@ -89,7 +89,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
   return (
     <div className="receipt-container">
       <style>{receiptStyles}</style>
-      <div className="text-center font-bold text-sm mb-0.5">PAWON SALAM</div>
+      <div className="text-center font-bold text-sm mb-0.5">KEDAI ELVERA 57</div>
       <div className="text-center text-xs mb-1">Resto & Cafe</div>
       <div className="text-xs mb-1">
         <div>Tgl: {new Date(tx.created_at).toLocaleDateString("id-ID")}</div>

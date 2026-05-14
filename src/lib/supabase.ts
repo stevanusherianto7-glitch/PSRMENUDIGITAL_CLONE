@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 /**
  * ──────────────────────────────────────────────────────────
- *  Kedai Elvera 57 Resto — Supabase Client
+ *  Kedai Elvera 57 — Supabase Client
  *  Project: https://ywqatzkkvbzkjnoexvux.supabase.co
  * ──────────────────────────────────────────────────────────
  *

@@ -221,7 +221,7 @@ export const JadwalShift = ({ dateRange }: { dateRange: DateRange | undefined })
       </head>
       <body>
         <div class="header">
-          <h1>JADWAL SHIFT PAWON SALAM</h1>
+          <h1>JADWAL SHIFT KEDAI ELVERA 57</h1>
           <p class="subtitle">Periode: ${monthYearStr}</p>
         </div>
         <table>

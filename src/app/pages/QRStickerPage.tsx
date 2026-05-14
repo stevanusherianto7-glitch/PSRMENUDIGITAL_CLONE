@@ -6,7 +6,7 @@ import {
   CheckCircle2, UtensilsCrossed, Loader2, ImageDown,
 } from "lucide-react";
 import html2canvas from "html2canvas";
-import logoImg from "../../imports/icon-maskable-192.png";
+import logoImg from "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png";
 import { SEED_TABLES } from "../data";
 import "../../styles/QRStickerPage.css";
 
@@ -111,7 +111,7 @@ function StickerCard({ tableId, size }: { tableId: string; size: "sm" | "md" | "
               Buku Menu Digital
             </div>
             <div className="header-subtitle">
-              Kedai Elvera 57 Resto
+              Kedai Elvera 57
             </div>
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function QRStickerPage() {
             </div>
             <div>
               <p className="text-sm font-bold text-white">Stiker QR Meja</p>
-              <p className="text-xs text-gold-dimmed">Kedai Elvera 57 Resto — Cetak & Tempel</p>
+              <p className="text-xs text-gold-dimmed">Kedai Elvera 57 — Cetak & Tempel</p>
             </div>
           </div>
 

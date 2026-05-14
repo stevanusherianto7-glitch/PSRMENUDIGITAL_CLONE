@@ -90,7 +90,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="relative text-[11px] tracking-widest uppercase text-sidebar-foreground/40">© 2025 Kedai Elvera 57 Resto</p>
+        <p className="relative text-[11px] tracking-widest uppercase text-sidebar-foreground/40">© 2025 Kedai Elvera 57</p>
       </div>
 
       {/* Right — Login Form */}
