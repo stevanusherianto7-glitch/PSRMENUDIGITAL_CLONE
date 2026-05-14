@@ -13,6 +13,9 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     if (!enabled) return;
     if (!("speechSynthesis" in window)) return;
 
+    // Cancel utterance yang sedang berjalan agar tidak tumpang tindih
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
     utterance.rate = 0.88;
