@@ -6,12 +6,12 @@ import type { Transaction, Order } from "../types";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // ─── Chart helpers ─────────────────────────────────────────────────────────────
-function HourlySalesChart() {
+function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
   return (
     <div className="w-full h-[200px]">
       <ResponsiveContainer>
         <AreaChart
-          data={HOURLY_DATA}
+          data={data}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         >
           <defs>
@@ -156,8 +156,24 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   const todaySales = connected ? todayMetrics.totalSales : todayTx.reduce((s, tx) => s + tx.total, 0);
   const todayCount = connected ? todayMetrics.transactionCount : todayTx.length;
   const todayAvg = connected ? todayMetrics.avgTransaction : (todayCount > 0 ? Math.round(todaySales / todayCount) : 0);
+
   const pending = liveOrders.filter(o => o.status === "pending").length;
   const cooking = liveOrders.filter(o => o.status === "cooking").length;
+
+  // Hitung data penjualan per jam secara dinamis
+  const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+    hour: i.toString().padStart(2, "0") + ":00",
+    sales: 0
+  }));
+
+  transactions.forEach(tx => {
+    if (tx.created_at.startsWith(todayStr)) {
+      const hour = new Date(tx.created_at).getHours();
+      if (hour >= 0 && hour < 24) {
+        hourlyData[hour].sales += tx.total;
+      }
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -206,7 +222,15 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
           </div>
           <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border">Live</span>
         </div>
-        <HourlySalesChart />
+        {loading ? (
+          <div className="w-full h-[200px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs text-muted-foreground">Memuat tren penjualan...</span>
+            </div>
+          </div>
+        ) : (
+          <HourlySalesChart data={hourlyData} />
+        )}
       </div>
 
       {/* Recent transactions */}
