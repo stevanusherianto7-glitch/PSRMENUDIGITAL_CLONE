@@ -442,10 +442,12 @@ export default function QRStickerPage() {
                 </div>
               ) : (
                 <div
-                  className="grid gap-6 justify-start"
-                  style={{
-                    gridTemplateColumns: `repeat(${cols}, max-content)`,
-                  }}
+                  className={`grid gap-6 justify-start ${
+                    cols === 2 ? "grid-cols-[repeat(2,_max-content)]" :
+                    cols === 3 ? "grid-cols-[repeat(3,_max-content)]" :
+                    cols === 4 ? "grid-cols-[repeat(4,_max-content)]" :
+                    "grid-cols-[repeat(5,_max-content)]"
+                  }`}
                 >
                   {tables.map((t, i) => (
                     <div key={t.id} className="group relative">
@@ -477,10 +479,12 @@ export default function QRStickerPage() {
         {/* ── Print area (hidden on screen, shown on print) ── */}
         <div id="print-area" className="hidden">
           <div
-            className="grid gap-5 justify-start p-[8mm] bg-[#F5F5F5]"
-            style={{
-              gridTemplateColumns: `repeat(${cols}, max-content)`,
-            }}
+            className={`grid gap-5 justify-start p-[8mm] bg-[#F5F5F5] ${
+              cols === 2 ? "grid-cols-[repeat(2,_max-content)]" :
+              cols === 3 ? "grid-cols-[repeat(3,_max-content)]" :
+              cols === 4 ? "grid-cols-[repeat(4,_max-content)]" :
+              "grid-cols-[repeat(5,_max-content)]"
+            }`}
           >
             {tables.map((t, i) => (
               <StickerWithPrintArea key={t.id} tableId={t.id} index={i} size={stickerSize} />
