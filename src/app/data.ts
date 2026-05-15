@@ -12,7 +12,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_001",
     "name": "Nasi Goreng Jawa",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 25000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Goreng_Jawa.png",
     "available": true,
@@ -22,7 +22,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_002",
     "name": "Bakmi Goreng Jawa",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 24000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Bakmi_Goreng_Jawa.png",
     "available": true,
@@ -32,7 +32,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_003",
     "name": "Bakmi Godog Jawa",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 24000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Bakmi_Godog_Jawa.png",
     "available": true,
@@ -42,7 +42,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_004",
     "name": "Soto Ayam Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 28000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Soto_Ayam_Semarang.png",
     "available": true,
@@ -52,7 +52,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_006",
     "name": "Gulai Mangut Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 35000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Gulai_Mangut_Semarang.png",
     "available": true,
@@ -62,7 +62,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_007",
     "name": "Nasi Ayam Lengkuas Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 30000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Ayam_Lengkuas_Semarang.png",
     "available": true,
@@ -72,7 +72,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_008",
     "name": "Nasi Ayam Penyet Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 30000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Ayam_Penyet_Semarang.png",
     "available": true,
@@ -82,7 +82,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_010",
     "name": "Tahu Gimbal Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 25000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Tahu_Gimbal_Semarang.jpg",
     "available": true,
@@ -252,7 +252,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_005",
     "name": "Rawon Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 32000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Rawon_Semarang.png",
     "available": true,
@@ -262,7 +262,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_009",
     "name": "Soto Pindang Kudus",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 30000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Soto_Pindang_Kudus.png",
     "available": true,
@@ -272,7 +272,7 @@ export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_021",
     "name": "Nasi Goreng Mawut Semarang",
-    "category": "Makanan Utama",
+    "category": "Makanan",
     "price": 28000,
     "image": "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nasi_Goreng_Mawut_Semarang.png",
     "available": true,
@@ -332,7 +332,7 @@ export const SEED_PROMOS: Promo[] = [
   { id: "p3", name: "Paket Keluarga",description: "Diskon Rp 15.000 untuk pesanan ≥ Rp 100.000",           discount: 15000, type: "fixed",      active: false, min_order: 100000, code: "KELUARGA", valid_until: addDays(today, 30) },
 ];
 
-export const menuCategories = ["Semua", "Makanan Utama", "Snack", "Minuman"];
+export const menuCategories = ["Makanan", "Snack", "Minuman"];
 export const rp = (n: number) => "Rp " + n.toLocaleString("id-ID");
 
 export const PAYMENT_DATA = [

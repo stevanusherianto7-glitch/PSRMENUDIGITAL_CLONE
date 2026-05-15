@@ -16,7 +16,7 @@ type View = "menu" | "cart" | "status";
 export default function GuestMenuPage() {
   const { tableId } = useParams<{ tableId: string }>();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(SEED_MENU);
-  const [category, setCategory] = useState("Semua");
+  const [category, setCategory] = useState("Makanan");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [view, setView] = useState<View>("menu");
   const [notes, setNotes] = useState("");
@@ -30,7 +30,7 @@ export default function GuestMenuPage() {
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
 
-  const filtered = category === "Semua" ? menuItems : menuItems.filter(m => m.category === category);
+  const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const tax = Math.round(subtotal * 0.1);
@@ -415,12 +415,12 @@ export default function GuestMenuPage() {
       {view === "menu" && (
         <div>
           {/* Category Tabs */}
-          <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide border-b border-border">
+          <div className="flex gap-2 px-4 py-3 border-b border-border">
             {menuCategories.map(c => (
               <button
                 key={c}
                 onClick={() => setCategory(c)}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
+                className={`flex-1 px-4 py-2 rounded-full text-xs font-semibold transition-all text-center ${
                   category === c ? "bg-primary text-white" : "bg-secondary border border-border text-muted-foreground"
                 }`}
               >
