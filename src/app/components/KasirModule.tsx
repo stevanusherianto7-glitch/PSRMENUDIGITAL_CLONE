@@ -56,18 +56,38 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
   const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
 
-  const mockActiveBills = [
-    { id: "A1", table: "A1", mode: "dine-in", items: [
-      { id: "m1", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1 },
-      { id: "m12", name: "ES TEH", price: 5000, qty: 1 }
-    ], total: 40000 },
-    { id: "A4", table: "A4", mode: "dine-in", items: [
-      { id: "m4", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2 },
-      { id: "m11", name: "NIPIS MADU", price: 12000, qty: 2 }
-    ], total: 74000 },
-    { id: "O-1001", mode: "take-away", name: "Budi", items: [
-      { id: "m8", name: "NASI GORENG JAWA", price: 25000, qty: 1 }
-    ], total: 25000 }
+  const mockOrders: Order[] = [
+    {
+      id: "O-1001",
+      tableId: "A1",
+      items: [
+        { id: "m1", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1, available: true, category: "Makanan", image: "" },
+        { id: "m12", name: "ES TEH", price: 5000, qty: 1, available: true, category: "Minuman", image: "" }
+      ],
+      subtotal: 40000,
+      total: 40000,
+      orderMode: "dine-in",
+      status: "served",
+      type: "guest",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: "O-1002",
+      tableId: "A4",
+      items: [
+        { id: "m4", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2, available: true, category: "Makanan", image: "" },
+        { id: "m11", name: "NIPIS MADU", price: 12000, qty: 2, available: true, category: "Minuman", image: "" }
+      ],
+      subtotal: 74000,
+      total: 74000,
+      orderMode: "dine-in",
+      status: "served",
+      type: "waiter",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      notes: "Pedas sedang"
+    }
   ];
   const activeBills = orders && orders.length > 0 
     ? orders
@@ -227,7 +247,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
 
         {/* Grid of Active Bills */}
         <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 custom-scrollbar content-start">
-          {(orders.length > 0 ? orders : []).filter(o => o.orderMode === orderMode && o.status === "served").map(order => {
+          {(orders && orders.length > 0 ? orders : mockOrders).filter(o => o.orderMode === orderMode && o.status === "served").map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
               <button
