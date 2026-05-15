@@ -140,21 +140,21 @@ export default function AdminPage() {
   }, [sidebarOpen]);
 
   // Sync URL with active module
-  useEffect(() => {
-    const path = location.pathname;
-    const module = pathModuleMap[path];
-    if (module && module !== activeModule) {
-      setActiveModule(module);
-    }
-  }, [location.pathname, activeModule]);
+  // useEffect(() => {
+  //   const path = location.pathname;
+  //   const module = pathModuleMap[path];
+  //   if (module && module !== activeModule) {
+  //     setActiveModule(module);
+  //   }
+  // }, [location.pathname, activeModule]);
 
   // Update URL when module changes
-  useEffect(() => {
-    const newPath = modulePathMap[activeModule];
-    if (newPath && location.pathname !== newPath) {
-      navigate(newPath, { replace: true });
-    }
-  }, [activeModule, navigate, location.pathname]);
+  // useEffect(() => {
+  //   const newPath = modulePathMap[activeModule];
+  //   if (newPath && location.pathname !== newPath) {
+  //     navigate(newPath, { replace: true });
+  //   }
+  // }, [activeModule, navigate, location.pathname]);
   const [time, setTime] = useState(new Date());
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
