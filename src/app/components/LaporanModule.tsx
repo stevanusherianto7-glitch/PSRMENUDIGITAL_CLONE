@@ -11,7 +11,7 @@ interface LaporanModuleProps {
 }
 
 function WeeklySalesChart({ data }: { data: { day: string; sales: number }[] }) {
-  const W = 600, H = 240, pl = 68, pr = 8, pt = 8, pb = 28;
+  const W = 600, H = 160, pl = 68, pr = 8, pt = 8, pb = 24;
   const cw = W - pl - pr, ch = H - pt - pb;
   const maxV = Math.max(...data.map(d => d.sales), 1);
   const xS = (i: number) => (i / (data.length - 1)) * cw;
@@ -110,12 +110,29 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   closingData.hpp = Math.round(closingData.penjualanBersih * 0.4); // Mock HPP 40%
   closingData.labaKotor = closingData.penjualanBersih - closingData.hpp;
 
+  async function handleDirectConnect() {
+    toast.info("Mencoba koneksi langsung ke RPP02N...");
+    try {
+      const success = await printService.connect("06:2B:E0:4C:71:DF");
+      if (success) {
+        toast.success("Berhasil terhubung ke RPP02N!");
+      } else {
+        toast.error("Gagal terhubung ke RPP02N.");
+      }
+    } catch (error) {
+      toast.error("Error koneksi: " + (error as Error).message);
+    }
+  }
+
   async function handlePrintThermal() {
+    alert("Fungsi Cetak Dimulai");
     setIsPrinting(true);
     try {
+      alert("Mengirim data ke printService...");
       await printService.printClosingReceipt(closingData);
       toast.success("Laporan closing berhasil dicetak");
     } catch (error) {
+      alert("Error tertangkap: " + (error as Error).message);
       toast.error("Gagal mencetak: " + (error as Error).message);
     } finally {
       setIsPrinting(false);
@@ -131,71 +148,78 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header Buttons */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={handleDirectConnect}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold hover:bg-emerald-600 transition-all shadow-sm"
+        >
+          <RefreshCw size={12} />
+          Konek RPP02N
+        </button>
         <button
           onClick={handlePrintThermal}
           disabled={isPrinting}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[10px] font-bold text-foreground hover:bg-secondary/80 transition-all disabled:opacity-50 shadow-sm"
         >
           {isPrinting ? <RefreshCw size={12} className="animate-spin" /> : <Printer size={12} />}
-          Cetak Closing (Thermal)
+          Closing (Thermal)
         </button>
         <button
           onClick={handlePrintPDF}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[10px] font-bold text-foreground hover:bg-secondary/80 transition-all shadow-sm"
         >
           <ExternalLink size={12} />
-          Cetak Closing (PDF)
+          Closing (PDF)
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: "Penjualan Minggu Ini", val: rp(weekTotal || 37942000), trend: "+18.3% vs minggu lalu" },
-          { label: "Total Transaksi", val: String(txCount || 377), trend: "+22 transaksi" },
-          { label: "Rata-rata per Transaksi", val: rp(avgTx), trend: null },
+          { label: "Penjualan Minggu Ini", val: rp(weekTotal || 37942000), trend: "+18.3%", accent: "text-primary" },
+          { label: "Total Transaksi", val: String(txCount || 377), trend: "+22 tx", accent: "text-foreground" },
+          { label: "Avg. per Transaksi", val: rp(avgTx), trend: null, accent: "text-foreground" },
         ].map(m => (
-          <div key={m.label} className="bg-card border border-border rounded-xl p-5">
-            <p className="text-muted-foreground text-xs uppercase tracking-widest mb-2">{m.label}</p>
-            <p className="font-bold text-2xl text-foreground font-['Poppins']">{m.val}</p>
-            {m.trend && <p className="text-green-400 text-xs font-semibold mt-1 flex items-center gap-1"><ArrowUpRight size={12} /> {m.trend}</p>}
+          <div key={m.label} className="bg-card border border-border/60 rounded-xl p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.15em] mb-1">{m.label}</p>
+            <p className={`font-black text-lg leading-tight font-['Poppins'] truncate ${m.accent}`} title={m.val}>{m.val}</p>
+            {m.trend && <p className="text-green-500 text-[10px] font-bold mt-1 flex items-center gap-1"><ArrowUpRight size={10} /> {m.trend}</p>}
           </div>
         ))}
       </div>
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Penjualan 7 Hari Terakhir</h3>
-          {hasRealData && <span className="text-xs text-muted-foreground flex items-center gap-1.5"><Database size={10} className="text-indigo-400" /> Data real dari Supabase</span>}
+      <div className="bg-card border border-border/60 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Penjualan 7 Hari Terakhir</h3>
+          {hasRealData && <span className="text-[9px] text-muted-foreground font-bold flex items-center gap-1"><Database size={10} className="text-indigo-400" /> REALTIME</span>}
         </div>
         <WeeklySalesChart data={displayData} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="font-semibold text-sm mb-3">Produk Terlaris</h3>
-          <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <h3 className="font-black text-xs uppercase tracking-widest mb-3 text-foreground/80">Produk Terlaris</h3>
+          <div className="space-y-1.5">
             {BEST_SELLER_DATA.map((d, i) => (
-              <div key={d.name} className="flex items-center gap-3 text-xs">
+              <div key={d.name} className="flex items-center gap-3 text-[11px] font-semibold py-1 border-b border-border/30 last:border-0">
                 <span className="text-muted-foreground w-4">{i + 1}.</span>
-                <span className="flex-1 text-foreground">{d.name}</span>
-                <span className="font-bold text-primary">{d.qty}x</span>
+                <span className="flex-1 text-foreground truncate">{d.name}</span>
+                <span className="font-black text-primary">{d.qty}x</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="font-semibold text-sm mb-3">Metode Pembayaran</h3>
-          <div className="space-y-2.5">
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <h3 className="font-black text-xs uppercase tracking-widest mb-3 text-foreground/80">Metode Pembayaran</h3>
+          <div className="space-y-2">
             {PAYMENT_DATA.map(d => {
               const bgClass = d.color === "#6366F1" ? "bg-indigo-500" : d.color === "#22C55E" ? "bg-green-500" : d.color === "#F59E0B" ? "bg-amber-500" : "bg-pink-500";
               const textClass = d.color === "#6366F1" ? "text-indigo-500" : d.color === "#22C55E" ? "text-green-500" : d.color === "#F59E0B" ? "text-amber-500" : "text-pink-500";
               return (
-                <div key={d.name} className="flex items-center justify-between text-xs">
+                <div key={d.name} className="flex items-center justify-between text-[11px] font-bold">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${bgClass}`} />
-                    <span className="text-muted-foreground">{d.name}</span>
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${bgClass}`} />
+                    <span className="text-muted-foreground uppercase tracking-tight">{d.name}</span>
                   </div>
-                  <span className={`font-semibold ${textClass}`}>{d.value}%</span>
+                  <span className={`font-black ${textClass}`}>{d.value}%</span>
                 </div>
               );
             })}
