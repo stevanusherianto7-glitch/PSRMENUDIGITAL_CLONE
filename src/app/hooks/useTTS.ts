@@ -23,8 +23,8 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
-    utterance.rate = 0.88;
-    utterance.pitch = 1.05;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.15;
     utterance.volume = 1;
 
     // Pilih suara bahasa Indonesia jika tersedia

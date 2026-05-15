@@ -156,7 +156,7 @@ export default function AdminPage() {
   //   }
   // }, [activeModule, navigate, location.pathname]);
   const [time, setTime] = useState(new Date());
-  const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
   const [stokSubModule, setStokSubModule] = useState<"bahan" | "asset">("bahan");
   const [transaksiSubModule, setTransaksiSubModule] = useState<"summary" | "laporan">("summary");
