@@ -29,6 +29,7 @@ export default function GuestMenuPage() {
   const [welcomeStep, setWelcomeStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true); // Default aktif agar user langsung melihat update
 
   const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -99,9 +100,14 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     loadMyOrders();
-    const interval = setInterval(loadMyOrders, 5000);
-    return () => clearInterval(interval);
-  }, [loadMyOrders]);
+    let interval: NodeJS.Timeout | null = null;
+    if (autoRefresh && view === "status") {
+      interval = setInterval(loadMyOrders, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loadMyOrders, autoRefresh, view]);
 
   function addToCart(item: MenuItem) {
     if (!item.available) return;
@@ -623,9 +629,20 @@ export default function GuestMenuPage() {
               <ChevronLeft size={18} />
             </button>
             <h2 className="font-bold text-base font-poppins">Status Pesanan</h2>
-            <button onClick={loadMyOrders} className="ml-auto text-muted-foreground hover:text-foreground" aria-label="Segarkan pesanan">
-              <RefreshCw size={14} />
-            </button>
+            <div className="ml-auto flex items-center gap-2">
+              <button 
+                onClick={() => setAutoRefresh(!autoRefresh)} 
+                className={`text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold transition-colors ${
+                  autoRefresh ? "bg-green-500/20 text-green-400" : "bg-secondary text-muted-foreground"
+                }`}
+              >
+                {autoRefresh && <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>}
+                {autoRefresh ? "Auto Aktif" : "Auto Off"}
+              </button>
+              <button onClick={loadMyOrders} className="text-muted-foreground hover:text-foreground" aria-label="Segarkan pesanan">
+                <RefreshCw size={14} />
+              </button>
+            </div>
           </div>
 
           {myOrders.length === 0 ? (
