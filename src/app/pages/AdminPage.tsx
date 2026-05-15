@@ -411,6 +411,7 @@ export default function AdminPage() {
   const handleTransaction = useCallback(async (tx: Transaction) => {
     setTransactions(prev => [tx, ...prev]);
     if (connected) {
+      // 1. Simpan ke tabel transactions (utama)
       const { error } = await supabase.from("transactions").insert({ 
         id: tx.id, 
         table_id: tx.table_id, 
@@ -424,6 +425,20 @@ export default function AdminPage() {
         created_at: tx.created_at 
       });
       if (error) console.error("Error saving transaction:", error);
+
+      // 2. Simpan ke tabel transaction_items (Opsi 2 - Untuk Laporan Real-time)
+      const itemRows = tx.items.map(item => ({
+        transaction_id: tx.id,
+        menu_item_id: item.id,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        total: item.price * item.qty,
+        created_at: tx.created_at
+      }));
+
+      const { error: itemsError } = await supabase.from("transaction_items").insert(itemRows);
+      if (itemsError) console.error("Error saving transaction items:", itemsError);
     }
   }, [connected]);
 
