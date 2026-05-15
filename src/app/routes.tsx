@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createHashRouter } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import KitchenPage from "./pages/KitchenPage";
@@ -18,7 +18,8 @@ function NotFound() {
   );
 }
 
-export const router = createBrowserRouter([
+// Routes configuration
+export const router = createHashRouter([
   {
     path: "/",
     Component: LoginPage,
@@ -28,12 +29,56 @@ export const router = createBrowserRouter([
     Component: AdminPage,
   },
   {
+    path: "/transaksi",
+    Component: AdminPage,
+  },
+  {
+    path: "/orders",
+    Component: AdminPage,
+  },
+  {
+    path: "/kasir",
+    Component: AdminPage,
+  },
+  {
+    path: "/meja",
+    Component: AdminPage,
+  },
+  {
+    path: "/menu",
+    Component: AdminPage,
+  },
+  {
+    path: "/promo",
+    Component: AdminPage,
+  },
+  {
+    path: "/qr-menu",
+    Component: AdminPage,
+  },
+  {
+    path: "/stok",
+    Component: AdminPage,
+  },
+  {
+    path: "/metrics",
+    Component: AdminPage,
+  },
+  {
+    path: "/sdm",
+    Component: AdminPage,
+  },
+  {
+    path: "/hpp",
+    Component: AdminPage,
+  },
+  {
     path: "/waiter",
     Component: WaiterPage,
   },
   {
     path: "/kitchen",
-    Component: WaiterPage,
+    Component: KitchenPage,
   },
   {
     path: "/menu/:tableId",
@@ -48,3 +93,6 @@ export const router = createBrowserRouter([
     Component: NotFound,
   },
 ]);
+
+// Export RouterProvider-ready router for React 19
+export default router;
