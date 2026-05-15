@@ -188,7 +188,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
 
       {/* Menu Area */}
       <div className="flex-1 h-full flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pb-24 custom-scrollbar content-start">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 gap-3 pb-24 custom-scrollbar content-start">
           {filtered.map(item => (
             <button
               key={item.id}
