@@ -260,11 +260,34 @@ export default function AdminPage() {
     } catch (e) { console.log("Error loading orders:", e); }
   }, []);
 
+  // Load transactions from server
+  const loadTransactions = useCallback(async () => {
+    try {
+      const { data: txRows } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(200);
+      if (txRows) {
+        setTransactions(txRows.map((r: any) => ({
+          id: r.id,
+          table_id: r.table_id,
+          items: r.items || [],
+          subtotal: r.subtotal,
+          tax: r.tax,
+          total: r.total,
+          method: r.method,
+          created_at: r.created_at
+        })));
+      }
+    } catch (e) { console.log("Error loading transactions:", e); }
+  }, []);
+
   useEffect(() => {
     loadOrders();
-    const interval = setInterval(loadOrders, 30000);
+    loadTransactions();
+    const interval = setInterval(() => {
+      loadOrders();
+      loadTransactions();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [loadOrders]);
+  }, [loadOrders, loadTransactions]);
 
   // Supabase init
   useEffect(() => {
@@ -337,8 +360,7 @@ export default function AdminPage() {
           setInventory(invRows.map((r: any) => ({ id: r.id, name: r.name, qty: r.qty, unit: r.unit, exp_date: r.exp_date, category: r.category, method: r.method, stock: r.stock, min_stock: r.min_stock })));
         }
 
-        const { data: txRows } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(200);
-        if (txRows) setTransactions(txRows.map((r: any) => ({ id: r.id, table_id: r.table_id, items: r.items || [], subtotal: r.subtotal, tax: r.tax, total: r.total, method: r.method, created_at: r.created_at })));
+        await loadTransactions();
 
         const { data: logRows } = await supabase.from("inventory_logs").select("*").order("created_at", { ascending: false });
         if (logRows) setInventoryLogs(logRows);
@@ -352,10 +374,19 @@ export default function AdminPage() {
           }).subscribe();
 
         txChannel = supabase.channel("tx-admin-" + Date.now())
-          .on("postgres_changes", { event: "INSERT", schema: "public", table: "transactions" }, payload => {
-            const r = payload.new as any;
-            const newTx: Transaction = { id: r.id, table_id: r.table_id, items: r.items || [], subtotal: r.subtotal, tax: r.tax, total: r.total, method: r.method, created_at: r.created_at };
-            setTransactions(prev => [newTx, ...prev].slice(0, 200));
+          .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, payload => {
+            if (payload.eventType === "INSERT") {
+              const r = payload.new as any;
+              const newTx: Transaction = { id: r.id, table_id: r.table_id, items: r.items || [], subtotal: r.subtotal, tax: r.tax, total: r.total, method: r.method, created_at: r.created_at };
+              setTransactions(prev => [newTx, ...prev].slice(0, 200));
+            } else if (payload.eventType === "UPDATE") {
+              const r = payload.new as any;
+              const updatedTx: Transaction = { id: r.id, table_id: r.table_id, items: r.items || [], subtotal: r.subtotal, tax: r.tax, total: r.total, method: r.method, created_at: r.created_at };
+              setTransactions(prev => prev.map(tx => tx.id === r.id ? updatedTx : tx));
+            } else if (payload.eventType === "DELETE") {
+              const r = payload.old as any;
+              setTransactions(prev => prev.filter(tx => tx.id !== r.id));
+            }
           }).subscribe();
 
         ordersChannel = supabase.channel("orders-admin-" + Date.now())
