@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
+import { useNavigate, Routes, Route, useLocation } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import {
   LayoutDashboard, ShoppingCart, UtensilsCrossed, Grid3X3,
   Package, FileBarChart2, Bell, ChevronRight,
@@ -54,6 +54,26 @@ export const orderModeConfig = {
   "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
 } as const;
 
+// Mapping antara URL path dan module
+const modulePathMap: Record<Module, string> = {
+  "orders": "/orders",
+  "kasir": "/kasir",
+  "meja": "/meja",
+  "menu": "/menu",
+  "promo": "/promo",
+  "qr-menu": "/qr-menu",
+  "metrics": "/metrics",
+  "hpp": "/hpp",
+  "sdm": "/sdm",
+  "stok": "/stok",
+  "transaksi": "/transaksi",
+};
+
+// Reverse mapping untuk path ke module
+const pathModuleMap: Record<string, Module> = Object.fromEntries(
+  Object.entries(modulePathMap).map(([module, path]) => [path, module as Module])
+);
+
 type Module = "orders" | "kasir" | "meja" | "menu" | "promo" | "qr-menu" | "metrics" | "hpp" | "sdm" | "stok" | "transaksi";
 
 export const tableStatusConfig = {
@@ -77,6 +97,7 @@ const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] =
   { id: "kasir", label: "Kasir", icon: ShoppingCart },
   { id: "meja", label: "Manajemen Meja", icon: Grid3X3 },
   { id: "menu", label: "Katalog Menu", icon: UtensilsCrossed },
+  { id: "promo", label: "Promo", icon: Tag },
   { id: "qr-menu", label: "Buku Menu Digital", icon: QrCode },
   { id: "stok", label: "Stok Opname", icon: Package },
   { id: "metrics", label: "Metrics", icon: Activity },
@@ -103,6 +124,7 @@ function ConnectionBadge({ connected }: { connected: boolean }) {
 // ─── Main AdminPage ────────────────────────────────────────────────────────────
 export default function AdminPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<UserSession | null>(null);
   const [activeModule, setActiveModule] = useState<Module>("transaksi");
   const [sidebarOpen, setSidebarOpen] = useState(() => {
@@ -116,6 +138,23 @@ export default function AdminPage() {
   useEffect(() => {
     localStorage.setItem("pawon_sidebar_open", sidebarOpen.toString());
   }, [sidebarOpen]);
+
+  // Sync URL with active module
+  useEffect(() => {
+    const path = location.pathname;
+    const module = pathModuleMap[path];
+    if (module && module !== activeModule) {
+      setActiveModule(module);
+    }
+  }, [location.pathname, activeModule]);
+
+  // Update URL when module changes
+  useEffect(() => {
+    const newPath = modulePathMap[activeModule];
+    if (newPath && location.pathname !== newPath) {
+      navigate(newPath, { replace: true });
+    }
+  }, [activeModule, navigate, location.pathname]);
   const [time, setTime] = useState(new Date());
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
@@ -592,7 +631,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth custom-scrollbar">
+        <main className="flex-1 overflow-y-scroll p-4 lg:p-6 scroll-smooth custom-scrollbar">
           <div className="max-w-7xl mx-auto space-y-6">
             {activeModule === "transaksi" && (
               <div className="space-y-5">
