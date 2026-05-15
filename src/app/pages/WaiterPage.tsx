@@ -14,7 +14,7 @@ import { fetchOrders, updateOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import type { Order, OrderStatus, UserSession } from "../types";
 
-type Tab = "kitchen" | "waiter";
+type Tab = "kitchen" | "bar" | "waiter";
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
   pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={14} /> },
@@ -120,9 +120,10 @@ export default function WaiterPage() {
     navigate("/");
   }
 
-  const kitchenOrders = orders.filter(o => o.status === "pending" || o.status === "cooking");
+  const kitchenOrders = orders.filter(o => (o.status === "pending" || o.status === "cooking") && o.items.some(i => i.category === "Makanan" || i.category === "Snack"));
+  const barOrders = orders.filter(o => (o.status === "pending" || o.status === "cooking") && o.items.some(i => i.category === "Minuman"));
   const waiterOrders = orders.filter(o => o.status === "ready");
-  const displayOrders = tab === "kitchen" ? kitchenOrders : waiterOrders;
+  const displayOrders = tab === "kitchen" ? kitchenOrders : tab === "bar" ? barOrders : waiterOrders;
 
   function elapsed(created_at: string) {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 60000);
@@ -184,10 +185,11 @@ export default function WaiterPage() {
       <div className="flex border-b border-border bg-card/50">
         {[
           { id: "kitchen", label: "Dapur", icon: ChefHat, count: kitchenOrders.length, color: "text-orange-400" },
+          { id: "bar", label: "Bar", icon: ShoppingBag, count: barOrders.length, color: "text-indigo-400" },
           { id: "waiter", label: "Siap Antar", icon: Bike, count: waiterOrders.length, color: "text-blue-400" },
         ].filter(t => {
           if (session?.role === "manager" || session?.role === "owner") return true;
-          if (session?.role === "kitchen") return t.id === "kitchen";
+          if (session?.role === "kitchen") return t.id === "kitchen" || t.id === "bar";
           if (session?.role === "waiter") return t.id === "waiter";
           return false;
         }).map(t => {
@@ -294,7 +296,11 @@ export default function WaiterPage() {
 
                   {/* Items */}
                   <div className="px-4 py-3 space-y-1.5">
-                    {order.items.map((item, i) => (
+                    {order.items.filter(item => {
+                      if (tab === "kitchen") return item.category === "Makanan" || item.category === "Snack";
+                      if (tab === "bar") return item.category === "Minuman";
+                      return true;
+                    }).map((item, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <span className="w-6 h-6 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
                           {item.qty}
@@ -322,7 +328,7 @@ export default function WaiterPage() {
 
                   {/* Actions */}
                   <div className="px-4 pb-4 flex gap-2">
-                    {tab === "kitchen" && order.status === "pending" && (
+                    {(tab === "kitchen" || tab === "bar") && order.status === "pending" && (
                       <>
                         <button
                           onClick={() => handleCancel(order)}
@@ -336,19 +342,19 @@ export default function WaiterPage() {
                           disabled={!!updating}
                           className="flex-1 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                         >
-                          {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : <Flame size={12} />}
-                          Mulai Masak
+                          {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : tab === "kitchen" ? <Flame size={12} /> : <ShoppingBag size={12} />}
+                          {tab === "kitchen" ? "Mulai Masak" : "Mulai Buat"}
                         </button>
                       </>
                     )}
-                    {tab === "kitchen" && order.status === "cooking" && (
+                    {(tab === "kitchen" || tab === "bar") && order.status === "cooking" && (
                       <button
                         onClick={() => handleStatusChange(order, "ready")}
                         disabled={!!updating}
                         className="flex-1 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                       >
                         {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : <ShoppingBag size={12} />}
-                        Selesai Masak — Siap Antar
+                        {tab === "kitchen" ? "Selesai Masak — Siap Antar" : "Selesai Buat — Siap Antar"}
                       </button>
                     )}
                     {tab === "waiter" && order.status === "ready" && (
