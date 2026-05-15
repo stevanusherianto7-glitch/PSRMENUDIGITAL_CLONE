@@ -14,24 +14,25 @@ interface ScheduleGridProps {
 
 export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, onExportPDF }: ScheduleGridProps) {
 
+  // Warna shift yang soft, pastel, dan premium (Anti-Glitch & Ramah Mata)
   const getShiftStyles = (type: ShiftType) => {
     switch (type) {
       case ShiftType.PAGI:
-        return "bg-blue-600 text-white border-blue-400";
+        return "bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20";
       case ShiftType.MIDDLE:
-        return "bg-emerald-600 text-white border-emerald-400";
+        return "bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20";
       case ShiftType.LIBUR:
-        return "bg-rose-500 text-white border-rose-400";
+        return "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-500/20";
       default:
-        return "bg-slate-50 text-slate-300 border-slate-100";
+        return "bg-secondary text-muted-foreground border-border/40 hover:bg-secondary/80";
     }
   };
 
   const getShiftLabel = (type: ShiftType) => {
     switch (type) {
-      case ShiftType.PAGI: return "P";
-      case ShiftType.MIDDLE: return "M";
-      case ShiftType.LIBUR: return "O";
+      case ShiftType.PAGI: return "PAGI";
+      case ShiftType.MIDDLE: return "MIDL";
+      case ShiftType.LIBUR: return "OFF";
       default: return "-";
     }
   };
@@ -44,14 +45,15 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
   };
 
   return (
-    <div className="space-y-6 mb-24">
-      <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto no-scrollbar">
+    <div className="space-y-4 mb-20">
+      <div className="bg-card border border-border/60 rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-slate-50/50">
-                <th className="sticky left-0 z-40 bg-white p-4 text-left border-b border-r border-slate-100 min-w-[160px]">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">KARYAWAN</span>
+              <tr className="border-b border-border/60 bg-secondary/30">
+                {/* Sticky Column untuk Nama Karyawan di HP */}
+                <th className="sticky left-0 z-40 bg-card p-4 text-left border-r border-border/60 min-w-[140px] shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Karyawan</span>
                 </th>
                 {dates.map((dateStr) => {
                   const [year, month, day] = dateStr.split('-').map(Number);
@@ -63,19 +65,19 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
 
                   return (
                     <th key={dateStr} className={cn(
-                      "p-2 border-b border-slate-100 min-w-[32px] text-center",
-                      isToday ? "bg-blue-50/30" : (isWeekend ? "bg-rose-50/30" : "")
+                      "p-3 border-b border-border/60 min-w-[50px] text-center transition-colors",
+                      isToday ? "bg-primary/5" : (isWeekend ? "bg-rose-500/5" : "")
                     )}>
                       <div className="flex flex-col items-center">
                         <span className={cn(
                           "text-[8px] font-black uppercase tracking-tight mb-0.5",
-                          isWeekend ? "text-rose-400" : "text-slate-400"
+                          isWeekend ? "text-rose-400" : "text-muted-foreground"
                         )}>
                           {dayName}
                         </span>
                         <span className={cn(
-                          "text-xs font-black tabular-nums",
-                          isToday ? "text-blue-600" : (isWeekend ? "text-rose-500" : "text-slate-900")
+                          "text-xs font-black font-poppins tabular-nums",
+                          isToday ? "text-primary drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.2)]" : (isWeekend ? "text-rose-500" : "text-foreground")
                         )}>
                           {dayNum}
                         </span>
@@ -85,15 +87,15 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
                 })}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-border/40">
               {employees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="sticky left-0 z-30 bg-white p-4 border-r border-slate-100 min-w-[160px]">
+                <tr key={emp.id} className="hover:bg-secondary/10 transition-colors group">
+                  <td className="sticky left-0 z-30 bg-card p-4 border-r border-border/60 min-w-[140px] shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">
+                      <span className="text-[11px] font-black text-foreground uppercase leading-none mb-1 truncate" title={emp.name}>
                         {emp.name}
                       </span>
-                      <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">
+                      <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-70">
                         {emp.role}
                       </span>
                     </div>
@@ -106,13 +108,13 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
 
                     return (
                       <td key={dateStr} className={cn(
-                        "p-1 text-center min-w-[32px]",
-                        isWeekend ? "bg-rose-50/10" : ""
+                        "p-1.5 text-center min-w-[50px]",
+                        isWeekend ? "bg-rose-500/[0.02]" : ""
                       )}>
                         <button
                           onClick={() => onShiftClick(emp.id, dateStr, nextShift(shiftType))}
                           className={cn(
-                            "w-6 h-6 rounded-lg flex items-center justify-center mx-auto transition-all active:scale-90 shadow-sm border text-[9px] font-black",
+                            "w-10 h-7 rounded-lg flex items-center justify-center mx-auto transition-all active:scale-90 border text-[9px] font-black tracking-tighter",
                             getShiftStyles(shiftType)
                           )}
                         >
@@ -129,14 +131,16 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
       </div>
 
       {onExportPDF && (
-        <Button
+        <button
           onClick={onExportPDF}
-          className="w-full h-14 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 active:scale-95 font-black text-[9px] tracking-[0.2em] shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition-all border-none"
+          className="w-full h-12 rounded-xl bg-primary text-white hover:bg-primary/90 active:scale-98 font-black text-[10px] tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-3 transition-all border-none uppercase"
         >
-          <FileDown size={16} />
-          UNDUH JADWAL BULANAN (PDF)
-        </Button>
+          <FileDown size={14} />
+          Unduh Jadwal Bulanan (PDF)
+        </button>
       )}
     </div>
+  );
+}
   );
 }
