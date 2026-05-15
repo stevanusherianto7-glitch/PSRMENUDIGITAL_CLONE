@@ -158,49 +158,66 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
         })}
       </div>
 
-      {/* Desktop View Table (hidden on mobile) */}
-      <div className="hidden sm:block bg-card border border-border/60 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b border-border bg-secondary/30">
-              {["Nama Bahan", "Kategori", "Stok", "Metode", "Tgl Exp.", "Status", "Aksi"].map(h => (
-                <th key={h} className={`text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground p-3 ${h === "Stok" ? "text-right" : ""} ${h === "Aksi" ? "text-center" : ""}`}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(item => {
-              const exp = getExpiryStatus(item.exp_date);
-              const lowStock = item.stock < item.min_stock;
-              return (
-                <tr key={item.id} className="border-b border-border/30 hover:bg-secondary/20 transition-colors group">
-                  <td className="p-3">
-                    <p className="font-black text-foreground text-xs">{item.name}</p>
-                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">{item.id}</p>
-                  </td>
-                  <td className="p-3"><span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/80">{item.category}</span></td>
-                  <td className="p-3 text-right">
-                    <div className="flex flex-col items-end">
-                      <span className={`font-black text-sm font-poppins ${lowStock ? "text-red-500" : "text-foreground"}`}>{item.stock} {item.unit}</span>
-                      {lowStock && <span className="text-[8px] font-black text-red-500 uppercase tracking-widest animate-pulse">Low Stock</span>}
+      {/* Desktop View Card Grid (hidden on mobile) */}
+      <div className="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-10">
+        {filtered.map(item => {
+          const exp = getExpiryStatus(item.exp_date);
+          const lowStock = item.stock < item.min_stock;
+          return (
+            <div key={item.id} className="bg-card border border-border/60 rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
+              <div>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
+                    <h4 className="font-black text-sm text-foreground leading-tight truncate" title={item.name}>{item.name}</h4>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{item.id}</p>
+                  </div>
+                  <div className={`px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${exp.bg} ${exp.color} flex items-center gap-1`}>
+                    {exp.icon} {exp.label}
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-1">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sisa Stok</p>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className={`text-2xl font-black font-poppins ${lowStock ? "text-red-500" : "text-foreground"}`}>
+                      {item.stock}
+                    </span>
+                    <span className="text-xs font-bold text-muted-foreground">{item.unit}</span>
+                  </div>
+                  {lowStock && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Stok Rendah</span>
                     </div>
-                  </td>
-                  <td className="p-3"><span className="text-[9px] font-black uppercase tracking-widest bg-secondary border border-border/60 px-2 py-0.5 rounded-md text-muted-foreground">{item.method}</span></td>
-                  <td className="p-3 font-black text-muted-foreground text-[10px]">{item.exp_date}</td>
-                  <td className="p-3">
-                    <span className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${exp.bg} ${exp.color}`}>{exp.label}</span>
-                  </td>
-                  <td className="p-3 text-center">
-                    <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openModal(item)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><Edit2 size={12} /></button>
-                      <button onClick={() => onDelete(item.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-border/40 pt-3 flex items-center justify-between">
+                <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                  Exp: {item.exp_date}
+                </div>
+                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => openModal(item)} 
+                    className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Edit"
+                  >
+                    <Edit2 size={12} />
+                  </button>
+                  <button 
+                    onClick={() => onDelete(item.id)} 
+                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                    aria-label="Hapus"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <InventoryItemModal
