@@ -114,6 +114,19 @@ export default function KitchenPage() {
     }
   };
 
+  const handleCancel = async (order: Order) => {
+    if (!confirm(`Batalkan pesanan ${order.id}?`)) return;
+    setUpdating(order.id);
+    try {
+      await updateOrder(order.id, { status: "cancelled" });
+      setOrders(prev => prev.filter(o => o.id !== order.id));
+    } catch (e) {
+      console.log("Error cancelling:", e);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const handleLogout = () => {
     sessionStorage.removeItem("kitchen_auth");
     navigate("/");
@@ -259,6 +272,16 @@ export default function KitchenPage() {
                       }`}>
                         {order.type === "guest" ? "Scan Mandiri" : order.type === "waiter" ? "Via Waiter" : "Kasir"}
                       </span>
+                      {/* Dine-in / Take-away badge */}
+                      {(() => {
+                        const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
+                        const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];
+                        return (
+                          <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${mcfg.bg} ${mcfg.border} ${mcfg.color}`}>
+                            {mcfg.icon} {mcfg.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                     <span className="text-[10px] text-muted-foreground font-mono">{order.id}</span>
                   </div>
@@ -271,6 +294,7 @@ export default function KitchenPage() {
                           {item.qty}
                         </span>
                         <span className="text-foreground font-medium text-xs flex-1">{item.name}</span>
+                        <span className="text-xs text-muted-foreground">{rp(item.price * item.qty)}</span>
                       </div>
                     ))}
                     {order.notes && (
@@ -284,25 +308,41 @@ export default function KitchenPage() {
                     )}
                   </div>
 
+                  {/* Total */}
+                  <div className="px-4 pb-3 border-t border-border pt-2.5 flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">{order.items.reduce((s, i) => s + i.qty, 0)} item</span>
+                    <span className="font-bold text-sm text-green-400">{rp(order.total)}</span>
+                  </div>
+
                   {/* Actions */}
-                  <div className="px-4 pb-4 flex gap-2">
-                    {filter !== "ready" && (
+                  <div className="px-4 pb-4">
+                    {filter === "pending" && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleCancel(order)}
+                          disabled={!!updating}
+                          className="flex-none py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                        >
+                          Tolak
+                        </button>
+                        <button
+                          onClick={() => advanceStatus(order)}
+                          disabled={!!updating}
+                          className="flex-1 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        >
+                          {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : <Flame size={12} />}
+                          Mulai Masak
+                        </button>
+                      </div>
+                    )}
+                    {filter === "cooking" && (
                       <button
                         onClick={() => advanceStatus(order)}
                         disabled={!!updating}
-                        className="flex-1 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                        className="w-full py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                       >
-                        {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : filter === "pending" ? <Flame size={12} /> : <UtensilsCrossed size={12} />}
-                        {filter === "pending" ? "Mulai Masak" : "Selesai Masak — Siap Saji"}
-                      </button>
-                    )}
-                    {filter !== "pending" && (
-                      <button
-                        onClick={() => revertStatus(order)}
-                        disabled={!!updating}
-                        className="px-3 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-muted-foreground border border-border transition-colors disabled:opacity-50"
-                      >
-                        Kembali
+                        {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : <UtensilsCrossed size={12} />}
+                        Selesai Masak — Siap Antar
                       </button>
                     )}
                   </div>
