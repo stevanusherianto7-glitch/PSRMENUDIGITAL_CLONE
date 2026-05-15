@@ -376,20 +376,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
 
               <div className="p-4 border-t border-border bg-card space-y-3">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 relative">
-                      <ChefHat size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />
-                      <input
-                        value={chefNotes}
-                        onChange={e => setChefNotes(e.target.value)}
-                        placeholder="Catatan Chef..."
-                        className="w-full bg-secondary border border-border rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold focus:outline-none focus:border-primary/50 transition-all"
-                      />
-                    </div>
-                    <button onClick={() => setIsPrinterModalOpen(true)} className="p-2 bg-secondary border border-border rounded-xl text-indigo-400 hover:text-indigo-500 transition-colors" title="Printer Settings">
-                      <Printer size={16} />
-                    </button>
-                  </div>
+
 
                   <button onClick={() => setIsPromoModalOpen(true)} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black text-muted-foreground hover:text-foreground transition-all">
                     <Tag size={12} className="text-primary" /> {selectedPromo ? selectedPromo.name : "Pilih Promo"}
