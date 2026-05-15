@@ -54,7 +54,7 @@ class PrintService {
   async connect(address: string): Promise<boolean> {
     if (!this.checkPlatform()) return false;
     return new Promise((resolve, reject) => {
-      bluetoothSerial.connect(
+      bluetoothSerial.connectInsecure(
         address,
         () => {
           this.isConnected = true;
