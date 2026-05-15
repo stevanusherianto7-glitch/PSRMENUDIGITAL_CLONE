@@ -57,7 +57,13 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
   }, [enabled]);
 
   const announceOrder = useCallback((order: Order) => {
-    const items = order.items
+    const drinkItems = order.items.filter(i => i.category === "Minuman");
+    const foodItems = order.items.filter(i => i.category === "Makanan" || i.category === "Snack");
+    const otherItems = order.items.filter(i => i.category !== "Minuman" && i.category !== "Makanan" && i.category !== "Snack");
+    
+    const sortedItems = [...drinkItems, ...foodItems, ...otherItems];
+
+    const items = sortedItems
       .map(i => `${i.name} ${i.qty === 1 ? "satu" : i.qty === 2 ? "dua" : i.qty === 3 ? "tiga" : i.qty === 4 ? "empat" : i.qty === 5 ? "lima" : String(i.qty)}`)
       .join(", ");
     const source = order.type === "guest" ? "dari tamu" : order.type === "waiter" ? "dari pelayan" : "dari kasir";
