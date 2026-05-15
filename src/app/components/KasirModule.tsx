@@ -20,9 +20,10 @@ interface KasirModuleProps {
   onTransaction: (tx: Transaction) => Promise<void>;
   promos: Promo[];
   tables: TableData[];
+  orders: Order[];
 }
 
-export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirModuleProps) {
+export function KasirModule({ menuItems, onTransaction, promos, tables, orders }: KasirModuleProps) {
   const [cart, setCart] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem("pawon_cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -60,6 +61,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
       { id: "m8", name: "NASI GORENG JAWA", price: 25000, qty: 1 }
     ], total: 25000 }
   ];
+  const activeBills = orders && orders.length > 0 
+    ? orders
+        .filter(o => o.status === "served")
+        .map(o => ({
+          id: o.id,
+          table: o.tableId,
+          mode: o.orderMode,
+          items: o.items,
+          total: o.total,
+          name: `Pesanan ${o.id}`
+        }))
+    : mockActiveBills;
+
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
   
   const discountAmount = selectedPromo 
@@ -205,7 +219,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
 
         {/* Grid of Active Bills */}
         <div className="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,170px)] gap-4 pb-24 custom-scrollbar content-start">
-          {mockActiveBills
+          {activeBills
             .filter(bill => bill.mode === orderMode)
             .map(bill => (
               <button

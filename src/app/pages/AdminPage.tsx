@@ -812,7 +812,7 @@ export default function AdminPage() {
                     Petty Cash
                   </button>
                 </div>
-                {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} />}
+                {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} />}
                 {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
                 {kasirSubModule === "petty" && <PettyCashModule />}
               </div>
