@@ -13,7 +13,15 @@ import { GuestReceipt, KitchenReceipt } from "./ReceiptTemplates";
 import { printService } from "../../utils/printService";
 import { toast } from "sonner";
 import { orderModeConfig } from "../pages/AdminPage";
-import type { MenuItem, CartItem, Transaction, Promo, TableData } from "../types";
+import type { MenuItem, CartItem, Transaction, Promo, TableData, Order, OrderStatus } from "../types";
+
+const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
+  pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
+  cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={12} /> },
+  ready: { label: "Siap Antar", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <ShoppingBag size={12} /> },
+  served: { label: "Selesai", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: <CheckCircle2 size={12} /> },
+  cancelled: { label: "Dibatal", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: <XCircle size={12} /> },
+};
 
 interface KasirModuleProps {
   menuItems: MenuItem[];
@@ -218,36 +226,70 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
         </div>
 
         {/* Grid of Active Bills */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,170px)] gap-4 pb-24 custom-scrollbar content-start">
-          {activeBills
-            .filter(bill => bill.mode === orderMode)
-            .map(bill => (
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 custom-scrollbar content-start">
+          {(orders.length > 0 ? orders : []).filter(o => o.orderMode === orderMode && o.status === "served").map(order => {
+            const cfg = orderStatusConfig[order.status];
+            return (
               <button
-                key={bill.id}
+                key={order.id}
                 onClick={() => {
-                  setCart(bill.items);
-                  setSelectedTable(bill.table || "");
-                  toast.success(`Memuat bill ${bill.table || bill.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
+                  setCart(order.items);
+                  setSelectedTable(order.tableId || "");
+                  toast.success(`Memuat bill Meja ${order.tableId}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
                 }}
-                className={`bg-card border border-border/60 rounded-xl p-4 text-left transition-all active:scale-95 group shadow-sm flex flex-col gap-2 hover:border-primary/30 hover:shadow-md ${
-                  cart.length > 0 && cart[0].id === bill.items[0].id ? "border-primary bg-primary/5" : ""
+                className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg text-left ${
+                  cart.length > 0 && cart[0].id === order.items[0].id ? "ring-2 ring-primary" : ""
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-foreground">
-                    {bill.mode === "dine-in" ? `Meja ${bill.table}` : bill.name}
-                  </span>
-                  <span className="text-[10px] font-bold text-muted-foreground">{bill.id}</span>
+                <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border}`}>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`relative flex items-center justify-center ${cfg.color} flex-shrink-0`}>
+                      <span className="relative">{cfg.icon}</span>
+                    </span>
+                    <span className={`text-[11px] font-black uppercase whitespace-nowrap ${cfg.color}`}>Meja {order.tableId}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${
+                      order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                    }`}>
+                      {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
+                    </span>
+                    {(() => {
+                      const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
+                      const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];
+                      return <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter whitespace-nowrap ${mcfg.bg} ${mcfg.border} ${mcfg.color}`}>{mcfg.label}</span>;
+                    })()}
+                  </div>
+
+                  <div className="ml-auto text-right min-w-0">
+                    <p className="text-[9px] text-muted-foreground font-black font-mono truncate">{order.id}</p>
+                  </div>
                 </div>
-                <div className="text-[10px] text-muted-foreground line-clamp-2 h-[2.5rem]">
-                  {bill.items.map(item => `${item.name} (${item.qty})`).join(", ")}
-                </div>
-                <div className="mt-auto pt-2 border-t border-border/60 flex justify-between items-center">
-                  <span className="text-[9px] font-black text-muted-foreground uppercase">Total</span>
-                  <span className="text-xs font-black text-primary font-['Poppins']">{rp(bill.total)}</span>
+                <div className="p-4 space-y-2">
+                  {order.items.map((item, i) => (
+                    <div key={i} className="flex justify-between text-xs items-center gap-4">
+                      <span className="text-muted-foreground font-bold truncate">{item.name} <span className="text-foreground ml-1">×{item.qty}</span></span>
+                      <span className="font-black flex-shrink-0">{rp(item.price * item.qty)}</span>
+                    </div>
+                  ))}
+                  {order.notes && (
+                    <div className="flex items-start gap-2 mt-2 p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/15">
+                      <ChefHat size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Instruksi Khusus</p>
+                        <p className="text-[11px] text-orange-300 font-bold leading-tight mt-0.5">{order.notes}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-3 border-t border-border/50">
+                    <span className="text-[10px] text-muted-foreground font-black font-mono bg-secondary px-1.5 py-0.5 rounded-lg">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="text-green-500 font-black text-sm">{rp(order.total)}</span>
+                  </div>
                 </div>
               </button>
-            ))}
+            );
+          })}
         </div>
       </div>
 
