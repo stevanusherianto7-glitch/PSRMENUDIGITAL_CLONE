@@ -668,14 +668,20 @@ export default function GuestMenuPage() {
 
                     <div className="px-4 pb-4 space-y-1.5">
                       {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between text-xs">
+                        <div key={idx} className="flex justify-between text-xs items-center">
                           <span className="text-muted-foreground">{item.name} ×{item.qty}</span>
-                          <span className="font-semibold">{rp(item.price * item.qty)}</span>
+                          <div className="flex font-semibold">
+                            <span className="w-6 text-left">Rp</span>
+                            <span className="w-[75px] text-right">{(item.price * item.qty).toLocaleString("id-ID")}</span>
+                          </div>
                         </div>
                       ))}
-                      <div className="flex justify-between text-sm font-bold pt-2 border-t border-border">
+                      <div className="flex justify-between text-sm font-bold pt-2 border-t border-border items-center">
                         <span>Total</span>
-                        <span className="text-green-400">{rp(order.total)}</span>
+                        <div className="flex text-green-400">
+                          <span className="w-6 text-left">Rp</span>
+                          <span className="w-[75px] text-right">{order.total.toLocaleString("id-ID")}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
