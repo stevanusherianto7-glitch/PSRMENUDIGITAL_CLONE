@@ -37,52 +37,62 @@ export function MejaModule({ tables, onUpdateStatus }: MejaModuleProps) {
         {(["available", "occupied", "service", "reserved"] as const).map(s => {
           const cfg = tableStatusConfig[s];
           const count = tables.filter(t => t.status === s).length;
-          const labels = { available: "Kosong", occupied: "Terisi", service: "Butuh Layanan", reserved: "Reservasi" };
+          const labels = { available: "Kosong", occupied: "Terisi", service: "Layanan", reserved: "Reservasi" };
           return (
-            <div key={s} className={`rounded-xl p-4 border ${cfg.bg} ${cfg.border} flex items-center gap-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-md group`}>
-              <span className={`text-2xl font-bold ${cfg.color} font-['Poppins'] transition-transform duration-300 group-hover:scale-110`}>{count}</span>
-              <span className="text-xs text-muted-foreground">{labels[s]}</span>
+            <div key={s} className={`rounded-xl p-3 border ${cfg.bg} ${cfg.border} flex flex-col items-center justify-center gap-0.5 transition-all duration-300 hover:scale-[1.02] hover:shadow-md group shadow-sm`}>
+              <span className={`text-2xl font-black ${cfg.color} font-['Poppins'] transition-transform duration-300 group-hover:scale-110`}>{count}</span>
+              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/80">{labels[s]}</span>
             </div>
           );
         })}
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-indigo-500/5 border border-indigo-500/15 rounded-lg px-3 py-2">
-        <QrCode size={12} className="text-indigo-400" />
-        <span>Klik tombol QR di kartu meja untuk generate QR Code scan-order tamu</span>
+      <div className="grid grid-cols-1 gap-2 p-3 bg-secondary/30 border border-border/60 rounded-xl">
+        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground leading-tight">
+          <QrCode size={14} className="text-primary" />
+          <span>Klik tombol QR di kartu meja untuk generate QR Code scan-order tamu secara mandiri.</span>
+        </div>
         <button
           onClick={() => navigate("/qr-stickers")}
-          className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500/25 transition-colors font-semibold text-[10px] flex-shrink-0"
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
         >
-          <Printer size={10} /> Cetak Semua Stiker QR
+          <Printer size={12} /> Cetak Semua Stiker QR
         </button>
       </div>
 
       <div className="flex gap-4">
-        <div className="flex-1 grid grid-cols-3 gap-3">
+        <div className="flex-1 grid grid-cols-2 gap-4 auto-rows-max">
           {tables.map(t => {
             const cfg = tableStatusConfig[t.status];
+            const isSelected = selected?.id === t.id;
             return (
-              <div key={t.id} className={`rounded-xl border p-4 transition-all duration-300 hover:scale-[1.03] hover:shadow-lg ${cfg.bg} ${cfg.border} ${selected?.id === t.id ? `ring-2 ${cfg.color.replace('text-', 'ring-')} shadow-md` : "hover:border-foreground/10"}`}>
-                <div className="flex items-start justify-between">
-                  <button onClick={() => setSelected(selected?.id === t.id ? null : t)} className="flex-1 text-left">
-                    <span className="font-bold text-lg font-['Poppins']">{t.id}</span>
-                    <div className="mt-1 space-y-0.5">
-                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Users size={10} /> {t.seat} kursi</p>
-                      {t.pax && <p className="text-xs text-muted-foreground">{t.pax} tamu</p>}
-                      {t.total && <p className={`text-sm font-bold ${cfg.color}`}>{rp(t.total)}</p>}
-                    </div>
-                  </button>
-                  <div className="flex flex-col gap-1 flex-shrink-0">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color} border ${cfg.border}`}>{cfg.label}</span>
+              <div key={t.id} className={`rounded-[2rem] border p-4 transition-all duration-300 hover:shadow-xl ${cfg.bg} ${cfg.border} ${isSelected ? `ring-2 ring-primary shadow-lg scale-[1.02]` : "hover:border-primary/20 bg-card"}`}>
+                <button
+                  onClick={() => setSelected(isSelected ? null : t)}
+                  className="w-full flex flex-col items-center text-center gap-3"
+                >
+                  <span className="font-black text-3xl font-['Poppins'] text-foreground leading-none">{t.id}</span>
+
+                  <div className="flex flex-col items-center gap-2 w-full">
+                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-xl ${cfg.bg} ${cfg.color} border ${cfg.border} shadow-sm w-full text-center`}>
+                      {cfg.label}
+                    </span>
+
                     <button
-                      onClick={() => setQrTable(t.id)}
-                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground border border-border rounded-full px-2 py-0.5 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); setQrTable(t.id); }}
+                      className="w-full flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground hover:text-primary hover:border-primary/30 bg-secondary/50 border border-border/60 rounded-xl py-2 transition-all uppercase tracking-wider"
                     >
-                      <QrCode size={9} /> QR
+                      <QrCode size={12} /> QR Code
                     </button>
+
+                    <div className="flex flex-col items-center gap-0.5 mt-1">
+                      <p className="text-[10px] font-black text-muted-foreground/60 flex items-center gap-1.5 uppercase tracking-tighter">
+                        <Users size={12} className="opacity-40" /> {t.seat} KURSI
+                      </p>
+                      {t.total && <p className={`text-sm font-black mt-1 ${cfg.color} drop-shadow-sm`}>{rp(t.total)}</p>}
+                    </div>
                   </div>
-                </div>
+                </button>
               </div>
             );
           })}

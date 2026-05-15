@@ -21,7 +21,6 @@ interface OrdersModuleProps {
 
 export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps) => {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
-  const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -65,83 +64,113 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
           <h3 className="font-semibold text-sm">Monitor Pesanan Realtime</h3>
           <p className="text-muted-foreground text-xs mt-0.5">{orders.length} total pesanan aktif</p>
         </div>
-        <button onClick={onRefresh} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground border border-border px-3 py-2 rounded-lg transition-colors">
+        <button onClick={onRefresh} className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground border border-border px-3 py-2 rounded-lg transition-all active:scale-95 bg-card shadow-sm">
           <RefreshCw size={12} /> Refresh
         </button>
       </div>
 
       {/* Status filter */}
-      <div className="flex gap-2 flex-wrap">
-        {(["all", "pending", "cooking", "ready", "served"] as const).map(s => {
-          const cfg = s === "all" ? { color: "text-foreground", bg: "bg-secondary", border: "border-border" } : orderStatusConfig[s];
-          return (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all duration-300 transform ${
-                filter === s 
-                  ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-sm scale-[1.02]` 
-                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-secondary/50 hover:scale-[1.01]"
-              }`}
-            >
-              {s !== "all" && <span>{orderStatusConfig[s as OrderStatus].icon}</span>}
-              {s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label}
-              {counts[s] > 0 && <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${filter === s ? "bg-foreground/10" : "bg-secondary"}`}>{counts[s]}</span>}
-            </button>
-          );
-        })}
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex justify-center gap-2 w-full max-w-lg">
+          {(["all", "pending", "cooking"] as const).map(s => {
+            const cfg = s === "all" ? { color: "text-foreground", bg: "bg-secondary", border: "border-border" } : orderStatusConfig[s];
+            return (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${
+                  filter === s
+                    ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
+                    : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
+                }`}
+              >
+                <div className="text-sm">{s === "all" ? <ShoppingBag size={14} /> : orderStatusConfig[s as OrderStatus].icon}</div>
+                <div className="truncate w-full text-center">{s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label}</div>
+                {counts[s] > 0 && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${filter === s ? "bg-foreground/10" : "bg-secondary"}`}>{counts[s]}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex justify-center gap-2 w-full max-w-[66%] sm:max-w-xs">
+          {(["ready", "served"] as const).map(s => {
+            const cfg = orderStatusConfig[s];
+            return (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${
+                  filter === s
+                    ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
+                    : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
+                }`}
+              >
+                <div className="text-sm">{orderStatusConfig[s as OrderStatus].icon}</div>
+                <div className="truncate w-full text-center">{orderStatusConfig[s as OrderStatus].label}</div>
+                {counts[s] > 0 && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${filter === s ? "bg-foreground/10" : "bg-secondary"}`}>{counts[s]}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3 bg-card border border-border rounded-xl">
           <CheckCircle2 size={32} className="opacity-20" />
-          <p className="text-sm">Tidak ada pesanan</p>
+          <p className="text-sm font-bold uppercase tracking-widest">Tidak ada pesanan</p>
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {filtered.map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
-              <div key={order.id} className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${cfg.border} ${order.status === "pending" ? "ring-1 ring-yellow-400/30" : ""}`}>
-                <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
-                  <span className={`relative flex items-center justify-center ${cfg.color}`}>
-                    {order.status === "pending" && (
-                      <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
-                    )}
-                    <span className="relative">{cfg.icon}</span>
-                  </span>
-                  <span className={`text-sm font-bold ${cfg.color}`}>Meja {order.tableId}</span>
-                  <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                    order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                  }`}>
-                    {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
-                  </span>
-                  {(() => {
-                    const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
-                    const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];
-                    return <span className={`ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${mcfg.bg} ${mcfg.border} ${mcfg.color}`}>{mode === "dine-in" ? "🍽️" : "📦"} {mcfg.label}</span>;
-                  })()}
-                  <span className="ml-auto text-[10px] text-muted-foreground font-mono">{order.id}</span>
+              <div key={order.id} className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${order.status === "pending" ? "ring-2 ring-yellow-400/30" : ""}`}>
+                <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border}`}>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`relative flex items-center justify-center ${cfg.color} flex-shrink-0`}>
+                      {order.status === "pending" && (
+                        <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
+                      )}
+                      <span className="relative">{cfg.icon}</span>
+                    </span>
+                    <span className={`text-[11px] font-black uppercase whitespace-nowrap ${cfg.color}`}>Meja {order.tableId}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${
+                      order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                    }`}>
+                      {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
+                    </span>
+                    {(() => {
+                      const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
+                      const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];
+                      return <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter whitespace-nowrap ${mcfg.bg} ${mcfg.border} ${mcfg.color}`}>{mcfg.label}</span>;
+                    })()}
+                  </div>
+
+                  <div className="ml-auto text-right min-w-0">
+                    <p className="text-[9px] text-muted-foreground font-black font-mono truncate">{order.id}</p>
+                  </div>
                 </div>
-                <div className="p-4 space-y-1.5">
+                <div className="p-4 space-y-2">
                   {order.items.map((item, i) => (
-                    <div key={i} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{item.name} ×{item.qty}</span>
-                      <span className="font-semibold">{rp(item.price * item.qty)}</span>
+                    <div key={i} className="flex justify-between text-xs items-center gap-4">
+                      <span className="text-muted-foreground font-bold truncate">{item.name} <span className="text-foreground ml-1">×{item.qty}</span></span>
+                      <span className="font-black flex-shrink-0">{rp(item.price * item.qty)}</span>
                     </div>
                   ))}
                   {order.notes && (
-                    <div className="flex items-start gap-1.5 mt-1 p-2 rounded-lg bg-orange-500/5 border border-orange-500/20">
-                      <ChefHat size={11} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 mt-2 p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/15">
+                      <ChefHat size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-[10px] font-semibold text-orange-400">Catatan Chef</p>
-                        <p className="text-[11px] text-orange-300">{order.notes}</p>
+                        <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Instruksi Khusus</p>
+                        <p className="text-[11px] text-orange-300 font-bold leading-tight mt-0.5">{order.notes}</p>
                       </div>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm font-bold pt-2 border-t border-border">
-                    <span className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
-                    <span className="text-green-400">{rp(order.total)}</span>
+                  <div className="flex justify-between items-center pt-3 border-t border-border/50">
+                    <span className="text-[10px] text-muted-foreground font-black font-mono bg-secondary px-1.5 py-0.5 rounded-lg">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="text-green-500 font-black text-sm">{rp(order.total)}</span>
                   </div>
                 </div>
               </div>

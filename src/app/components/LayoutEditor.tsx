@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { GripVertical, CheckCircle2, Save, Image, Camera } from "lucide-react";
 import { isUrl } from "./PhotoUploader";
 import { rp } from "../data";
@@ -43,26 +44,46 @@ export function LayoutEditor({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-indigo-500/5 border border-indigo-500/15 rounded-lg px-3 py-2">
-          <GripVertical size={12} className="text-indigo-400" />
-          <span>Seret kartu untuk mengatur urutan tampilan di menu tamu</span>
+    <div className="space-y-6">
+      <div className="flex flex-col items-center gap-3 w-full">
+        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground bg-indigo-500/5 border border-indigo-500/15 rounded-xl px-4 py-2.5 w-full">
+          <GripVertical size={14} className="text-primary" />
+          <span className="uppercase tracking-widest leading-tight">Seret kartu untuk mengatur urutan tampilan di menu tamu secara mandiri</span>
         </div>
-        <button
-          onClick={handleSave}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
-            saved
-              ? "bg-green-500/15 border border-green-500/25 text-green-400"
-              : "bg-primary text-white hover:bg-indigo-500"
-          }`}
-        >
-          {saved ? <CheckCircle2 size={12} /> : <Save size={12} />}
-          {saved ? "Tersimpan!" : "Simpan Urutan"}
-        </button>
+
+        {/* Render Save button in parent header via Portal */}
+        {document.getElementById("layout-editor-save-portal") && createPortal(
+          <button
+            onClick={handleSave}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg ${
+              saved
+                ? "bg-green-500 text-white shadow-green-500/20"
+                : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
+            }`}
+          >
+            {saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+            {saved ? "Berhasil!" : "Simpan"}
+          </button>,
+          document.getElementById("layout-editor-save-portal")!
+        )}
+
+        {/* Fallback button if portal not ready yet or for mobile flow */}
+        {!document.getElementById("layout-editor-save-portal") && (
+          <button
+            onClick={handleSave}
+            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              saved
+                ? "bg-green-500 text-white shadow-lg"
+                : "bg-primary text-white hover:bg-primary/90 shadow-lg"
+            }`}
+          >
+            {saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+            {saved ? "Urutan Berhasil Disimpan!" : "Simpan Urutan Sekarang"}
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 auto-rows-max">
         {list.map((item, i) => {
           const previewSrc = item.image && isUrl(item.image) ? item.image : item.image || "";
           return (

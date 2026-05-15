@@ -88,9 +88,8 @@ const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] =
 
 function ConnectionBadge({ connected }: { connected: boolean }) {
   return (
-    <div className={`flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border ${connected ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
-      {connected ? <Wifi size={10} /> : <WifiOff size={10} />}
-      {connected ? "Supabase" : "Offline"}
+    <div className={`flex items-center justify-center w-8 h-8 rounded-full border transition-all ${connected ? "bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]" : "bg-red-500/10 border-red-500/20 text-red-500"}`} title={connected ? "Supabase Online" : "Offline"}>
+      {connected ? <Wifi size={14} className="animate-pulse" /> : <WifiOff size={14} />}
     </div>
   );
 }
@@ -449,12 +448,14 @@ export default function AdminPage() {
         ${sidebarOpen ? "w-64" : "w-20"}
       `}>
         <div className="h-16 flex items-center px-4 border-b border-sidebar-border overflow-hidden">
-          <div className="flex items-center gap-3 min-w-[200px]">
+          <div className="flex items-center gap-3">
             <img src={logoImg} alt="Logo" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-sm" />
-            <div className={`transition-opacity duration-300 ${sidebarOpen || mobileSidebarOpen ? "opacity-100" : "opacity-0 lg:hidden"}`}>
-              <p className="font-bold text-sm text-foreground leading-tight font-['Poppins'] truncate">Kedai Elvera 57</p>
-              <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-semibold">Admin Panel</p>
-            </div>
+            {(sidebarOpen || mobileSidebarOpen) && (
+              <div className="transition-all animate-in fade-in slide-in-from-left-2 duration-300">
+                <p className="font-black text-sm text-foreground leading-tight font-['Poppins'] truncate whitespace-nowrap">Kedai Elvera 57</p>
+                <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-black">Admin Panel</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -478,13 +479,13 @@ export default function AdminPage() {
                         sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
                       } ${
                         active
-                          ? "bg-primary text-white shadow-lg shadow-primary/20"
-                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                          ? "text-primary drop-shadow-[0_0_8px_rgba(232,119,34,0.8)]"
+                          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                       }`}>
-                      <Icon size={20} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
+                      <Icon size={22} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
 
                       {(sidebarOpen || mobileSidebarOpen) && (
-                        <span className="font-semibold text-xs truncate animate-in fade-in slide-in-from-left-2 duration-300">
+                        <span className={`font-black text-xs truncate animate-in fade-in slide-in-from-left-2 duration-300 uppercase tracking-wider ${active ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
                           {item.label}
                         </span>
                       )}
@@ -511,22 +512,16 @@ export default function AdminPage() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-sidebar-border space-y-2">
+        <div className="p-3 border-t border-sidebar-border flex flex-col items-center gap-4">
           <button
             onClick={logout}
-            className={`w-full flex items-center rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-500/5 transition-all group ${
-              sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
-            }`}
+            className="p-3 rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-500/5 transition-all group flex items-center justify-center w-full"
+            title="Keluar"
           >
-            <LogOut size={20} className="flex-shrink-0 transition-transform group-hover:scale-110" />
-            {(sidebarOpen || mobileSidebarOpen) && <span className="font-bold text-xs">Keluar</span>}
+            <LogOut size={22} className="flex-shrink-0 transition-transform group-hover:scale-110" />
           </button>
 
-          {(sidebarOpen || mobileSidebarOpen) && (
-            <div className="px-1 animate-in fade-in duration-500">
-              <ConnectionBadge connected={connected} />
-            </div>
-          )}
+          <ConnectionBadge connected={connected} />
         </div>
       </aside>
 
@@ -594,10 +589,6 @@ export default function AdminPage() {
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-card" />
               )}
             </button>
-
-            <div className="w-8 h-8 bg-gradient-to-tr from-primary to-primary/60 rounded-lg flex items-center justify-center text-white text-[11px] font-bold shadow-md ring-2 ring-background">
-              AD
-            </div>
           </div>
         </header>
 

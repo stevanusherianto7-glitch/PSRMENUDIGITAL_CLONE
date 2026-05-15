@@ -100,44 +100,49 @@ export function MenuManagement({
   const unavailableCount = menuItems.filter((m) => !m.available).length;
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="space-y-4">
         <div>
-          <h3 className="font-semibold text-sm text-foreground">Katalog Menu Kedai Elvera 57</h3>
-          <p className="text-muted-foreground text-xs mt-0.5">
+          <h3 className="font-black text-base text-foreground uppercase tracking-tight">Katalog Menu Kedai Elvera 57</h3>
+          <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.1em] mt-1">
             {menuItems.length} item · {availableCount} aktif · {unavailableCount} tidak tersedia
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center justify-between gap-3">
           {/* View switcher */}
-          <div className="flex items-center gap-1 bg-secondary border border-border rounded-lg p-1">
+          <div className="flex items-center gap-1.5 bg-secondary/50 border border-border/60 rounded-xl p-1.5 shadow-inner">
             <button
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                viewMode === "grid" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                viewMode === "grid" ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <LayoutGrid size={12} /> Daftar
+              <LayoutGrid size={14} /> Daftar
             </button>
             <button
               onClick={() => setViewMode("layout")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-all ${
-                viewMode === "layout" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                viewMode === "layout" ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <ArrowUpDown size={12} /> Atur Urutan
+              <ArrowUpDown size={14} /> Atur Urutan
             </button>
           </div>
 
-          {viewMode === "grid" && (
-            <button
-              onClick={openAdd}
-              className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-500 transition-colors"
-            >
-              <Plus size={14} /> Tambah Menu
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {viewMode === "grid" ? (
+              <button
+                onClick={openAdd}
+                className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+              >
+                <Plus size={16} /> Tambah Menu
+              </button>
+            ) : (
+              <div id="layout-editor-save-portal" />
+            )}
+          </div>
         </div>
       </div>
 
@@ -145,17 +150,17 @@ export function MenuManagement({
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: "Total Menu", val: menuItems.length, color: "text-foreground", icon: Package },
-          { label: "Tersedia", val: availableCount, color: "text-green-400", icon: CheckCircle2 },
-          { label: "Tidak Aktif", val: unavailableCount, color: "text-red-400", icon: EyeOff },
+          { label: "Tersedia", val: availableCount, color: "text-green-500", icon: CheckCircle2 },
+          { label: "Tidak Aktif", val: unavailableCount, color: "text-red-500", icon: EyeOff },
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3">
-              <Icon size={16} className={s.color} />
-              <div>
-                <p className={`text-xl font-bold ${s.color} font-poppins`}>{s.val}</p>
-                <p className="text-[10px] text-muted-foreground">{s.label}</p>
+            <div key={s.label} className="bg-card border border-border/60 rounded-xl p-3 flex flex-col gap-1.5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-2">
+                <Icon size={14} className={s.color} />
+                <p className={`text-lg font-black ${s.color} font-poppins leading-none`}>{s.val}</p>
               </div>
+              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest whitespace-nowrap">{s.label}</p>
             </div>
           );
         })}
