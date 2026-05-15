@@ -22,6 +22,13 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   }, []);
 
   async function checkBluetooth() {
+    // Memancing pop-up izin di Android 12+ dengan memanggil listPairedDevices
+    try {
+      await printService.listPairedDevices();
+    } catch (e) {
+      console.log("Permission trigger failed or cancelled:", e);
+    }
+
     const enabled = await printService.isBluetoothEnabled();
     setIsEnabled(enabled);
     if (enabled) {
