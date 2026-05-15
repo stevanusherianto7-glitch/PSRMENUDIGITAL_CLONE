@@ -103,13 +103,6 @@ export function MenuManagement({
     <div className="space-y-6">
       {/* Header Section */}
       <div className="space-y-4">
-        <div>
-          <h3 className="font-black text-base text-foreground uppercase tracking-tight">Katalog Menu Kedai Elvera 57</h3>
-          <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.1em] mt-1">
-            {menuItems.length} item · {availableCount} aktif · {unavailableCount} tidak tersedia
-          </p>
-        </div>
-
         <div className="flex items-center justify-between gap-3">
           {/* View switcher */}
           <div className="flex items-center gap-1.5 bg-secondary/50 border border-border/60 rounded-xl p-1.5 shadow-inner">
