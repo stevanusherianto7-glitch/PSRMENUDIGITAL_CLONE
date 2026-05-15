@@ -47,7 +47,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
 
-  const filtered = cat === "Semua" ? menuItems : menuItems.filter(m => m.category === cat);
+  const mockActiveBills = [
+    { id: "A1", table: "A1", mode: "dine-in", items: [
+      { id: "m1", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1 },
+      { id: "m12", name: "ES TEH", price: 5000, qty: 1 }
+    ], total: 40000 },
+    { id: "A4", table: "A4", mode: "dine-in", items: [
+      { id: "m4", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2 },
+      { id: "m11", name: "NIPIS MADU", price: 12000, qty: 2 }
+    ], total: 74000 },
+    { id: "O-1001", mode: "take-away", name: "Budi", items: [
+      { id: "m8", name: "NASI GORENG JAWA", price: 25000, qty: 1 }
+    ], total: 25000 }
+  ];
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
   
   const discountAmount = selectedPromo 
@@ -59,10 +71,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   const tax = Math.round((subtotal - discountAmount) * 0.1);
   const total = subtotal - discountAmount + tax;
 
-  function addToCart(item: MenuItem) {
-    if (!item.available) return;
-    setCart(prev => { const ex = prev.find(c => c.id === item.id); return ex ? prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c) : [...prev, { ...item, qty: 1 }]; });
-  }
+
 
   function updateQty(id: string, delta: number) {
     setCart(prev => prev.map(c => c.id === id ? { ...c, qty: Math.max(0, c.qty + delta) } : c).filter(c => c.qty > 0));
@@ -168,58 +177,63 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
 
   return (
     <div className="relative h-full lg:h-[calc(100vh-160px)] flex flex-col md:flex-row gap-6">
-      {/* Sidebar Kategori */}
-      <div className="w-full md:w-40 flex-shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 custom-scrollbar">
-        <p className="hidden md:block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Kategori</p>
-        {menuCategories.map(c => (
+      {/* Active Bills Area */}
+      <div className="flex-1 h-full flex flex-col overflow-hidden">
+        {/* Tabs for Dine In / Take Away */}
+        <div className="flex gap-2 mb-4">
           <button
-            key={c}
-            onClick={() => setCat(c)}
-            className={`px-4 py-2.5 rounded-xl text-[11px] font-bold text-left transition-all flex-shrink-0 md:flex-shrink ${
-              cat === c 
-                ? "bg-primary text-white shadow-lg shadow-primary/20" 
+            onClick={() => setOrderMode("dine-in")}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              orderMode === "dine-in"
+                ? "bg-primary text-white shadow-lg shadow-primary/20"
                 : "bg-card border border-border/60 text-muted-foreground hover:bg-secondary"
             }`}
           >
-            {c}
+            Dine In (Meja)
           </button>
-        ))}
-      </div>
+          <button
+            onClick={() => setOrderMode("take-away")}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              orderMode === "take-away"
+                ? "bg-primary text-white shadow-lg shadow-primary/20"
+                : "bg-card border border-border/60 text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            Take Away
+          </button>
+        </div>
 
-      {/* Menu Area */}
-      <div className="flex-1 h-full flex flex-col overflow-hidden">
+        {/* Grid of Active Bills */}
         <div className="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,170px)] gap-4 pb-24 custom-scrollbar content-start">
-          {filtered.map(item => (
-            <button
-              key={item.id}
-              onClick={() => {
-                addToCart(item);
-                toast.success(`${item.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
-              }}
-              disabled={!item.available}
-              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col ${
-                !item.available ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-primary/30 hover:shadow-md"
-              }`}
-            >
-              <div className="relative w-full h-0 pb-[75%] bg-secondary overflow-hidden">
-                <img src={item.image} alt={item.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                {item.tag && (
-                  <span className="absolute top-1.5 left-1.5 bg-primary/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest shadow-lg">
-                    {item.tag}
+          {mockActiveBills
+            .filter(bill => bill.mode === orderMode)
+            .map(bill => (
+              <button
+                key={bill.id}
+                onClick={() => {
+                  setCart(bill.items);
+                  setSelectedTable(bill.table || "");
+                  toast.success(`Memuat bill ${bill.table || bill.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
+                }}
+                className={`bg-card border border-border/60 rounded-xl p-4 text-left transition-all active:scale-95 group shadow-sm flex flex-col gap-2 hover:border-primary/30 hover:shadow-md ${
+                  cart.length > 0 && cart[0].id === bill.items[0].id ? "border-primary bg-primary/5" : ""
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-foreground">
+                    {bill.mode === "dine-in" ? `Meja ${bill.table}` : bill.name}
                   </span>
-                )}
-                {!item.available && (
-                  <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] bg-white/90 px-2 py-1 rounded-lg">HABIS</span>
-                  </div>
-                )}
-              </div>
-              <div className="p-2.5 flex flex-col gap-1">
-                <p className="font-bold text-[11px] text-foreground leading-tight line-clamp-2 h-[2rem] group-hover:text-primary transition-colors uppercase tracking-tight">{item.name}</p>
-                <p className="text-primary font-black text-xs mt-auto font-['Poppins']">{rp(item.price)}</p>
-              </div>
-            </button>
-          ))}
+                  <span className="text-[10px] font-bold text-muted-foreground">{bill.id}</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground line-clamp-2 h-[2.5rem]">
+                  {bill.items.map(item => `${item.name} (${item.qty})`).join(", ")}
+                </div>
+                <div className="mt-auto pt-2 border-t border-border/60 flex justify-between items-center">
+                  <span className="text-[9px] font-black text-muted-foreground uppercase">Total</span>
+                  <span className="text-xs font-black text-primary font-['Poppins']">{rp(bill.total)}</span>
+                </div>
+              </button>
+            ))}
         </div>
       </div>
 
