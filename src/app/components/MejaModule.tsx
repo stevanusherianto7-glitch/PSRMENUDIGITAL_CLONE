@@ -150,22 +150,22 @@ export function MejaModule({ tables, onUpdateStatus }: MejaModuleProps) {
               <p className="text-xs text-muted-foreground mt-1">Tempel QR ini di meja agar tamu bisa pesan mandiri</p>
             </div>
             <div className="bg-white p-4 rounded-xl">
-              <QRCode value={`${baseUrl}/menu/${qrTable}`} size={200} />
+              <QRCode value={`${baseUrl}/#/menu/${qrTable}`} size={200} />
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground font-mono break-all bg-secondary px-3 py-2 rounded-lg border border-border">
-                {baseUrl}/menu/{qrTable}
+                {baseUrl}/#/menu/{qrTable}
               </p>
             </div>
             <div className="flex gap-3 w-full">
               <button
-                onClick={() => { navigator.clipboard.writeText(`${baseUrl}/menu/${qrTable}`); }}
+                onClick={() => { navigator.clipboard.writeText(`${baseUrl}/#/menu/${qrTable}`); }}
                 className="flex-1 py-2 rounded-lg bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5"
               >
                 <Copy size={12} /> Salin Link
               </button>
               <button
-                onClick={() => window.open(`${baseUrl}/menu/${qrTable}`, "_blank")}
+                onClick={() => window.open(`${baseUrl}/#/menu/${qrTable}`, "_blank")}
                 className="flex-1 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-indigo-500 flex items-center justify-center gap-1.5"
               >
                 <ExternalLink size={12} /> Buka Link

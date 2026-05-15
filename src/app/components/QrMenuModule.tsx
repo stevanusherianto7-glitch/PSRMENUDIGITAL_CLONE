@@ -38,7 +38,7 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
         <p style="font-family:Poppins,sans-serif; font-size:20px; font-weight:700; margin:0 0 4px; color:#1F2937;">Buku Menu Digital</p>
         <p style="font-family:Poppins,sans-serif; font-size:14px; font-weight:600; color:#6B7280; margin:0 0 16px;">Kedai Elvera 57</p>
         <div style="background:#fff; padding:8px; border-radius:8px;">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/menu/${t.id}`)}" width="180" height="180" />
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="180" height="180" />
         </div>
         <p style="font-family:Poppins,sans-serif; font-size:24px; font-weight:700; margin:16px 0 0; color:#1F2937;">Meja ${t.id}</p>
       </div>
@@ -84,13 +84,13 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
         <QrCode size={16} className="text-indigo-400 flex-shrink-0 mt-0.5" />
         <div className="text-xs text-muted-foreground space-y-1">
           <p><strong className="text-foreground">Cara kerja:</strong> Cetak QR stiker untuk setiap meja, tempel di meja. Tamu scan QR → buka menu digital → pilih item → pesan langsung ke dapur.</p>
-          <p>URL dasar: <code className="bg-secondary border border-border px-1.5 py-0.5 rounded font-mono text-[10px]">{baseUrl}/menu/{"{meja}"}</code></p>
+          <p>URL dasar: <code className="bg-secondary border border-border px-1.5 py-0.5 rounded font-mono text-[10px]">{baseUrl}/#/menu/{"{meja}"}</code></p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {tables.map(t => {
-          const url = `${baseUrl}/menu/${t.id}`;
+          const url = `${baseUrl}/#/menu/${t.id}`;
           return (
             <div key={t.id} className="bg-card border border-border rounded-xl overflow-hidden flex flex-col items-center p-5 gap-3 group hover:border-primary/30 transition-colors">
               <p className="font-bold text-sm font-['Poppins']">Meja {t.id}</p>
