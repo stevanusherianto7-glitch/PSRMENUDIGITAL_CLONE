@@ -1,3 +1,8 @@
+/**
+ * ⚠️ DILARANG KERAS MENGUBAH ATAU MENGEDIT KODE INI TANPA IZIN ⚠️
+ * File ini berisi logika Text-to-Speech (TTS) yang sangat sensitif untuk pesanan dapur dan bar.
+ * Perubahan sembarangan pada jeda (setTimeout) dapat merusak sinkronisasi suara notifikasi!
+ */
 import { useRef, useEffect, useCallback } from "react";
 import type { Order } from "../types";
 
@@ -99,12 +104,15 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     const newOrders = orders.filter(o => !knownIds.current.has(o.id));
     if (newOrders.length === 0) return;
 
+    // Bersihkan antrian lama di browser HANYA SEKALI saat ada pesanan baru masuk
+    window.speechSynthesis.cancel();
+
     // Tambahkan ke set agar tidak diumumkan dua kali
     newOrders.forEach(o => knownIds.current.add(o.id));
 
     // Umumkan dengan jeda antar pesanan jika lebih dari satu
     newOrders.forEach((order, index) => {
-      setTimeout(() => announceOrder(order), index * 3500);
+      setTimeout(() => announceOrder(order), index * 8000);
     });
   }, [orders, announceOrder]);
 
