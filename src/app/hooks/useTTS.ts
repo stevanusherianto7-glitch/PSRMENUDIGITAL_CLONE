@@ -13,8 +13,8 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     if (!enabled) return;
     if (!("speechSynthesis" in window)) return;
 
-    // Cancel utterance yang sedang berjalan agar tidak tumpang tindih
-    window.speechSynthesis.cancel();
+    // Cancel dihapus agar tidak memutus suara sebelumnya (Opsi 2)
+    // window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
@@ -67,9 +67,9 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
       `Mohon segera diproses.`
     ].filter(Boolean);
     
-    // Ucapkan tiap bagian dengan jeda 4 detik agar ada waktu jeda antar informasi
+    // Ucapkan tiap bagian dengan jeda 1.5 detik (Opsi 2)
     parts.forEach((part, index) => {
-      setTimeout(() => speak(part), index * 4000);
+      setTimeout(() => speak(part), index * 1500);
     });
   }, [speak]);
 
