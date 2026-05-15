@@ -1,43 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BadgeCent, ChefHat, Clock, Flame, LogOut, RefreshCw, UtensilsCrossed } from "lucide-react";
+import { ChefHat, Clock, Flame, LogOut, RefreshCw, UtensilsCrossed, CheckCircle2, ShoppingBag, Database, Bell } from "lucide-react";
 import { fetchOrders, updateOrder } from "../api";
-import type { Order } from "../types";
+import { rp } from "../data";
+import type { Order, OrderStatus } from "../types";
+
+// Menggunakan string path untuk logo agar tidak error di Vite
+const logoImg = "/imports/logo_kedai_Elvera57.png";
 
 type KitchenFilter = "pending" | "cooking" | "ready";
 
-const statusColors: Record<KitchenFilter, string> = {
-  pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  cooking: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  ready: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+const statusConfig: Record<KitchenFilter, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
+  pending: { label: "Menunggu", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={14} /> },
+  cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={14} /> },
+  ready: { label: "Siap Saji", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <UtensilsCrossed size={14} /> },
 };
 
-const statusDot: Record<KitchenFilter, string> = {
-  pending: "bg-yellow-500",
-  cooking: "bg-orange-500",
-  ready: "bg-blue-500",
-};
-
-const statusLabel: Record<KitchenFilter, string> = {
-  pending: "Menunggu",
-  cooking: "Dimasak",
-  ready: "Siap Saji",
-};
-
-const statusIcon: Record<KitchenFilter, typeof Clock> = {
-  pending: Clock,
-  cooking: Flame,
-  ready: UtensilsCrossed,
+const orderModeConfig = {
+  "dine-in": { label: "Dine In", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", icon: <Clock size={11} /> },
+  "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", icon: <Clock size={11} /> },
 };
 
 function formatTime(iso: string) {
+  if (!iso) return "Invalid Date";
   const d = new Date(iso);
   return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
 
 function timeSince(iso: string) {
+  if (!iso) return "NaN jam NaN menit";
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (diff < 1) return "Baru saja";
+  if (diff < 1) return "baru saja";
   if (diff < 60) return `${diff} menit lalu`;
   return `${Math.floor(diff / 60)} jam ${diff % 60} menit`;
 }
@@ -48,6 +41,7 @@ export default function KitchenPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<KitchenFilter>("pending");
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -71,7 +65,7 @@ export default function KitchenPage() {
     () =>
       orders
         .filter((o) => o.status === filter)
-        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+        .sort((a, b) => new Date(a.created_at || a.createdAt).getTime() - new Date(b.created_at || b.createdAt).getTime()),
     [orders, filter],
   );
 
@@ -91,11 +85,14 @@ export default function KitchenPage() {
     };
     const target = next[order.status];
     if (!target) return;
+    setUpdating(order.id);
     try {
       const updated = await updateOrder(order.id, { status: target as Order["status"] });
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
     } catch (err) {
       console.error("Failed to update order", err);
+    } finally {
+      setUpdating(null);
     }
   };
 
@@ -106,93 +103,97 @@ export default function KitchenPage() {
     };
     const target = prev[order.status];
     if (!target) return;
+    setUpdating(order.id);
     try {
       const updated = await updateOrder(order.id, { status: target as Order["status"] });
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
     } catch (err) {
       console.error("Failed to revert order", err);
+    } finally {
+      setUpdating(null);
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("kitchen_auth");
-    navigate("/login");
+    navigate("/");
   };
 
   const filters: KitchenFilter[] = ["pending", "cooking", "ready"];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <ChefHat className="w-7 h-7 text-orange-600" />
-            <h1 className="text-xl font-bold text-gray-800">Layar Dapur</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={load}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={autoRefresh}
-                onChange={(e) => setAutoRefresh(e.target.checked)}
-                className="accent-orange-600 w-4 h-4"
-              />
-              Auto
-            </label>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Keluar
-            </button>
-          </div>
+      <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-4 gap-3 flex-shrink-0 sticky top-0 z-30">
+        <img src={logoImg} alt="Kedai Elvera 57" className="w-8 h-8 rounded-lg object-cover" />
+        <div className="flex-1">
+          <p className="font-bold text-sm text-foreground font-poppins">
+            Layar Dapur · Kedai Elvera 57
+          </p>
+          <p className="text-xs text-muted-foreground">Dapur</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={load}
+            className="text-muted-foreground hover:text-foreground transition-colors p-2"
+            aria-label="Segarkan pesanan"
+          >
+            <RefreshCw size={15} />
+          </button>
+          
+          <label className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-secondary border-border text-muted-foreground hover:text-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+              className="accent-primary w-3 h-3"
+            />
+            <span className="hidden sm:inline">Auto</span>
+          </label>
+
+          <button
+            onClick={handleLogout}
+            className="text-muted-foreground hover:text-red-400 transition-colors p-2 flex items-center gap-1.5 text-xs font-semibold"
+            aria-label="Logout"
+          >
+            <LogOut size={15} />
+            <span className="hidden sm:inline">Keluar</span>
+          </button>
         </div>
       </header>
 
-      {/* Filter Tabs */}
-      <div className="sticky top-[57px] z-20 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto flex gap-1 px-4 py-2">
-          {filters.map((f) => {
-            const Icon = statusIcon[f];
-            const active = filter === f;
-            return (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? `${statusColors[f]} border shadow-sm`
-                    : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-transparent"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {statusLabel[f]}
-                <span
-                  className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-                    active ? "bg-white/60" : "bg-gray-200 text-gray-600"
-                  }`}
-                >
+      {/* Tabs */}
+      <div className="flex border-b border-border bg-card/50 sticky top-14 z-20">
+        {filters.map((f) => {
+          const cfg = statusConfig[f];
+          const active = filter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-semibold border-b-2 transition-all ${
+                active ? `border-primary ${cfg.color}` : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {cfg.icon}
+              {cfg.label}
+              {counts[f] > 0 && (
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                  active ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground"
+                }`}>
                   {counts[f]}
                 </span>
-              </button>
-            );
-          })}
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+      <main className="flex-1 p-4 overflow-y-auto">
         {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="bg-card border border-border rounded-xl overflow-hidden animate-pulse">
                 <div className="h-10 bg-secondary border-b border-border"></div>
@@ -205,103 +206,128 @@ export default function KitchenPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
-            <BadgeCent className="w-12 h-12" />
-            <p className="text-lg font-medium">Tidak ada pesanan</p>
-            <p className="text-sm">
-              Pesanan dengan status &ldquo;{statusLabel[filter]}&rdquo; akan muncul di sini.
+          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
+            <CheckCircle2 size={40} className="opacity-20" />
+            <p className="text-sm font-semibold">
+              Tidak ada pesanan {statusConfig[filter].label}
             </p>
+            <p className="text-xs">Pesanan baru akan muncul otomatis</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onAdvance={advanceStatus}
-                onRevert={revertStatus}
-              />
-            ))}
+          <div className={`grid gap-4 ${filtered.length >= 2 ? "lg:grid-cols-2 xl:grid-cols-3" : ""}`}>
+            {filtered.map((order) => {
+              const cfg = statusConfig[filter];
+              const createdAtStr = order.created_at || order.createdAt;
+              const isNew = createdAtStr && (Date.now() - new Date(createdAtStr).getTime() < 60000);
+              return (
+                <div
+                  key={order.id}
+                  className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
+                    cfg.border
+                  } ${isNew ? "ring-1 ring-yellow-500/30" : ""}`}
+                >
+                  {/* Order header */}
+                  <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
+                    <span className={`relative flex items-center justify-center ${cfg.color}`}>
+                      {isNew && (
+                        <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-yellow-400 opacity-75"></span>
+                      )}
+                      <span className="relative">{cfg.icon}</span>
+                    </span>
+                    <span className={`text-sm font-bold ${cfg.color}`}>Meja {order.tableId}</span>
+                    {isNew && (
+                      <span className="ml-1 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-yellow-500/20 animate-pulse">
+                        BARU
+                      </span>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock size={10} /> {timeSince(createdAtStr)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Type badge + ID */}
+                  <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        order.type === "guest"
+                          ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+                          : order.type === "waiter"
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                      }`}>
+                        {order.type === "guest" ? "Scan Mandiri" : order.type === "waiter" ? "Via Waiter" : "Kasir"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-mono">{order.id}</span>
+                  </div>
+
+                  {/* Items */}
+                  <div className="px-4 py-3 space-y-1.5">
+                    {order.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-6 h-6 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                          {item.qty}
+                        </span>
+                        <span className="text-foreground font-medium text-xs flex-1">{item.name}</span>
+                      </div>
+                    ))}
+                    {order.notes && (
+                      <div className="flex items-start gap-1.5 mt-2 p-2.5 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                        <ChefHat size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-semibold text-orange-400 mb-0.5">Catatan Chef</p>
+                          <p className="text-[11px] text-orange-300">{order.notes}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="px-4 pb-4 flex gap-2">
+                    {filter !== "ready" && (
+                      <button
+                        onClick={() => advanceStatus(order)}
+                        disabled={!!updating}
+                        className="flex-1 py-2 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold hover:bg-orange-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        {updating === order.id ? <RefreshCw size={12} className="animate-spin" /> : filter === "pending" ? <Flame size={12} /> : <UtensilsCrossed size={12} />}
+                        {filter === "pending" ? "Mulai Masak" : "Selesai Masak — Siap Saji"}
+                      </button>
+                    )}
+                    {filter !== "pending" && (
+                      <button
+                        onClick={() => revertStatus(order)}
+                        disabled={!!updating}
+                        className="px-3 py-2 rounded-lg text-sm font-medium bg-white/5 hover:bg-white/10 text-muted-foreground border border-border transition-colors disabled:opacity-50"
+                      >
+                        Kembali
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
-    </div>
-  );
-}
 
-function OrderCard({
-  order,
-  onAdvance,
-  onRevert,
-}: {
-  order: Order;
-  onAdvance: (o: Order) => void;
-  onRevert: (o: Order) => void;
-}) {
-  const status = order.status as KitchenFilter;
-  return (
-    <div
-      className={`rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
-        statusColors[status] ?? "bg-card border-border"
-      }`}
-    >
-      {/* Card header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full ${statusDot[status] ?? "bg-gray-400"}`} />
-          <span className="font-bold text-gray-800">Meja {order.tableId}</span>
-        </div>
-        <span className="text-xs text-gray-500 flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {formatTime(order.createdAt)}
+      {/* Status bar */}
+      <div className="border-t border-border bg-card/50 px-4 py-2.5 flex items-center gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          Live — update tiap 5 detik
         </span>
-      </div>
-
-      {/* Items */}
-      <div className="bg-secondary/50 rounded-lg p-3 space-y-1.5 flex-1 border border-border/50">
-        {order.items.map((item, idx) => (
-          <div key={idx} className="flex justify-between text-sm">
-            <span className="text-gray-700">
-              {item.qty}× {item.name}
-            </span>
-          </div>
-        ))}
-        {order.notes && (
-          <p className="text-xs text-orange-700 mt-2 italic border-t border-orange-200 pt-2">
-            Catatan: {order.notes}
-          </p>
-        )}
-      </div>
-
-      {/* Time since */}
-      <p className="text-xs text-gray-500">{timeSince(order.createdAt)}</p>
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        {order.status !== "ready" && (
-          <button
-            onClick={() => onAdvance(order)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 transition-colors"
-          >
-            {order.status === "pending" ? (
-              <>
-                <Flame className="w-4 h-4" /> Masak
-              </>
-            ) : (
-              <>
-                <UtensilsCrossed className="w-4 h-4" /> Siap Saji
-              </>
-            )}
-          </button>
-        )}
-        {order.status !== "pending" && (
-          <button
-            onClick={() => onRevert(order)}
-            className="px-3 py-2 rounded-lg text-sm font-medium bg-white/70 hover:bg-white text-gray-600 border border-gray-300 transition-colors"
-          >
-            Kembali
-          </button>
-        )}
+        <span className="flex items-center gap-1.5">
+          <Clock size={10} /> {counts.pending} menunggu
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Flame size={10} /> {counts.cooking} dimasak
+        </span>
+        <span className="flex items-center gap-1.5">
+          <UtensilsCrossed size={10} /> {counts.ready} siap saji
+        </span>
       </div>
     </div>
   );
