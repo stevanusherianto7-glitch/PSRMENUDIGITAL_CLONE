@@ -167,24 +167,28 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   ];
 
   return (
-    <div className="relative h-full lg:h-[calc(100vh-160px)]">
-      {/* Menu Area - Now Full Width */}
-      <div className="h-full flex flex-col gap-6">
-        <div className="flex gap-1.5 overflow-x-auto pb-1.5 flex-shrink-0 custom-scrollbar">
-          {menuCategories.map(c => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex-shrink-0 border transition-all shadow-sm ${
-                cat === c ? "bg-primary text-white border-primary shadow-primary/20" : "bg-card border-border text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+    <div className="relative h-full lg:h-[calc(100vh-160px)] flex flex-col md:flex-row gap-6">
+      {/* Sidebar Kategori */}
+      <div className="w-full md:w-40 flex-shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 custom-scrollbar">
+        <p className="hidden md:block text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Kategori</p>
+        {menuCategories.map(c => (
+          <button
+            key={c}
+            onClick={() => setCat(c)}
+            className={`px-4 py-2.5 rounded-xl text-[11px] font-bold text-left transition-all flex-shrink-0 md:flex-shrink ${
+              cat === c 
+                ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                : "bg-card border border-border/60 text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pb-24 custom-scrollbar">
+      {/* Menu Area */}
+      <div className="flex-1 h-full flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pb-24 custom-scrollbar">
           {filtered.map(item => (
             <button
               key={item.id}
