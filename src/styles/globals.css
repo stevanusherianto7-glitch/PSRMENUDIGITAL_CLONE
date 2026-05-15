@@ -29,3 +29,25 @@
 .delay-11 { animation-delay: 2.05s; }
 .delay-12 { animation-delay: 2.10s; }
 .font-poppins { font-family: 'Poppins', sans-serif; }
+
+/* Capacitor / Mobile Optimization */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  /* Prevent text selection on tap */
+  -webkit-user-select: none;
+  user-select: none;
+  
+  /* Apply safe area padding for non-fixed layouts */
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+}
+
+/* Allow text selection in inputs and textareas */
+input, textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
