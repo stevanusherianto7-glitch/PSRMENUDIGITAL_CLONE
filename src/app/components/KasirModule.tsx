@@ -214,7 +214,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
                   </div>
                 )}
               </div>
-              <div className="p-2.5 flex-1 flex flex-col gap-1">
+              <div className="p-2.5 flex flex-col gap-1">
                 <p className="font-bold text-[11px] text-foreground leading-tight line-clamp-2 h-[2rem] group-hover:text-primary transition-colors uppercase tracking-tight">{item.name}</p>
                 <p className="text-primary font-black text-xs mt-auto font-['Poppins']">{rp(item.price)}</p>
               </div>
