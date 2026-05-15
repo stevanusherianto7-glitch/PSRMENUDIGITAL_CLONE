@@ -97,7 +97,6 @@ const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] =
   { id: "kasir", label: "Kasir", icon: ShoppingCart },
   { id: "meja", label: "Manajemen Meja", icon: Grid3X3 },
   { id: "menu", label: "Katalog Menu", icon: UtensilsCrossed },
-  { id: "promo", label: "Promo", icon: Tag },
   { id: "qr-menu", label: "Buku Menu Digital", icon: QrCode },
   { id: "stok", label: "Stok Opname", icon: Package },
   { id: "metrics", label: "Metrics", icon: Activity },
