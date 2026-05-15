@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ArrowUpRight, Database, Printer, ExternalLink, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Database, Printer, ExternalLink, RefreshCw, X } from "lucide-react";
 import { rp, BEST_SELLER_DATA, PAYMENT_DATA } from "../data";
 import { printService } from "../../utils/printService";
 import { ClosingReceipt } from "./ReceiptTemplates";
 import { toast } from "sonner";
 import type { Transaction } from "../types";
+import html2canvas from "html2canvas";
 
 interface LaporanModuleProps {
   transactions: Transaction[];
@@ -76,6 +77,7 @@ function WeeklySalesChart({ data }: { data: { day: string; sales: number }[] }) 
 export function LaporanModule({ transactions }: LaporanModuleProps) {
   const [isPrinting, setIsPrinting] = useState(false);
   const [printType, setPrintType] = useState<'pdf' | null>(null);
+  const [pdfImage, setPdfImage] = useState<string | null>(null);
 
   const weekDays = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
   const weeklyData = Array.from({ length: 7 }, (_, i) => {
@@ -140,11 +142,24 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   }
 
   function handlePrintPDF() {
-    setPrintType('pdf');
-    setTimeout(() => {
-      window.print();
-      setPrintType(null);
-    }, 100);
+    const element = document.getElementById('laporan-content');
+    if (element) {
+      toast.info("Memproses screenshot laporan...");
+      
+      html2canvas(element, {
+        scale: 2, // Kualitas HD
+        useCORS: true,
+        backgroundColor: "#ffffff" // Paksa background putih agar teks terlihat jelas
+      }).then(canvas => {
+        const dataUrl = canvas.toDataURL('image/png');
+        setPdfImage(dataUrl);
+        toast.success("Laporan siap disimpan!");
+      }).catch(err => {
+        toast.error("Gagal mengambil screenshot: " + err.message);
+      });
+    } else {
+      toast.error("Elemen laporan tidak ditemukan.");
+    }
   }
 
   return (
@@ -174,7 +189,10 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
           Closing (PDF)
         </button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      
+      {/* Area yang akan di-screenshot */}
+      <div id="laporan-content" className="space-y-4 bg-background p-2 rounded-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { label: "Penjualan Minggu Ini", val: rp(weekTotal || 37942000), trend: "+18.3%", accent: "text-primary" },
           { label: "Total Transaksi", val: String(txCount || 377), trend: "+22 tx", accent: "text-foreground" },
@@ -226,6 +244,36 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
           </div>
         </div>
       </div>
+      </div> {/* Tutup laporan-content */}
+      
+      {/* Modal Preview Gambar Laporan */}
+      {pdfImage && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-4">
+          <div className="bg-card rounded-2xl p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col gap-4 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-xs uppercase tracking-widest text-foreground">Preview Laporan</h3>
+              <button 
+                onClick={() => setPdfImage(null)}
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+                aria-label="Tutup"
+              >
+                <X size={14} className="text-foreground" />
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wide">Tekan lama pada gambar di bawah untuk menyimpan ke galeri HP.</p>
+            <div className="border border-border/60 rounded-xl overflow-hidden bg-white">
+              <img src={pdfImage} alt="Laporan" className="w-full h-auto" />
+            </div>
+            <button
+              onClick={() => setPdfImage(null)}
+              className="w-full bg-primary text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Render Closing Receipt untuk Print Browser (PDF) */}
       {printType === 'pdf' && (
         <div className="receipt-print-wrapper">
