@@ -1,7 +1,6 @@
 import { createHashRouter } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
-import KitchenPage from "./pages/KitchenPage";
 import WaiterPage from "./pages/WaiterPage";
 import GuestMenuPage from "./pages/GuestMenuPage";
 import QRStickerPage from "./pages/QRStickerPage";
@@ -78,7 +77,7 @@ export const router = createHashRouter([
   },
   {
     path: "/kitchen",
-    Component: KitchenPage,
+    Component: WaiterPage,
   },
   {
     path: "/menu/:tableId",
