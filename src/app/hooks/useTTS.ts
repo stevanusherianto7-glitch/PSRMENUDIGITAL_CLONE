@@ -59,8 +59,20 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     const mode = order.orderMode === "take-away" ? ", dibungkus" : ", makan di tempat";
     const chefNote = order.notes ? `Catatan untuk shef: ${order.notes}` : "";
     
+    const hasFood = order.items.some(i => i.category === "Makanan" || i.category === "Snack");
+    const hasDrinks = order.items.some(i => i.category === "Minuman");
+
+    let targetText = "Pesanan baru masuk";
+    if (hasFood && hasDrinks) {
+      targetText = "Pesanan untuk dapur dan bar baru masuk";
+    } else if (hasFood) {
+      targetText = "Pesanan untuk dapur baru masuk";
+    } else if (hasDrinks) {
+      targetText = "Pesanan untuk bar baru masuk";
+    }
+
     const parts = [
-      `Pesanan baru masuk, ${source} ${mode}`,
+      `${targetText}, ${source} ${mode}`,
       `Meja ${order.tableId}`,
       `${items}`,
       chefNote,
