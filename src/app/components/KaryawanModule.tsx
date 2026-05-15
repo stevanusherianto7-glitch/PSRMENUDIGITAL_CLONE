@@ -154,32 +154,63 @@ export const KaryawanModule = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-secondary/50 text-muted-foreground text-left text-xs uppercase tracking-wider">
-                <th className="p-4 font-bold">Nama</th>
-                <th className="p-4 font-bold">Peran</th>
-                <th className="p-4 font-bold text-center">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredEmployees.map(emp => (
-                <tr key={emp.id} className="hover:bg-secondary/20 transition-colors">
-                  <td className="p-4 font-medium text-foreground">{emp.employee_name}</td>
-                  <td className="p-4 text-muted-foreground capitalize">{emp.role}</td>
-                  <td className="p-4 flex justify-center gap-2">
-                    <button onClick={() => handleOpenDialog(emp)} title="Edit" className="p-2 hover:bg-secondary rounded-lg text-primary transition-colors">
-                      <Edit2 size={14} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
+          {filteredEmployees.map(emp => {
+            const initials = emp.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            
+            // Warna role yang soft dan premium
+            const roleColors: Record<string, string> = {
+              waiter: "bg-blue-500/10 border-blue-500/20 text-blue-500",
+              cook: "bg-orange-500/10 border-orange-500/20 text-orange-500",
+              manager: "bg-purple-500/10 border-purple-500/20 text-purple-500",
+              owner: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
+            };
+            
+            const currentRoleColor = roleColors[emp.role.toLowerCase()] || "bg-secondary border-border text-muted-foreground";
+
+            return (
+              <div key={emp.id} className="bg-card border border-border/60 rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
+                <div className="flex items-center gap-4">
+                  {/* Avatar Lingkaran */}
+                  <div className="w-12 h-12 rounded-full bg-secondary/80 flex items-center justify-center text-sm font-black text-muted-foreground border border-border/40 shadow-inner flex-shrink-0">
+                    {initials}
+                  </div>
+                  
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-black text-sm text-foreground leading-tight truncate" title={emp.employee_name}>{emp.employee_name}</h4>
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{emp.id}</p>
+                    
+                    <span className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${currentRoleColor}`}>
+                      {emp.role}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border-t border-border/40 pt-3 flex items-center justify-between">
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                    Aksi
+                  </div>
+                  {/* Di HP selalu muncul, di Desktop muncul saat hover */}
+                  <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => handleOpenDialog(emp)} 
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Edit"
+                    >
+                      <Edit2 size={12} />
                     </button>
-                    <button onClick={() => handleDelete(emp.id)} title="Hapus" className="p-2 hover:bg-secondary rounded-lg text-destructive transition-colors">
-                      <Trash2 size={14} />
+                    <button 
+                      onClick={() => handleDelete(emp.id)} 
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                      aria-label="Hapus"
+                    >
+                      <Trash2 size={12} />
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
