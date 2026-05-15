@@ -120,6 +120,7 @@ class PrintService {
     // Format untuk kertas 58mm (biasanya 32 karakter per baris)
     const data = encoder
       .initialize()
+      .codepage('windows1252')
       .align('center')
       .text('PAWON SALAM')
       .newline()
@@ -142,7 +143,9 @@ class PrintService {
       .text('Terima Kasih Atas Kunjungan Anda')
       .newline()
       .newline()
-      .newline() // Beri jarak agar tidak terpotong
+      .newline()
+      .newline()
+      .newline() // Beri jarak agar tidak terpotong (Opt RPP02N)
       .encode();
 
     return this.printRaw(data.buffer);
@@ -172,6 +175,7 @@ class PrintService {
     
     let builder = encoder
       .initialize()
+      .codepage('windows1252')
       .align('center')
       .text('KEDAI ELVERA 57')
       .newline()
@@ -244,6 +248,8 @@ class PrintService {
       .text('Tulang Punggung Ekonomi Nasional')
       .newline()
       .newline()
+      .newline()
+      .newline()
       .newline();
 
     const data = builder.encode();
@@ -257,6 +263,7 @@ class PrintService {
     
     let builder = encoder
       .initialize()
+      .codepage('windows1252')
       .align('center')
       .text('STRUK DAPUR')
       .newline()
@@ -289,6 +296,8 @@ class PrintService {
     builder = builder
       .newline()
       .newline()
+      .newline()
+      .newline()
       .newline();
 
     const data = builder.encode();
@@ -308,6 +317,7 @@ class PrintService {
     
     let builder = encoder
       .initialize()
+      .codepage('windows1252')
       .align('center')
       .text('LAPORAN CLOSING')
       .newline()
@@ -337,6 +347,8 @@ class PrintService {
       .text('--------------------------------')
       .newline()
       .text(formatLine('Total Transaksi', data.totalTransaksi.toString()))
+      .newline()
+      .newline()
       .newline()
       .newline()
       .newline();

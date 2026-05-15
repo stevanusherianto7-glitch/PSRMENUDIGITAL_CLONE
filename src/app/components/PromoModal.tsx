@@ -13,7 +13,7 @@ export function PromoModal({ isOpen, onClose, promos, selectedPromo, onSelect }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="text-center">
           <h3 className="font-bold text-lg font-['Poppins']">Pilih Promo</h3>

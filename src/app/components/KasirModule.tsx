@@ -3,7 +3,7 @@ import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
   ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
-  Printer, ShoppingBag
+  Printer, ShoppingBag, X
 } from "lucide-react";
 import { rp, menuCategories } from "../data";
 import { createOrder } from "../api";
@@ -41,6 +41,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   const [selectedPromo, setSelectedPromo] = useState<Promo | null>(null);
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [isPrinterModalOpen, setIsPrinterModalOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [currentTx, setCurrentTx] = useState<Transaction | null>(null);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
@@ -166,187 +167,265 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
   ];
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-160px)]">
-      <div className="flex-1 flex flex-col gap-4 min-w-0">
-        <div className="flex gap-2 overflow-x-auto pb-1 flex-shrink-0">
+    <div className="relative h-full lg:h-[calc(100vh-160px)]">
+      {/* Menu Area - Now Full Width */}
+      <div className="h-full flex flex-col gap-6">
+        <div className="flex gap-1.5 overflow-x-auto pb-1.5 flex-shrink-0 custom-scrollbar">
           {menuCategories.map(c => (
-            <button key={c} onClick={() => setCat(c)} className={`px-4 py-2 rounded-lg text-xs font-semibold flex-shrink-0 border transition-all ${cat === c ? "bg-primary text-white border-primary" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}>{c}</button>
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex-shrink-0 border transition-all shadow-sm ${
+                cat === c ? "bg-primary text-white border-primary shadow-primary/20" : "bg-card border-border text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              {c}
+            </button>
           ))}
         </div>
-        <div className="overflow-y-auto grid grid-cols-2 gap-3 lg:grid-cols-3 auto-rows-max">
+
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pb-24 custom-scrollbar">
           {filtered.map(item => (
-            <button key={item.id} onClick={() => addToCart(item)} disabled={!item.available}
-              className={`bg-card border rounded-xl overflow-hidden text-left transition-all hover:scale-[1.02] group ${!item.available ? "opacity-40 cursor-not-allowed border-border" : "border-border hover:border-foreground/15"}`}>
-              <div className="relative aspect-[3/2] bg-secondary overflow-hidden">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                {item.tag && <span className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{item.tag}</span>}
-                {!item.available && <div className="absolute inset-0 bg-background/60 flex items-center justify-center"><span className="text-[10px] font-semibold text-muted-foreground">Habis</span></div>}
+            <button
+              key={item.id}
+              onClick={() => {
+                addToCart(item);
+                toast.success(`${item.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
+              }}
+              disabled={!item.available}
+              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col ${
+                !item.available ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-primary/30 hover:shadow-md"
+              }`}
+            >
+              <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                {item.tag && (
+                  <span className="absolute top-1.5 left-1.5 bg-primary/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest shadow-lg">
+                    {item.tag}
+                  </span>
+                )}
+                {!item.available && (
+                  <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
+                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] bg-white/90 px-2 py-1 rounded-lg">HABIS</span>
+                  </div>
+                )}
               </div>
-              <div className="p-3">
-                <p className="font-semibold text-xs text-foreground leading-tight">{item.name}</p>
-                <p className="text-primary font-bold text-sm mt-1 font-['Poppins']">{rp(item.price)}</p>
+              <div className="p-2.5 flex-1 flex flex-col gap-1">
+                <p className="font-bold text-[11px] text-foreground leading-tight line-clamp-2 min-h-[1.5rem] group-hover:text-primary transition-colors uppercase tracking-tight">{item.name}</p>
+                <p className="text-primary font-black text-xs mt-auto font-['Poppins']">{rp(item.price)}</p>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="w-72 bg-card border border-border rounded-xl flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-sm">Pesanan Baru</h3>
-            {cart.length > 0 && <button onClick={() => setCart([])} aria-label="Kosongkan keranjang" className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 size={14} /></button>}
-          </div>
-          
-          {orderMode === "dine-in" && (
-            <div className="mt-3">
-              <label htmlFor="table-select" className="text-[10px] text-muted-foreground font-semibold uppercase">Pilih Meja</label>
-              <select
-                id="table-select"
-                value={selectedTable}
-                onChange={(e) => setSelectedTable(e.target.value)}
-                className="w-full mt-1 bg-secondary border border-border rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">-- Pilih Meja --</option>
-                {tables.map(t => (
-                  <option key={t.id} value={t.id}>Meja {t.id}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Dine-in / Take-away toggle */}
-          <div className="flex gap-1.5 mt-3">
-            {(["dine-in", "take-away"] as const).map(m => {
-              const mcfg = orderModeConfig[m];
-              return (
-                <button key={m} onClick={() => setOrderMode(m)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${
-                    orderMode === m ? `${mcfg.bg} ${mcfg.border} ${mcfg.color}` : "bg-secondary border-border text-muted-foreground hover:text-foreground"
-                  }`}>
-                  {m === "dine-in" ? "🍽️ Dine In" : "📦 Take Away"}
-                </button>
-              );
-            })}
+      {/* Floating Action Button: Lanjut Bayar */}
+      <button
+        onClick={() => setIsCartOpen(true)}
+        className={`fixed bottom-6 right-6 z-40 flex items-center gap-3 px-6 py-3 rounded-full bg-primary text-white shadow-xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-300 ${
+          cart.length === 0 ? "scale-0" : "scale-100"
+        }`}
+      >
+        <div className="flex flex-col items-start leading-tight border-r border-white/20 pr-3">
+          <span className="text-[8px] font-black uppercase tracking-widest opacity-80">Total</span>
+          <span className="text-sm font-black font-['Poppins']">{rp(total)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-black uppercase tracking-wider">Bayar</span>
+          <div className="bg-white text-primary text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-inner">
+            {cart.reduce((s, c) => s + c.qty, 0)}
           </div>
         </div>
-        {paid ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-2 p-4 overflow-y-auto">
-            <CheckCircle2 size={32} className="text-green-400" />
-            <p className="font-semibold text-xs text-green-400">Pembayaran Berhasil!</p>
-            {lastTxId && <p className="text-[10px] text-muted-foreground font-mono bg-secondary px-2 py-1 rounded-lg border border-border">{lastTxId}</p>}
-            
-            <div className="w-full space-y-1.5 mt-2">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Customer</p>
-              <button
-                onClick={handlePrintReceipt}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <Printer size={10} /> Thermal
-              </button>
-              <button
-                onClick={() => handlePrintPDF('customer')}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <ExternalLink size={10} /> PDF
-              </button>
-            </div>
+      </button>
 
-            <div className="w-full space-y-1.5 mt-2">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Kitchen</p>
-              <button
-                onClick={handlePrintKitchenReceipt}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <Printer size={10} /> Thermal
-              </button>
-              <button
-                onClick={() => handlePrintPDF('kitchen')}
-                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[11px] font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <ExternalLink size={10} /> PDF
-              </button>
+      {/* Checkout Drawer Overlay */}
+      {isCartOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] animate-in fade-in duration-300"
+          onClick={() => setIsCartOpen(false)}
+        />
+      )}
+
+      {/* Checkout Drawer */}
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[380px] bg-card border-l border-border shadow-2xl z-[60] flex flex-col transition-transform duration-500 ease-out transform ${
+        isCartOpen ? "translate-x-0" : "translate-x-full"
+      }`}>
+        <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <ShoppingCart size={20} className="text-primary" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm text-foreground">Pesanan Baru</h3>
+              <p className="text-[10px] text-muted-foreground">Selesaikan pembayaran</p>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {cart.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-xs gap-2">
-                  <ShoppingCart size={24} className="opacity-30" /><p>Pilih item dari menu</p>
-                </div>
-              ) : cart.map(c => (
-                <div key={c.id} className="flex items-center gap-2 bg-secondary rounded-lg p-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold truncate">{c.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{rp(c.price)}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button onClick={() => updateQty(c.id, -1)} aria-label="Kurangi jumlah" className="w-5 h-5 rounded bg-background flex items-center justify-center hover:bg-border"><Minus size={10} /></button>
-                    <span className="text-xs font-bold w-4 text-center">{c.qty}</span>
-                    <button onClick={() => updateQty(c.id, 1)} aria-label="Tambah jumlah" className="w-5 h-5 rounded bg-primary flex items-center justify-center hover:bg-indigo-500"><Plus size={10} className="text-white" /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="p-4 border-t border-border space-y-3">
-              {/* Catatan Chef */}
+          <button
+            onClick={() => setIsCartOpen(false)}
+            className="p-1.5 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-border bg-card space-y-3">
+            {orderMode === "dine-in" && (
               <div>
-                <label className="text-[10px] font-semibold text-muted-foreground flex items-center gap-1 mb-1.5">
-                  <ChefHat size={10} className="text-orange-400" /> Catatan untuk Chef
-                </label>
-                <input
-                  value={chefNotes}
-                  onChange={e => setChefNotes(e.target.value)}
-                  placeholder="masak pedas, tanpa bawang..."
-                  className="w-full bg-secondary border border-border rounded-lg px-3 py-1.5 text-[11px] focus:outline-none focus:border-orange-400/50 transition-colors placeholder:text-muted-foreground/50"
-                />
-              </div>
-              {/* Tombol Buka Pop-up Promo */}
-              <div className="mb-2">
-                <button
-                  onClick={() => setIsPromoModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-all"
+                <label htmlFor="table-select" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 block">Meja Pelanggan</label>
+                <select
+                  id="table-select"
+                  value={selectedTable}
+                  onChange={(e) => setSelectedTable(e.target.value)}
+                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all appearance-none"
                 >
-                  <Tag size={12} className="text-primary" />
-                  {selectedPromo ? `Promo: ${selectedPromo.name}` : "Pilih Promo"}
-                </button>
+                  <option value="">-- Pilih Meja --</option>
+                  {tables.map(t => (
+                    <option key={t.id} value={t.id}>Meja {t.id}</option>
+                  ))}
+                </select>
               </div>
-              {/* Tombol Pengaturan Printer */}
-              <div className="mb-3">
-                <button
-                  onClick={() => setIsPrinterModalOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-all"
-                >
-                  <Printer size={12} className="text-primary" />
-                  Pengaturan Printer
-                </button>
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>{rp(subtotal)}</span></div>
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-red-400 font-medium">
-                    <span>Diskon ({selectedPromo?.name})</span>
-                    <span>-{rp(discountAmount)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-muted-foreground"><span>PPN 10%</span><span>{rp(tax)}</span></div>
-                <div className="flex justify-between font-bold text-sm border-t border-border pt-1.5"><span>Total</span><span className="text-green-400">{rp(total)}</span></div>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {payMethods.map(m => (
-                  <button key={m.id} onClick={() => setPayMethod(m.id)} className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs border transition-all ${payMethod === m.id ? "bg-primary border-primary text-white" : "bg-secondary border-border text-muted-foreground hover:text-foreground"}`}>
-                    {m.icon} {m.id}
+            )}
+
+            <div className="flex gap-2">
+              {(["dine-in", "take-away"] as const).map(m => {
+                const mcfg = orderModeConfig[m];
+                return (
+                  <button key={m} onClick={() => setOrderMode(m)}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black border transition-all ${
+                      orderMode === m ? `${mcfg.bg} ${mcfg.border} ${mcfg.color} shadow-sm` : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
+                    }`}>
+                    {m === "dine-in" ? "🍽️ Dine In" : "📦 Take Away"}
                   </button>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+
+          {paid ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-6 gap-5 text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center animate-bounce">
+                <CheckCircle2 size={32} className="text-green-500" />
               </div>
-              <button onClick={processPayment} disabled={!payMethod || cart.length === 0 || saving || !selectedTable}
-                className="w-full py-3 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
-                {saving ? <><RefreshCw size={14} className="animate-spin" /> Menyimpan...</> : <><Save size={14} /> Proses Pembayaran</>}
+              <div>
+                <h4 className="font-black text-xl text-foreground">Sukses!</h4>
+                <p className="text-xs text-muted-foreground mt-1">Struk telah dikirim ke antrean cetak</p>
+              </div>
+              {lastTxId && (
+                <div className="bg-secondary px-4 py-2 rounded-xl border border-border">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">ID</p>
+                  <p className="text-xs font-mono font-black text-primary">{lastTxId}</p>
+                </div>
+              )}
+
+              <div className="w-full grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Customer</p>
+                  <button onClick={handlePrintReceipt} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-white text-[10px] font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"><Printer size={12} /> Thermal</button>
+                  <button onClick={() => handlePrintPDF('customer')} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black hover:bg-border transition-all"><ExternalLink size={12} /> PDF</button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Kitchen</p>
+                  <button onClick={handlePrintKitchenReceipt} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-orange-500 text-white text-[10px] font-black shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"><ChefHat size={12} /> Thermal</button>
+                  <button onClick={() => handlePrintPDF('kitchen')} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black hover:bg-border transition-all"><ExternalLink size={12} /> PDF</button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setPaid(false);
+                  setCart([]);
+                  setIsCartOpen(false);
+                }}
+                className="mt-2 text-xs font-black text-primary hover:scale-105 transition-transform"
+              >
+                ← Kembali ke Menu
               </button>
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 opacity-30">
+                    <div className="p-6 bg-secondary rounded-full border-2 border-dashed border-border"><ShoppingCart size={32} /></div>
+                    <div className="text-center">
+                      <p className="font-black text-xs uppercase tracking-widest">Keranjang Kosong</p>
+                    </div>
+                  </div>
+                ) : cart.map(c => (
+                  <div key={c.id} className="flex items-center gap-3 bg-secondary/30 border border-border/40 rounded-2xl p-2.5 group hover:border-primary/20 transition-all">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-card border border-border shadow-sm">
+                      <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-black text-foreground leading-snug line-clamp-1">{c.name}</p>
+                      <p className="text-xs text-primary font-black mt-0.5 font-['Poppins']">{rp(c.price)}</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-2 py-1 shadow-sm">
+                      <button onClick={() => updateQty(c.id, -1)} className="p-0.5 hover:text-red-500 transition-colors"><Minus size={12} /></button>
+                      <span className="text-xs font-black w-3 text-center">{c.qty}</span>
+                      <button onClick={() => updateQty(c.id, 1)} className="p-0.5 hover:text-primary transition-colors"><Plus size={12} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 border-t border-border bg-card space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                      <ChefHat size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400" />
+                      <input
+                        value={chefNotes}
+                        onChange={e => setChefNotes(e.target.value)}
+                        placeholder="Catatan Chef..."
+                        className="w-full bg-secondary border border-border rounded-xl pl-8 pr-4 py-2 text-[10px] font-bold focus:outline-none focus:border-primary/50 transition-all"
+                      />
+                    </div>
+                    <button onClick={() => setIsPrinterModalOpen(true)} className="p-2 bg-secondary border border-border rounded-xl text-indigo-400 hover:text-indigo-500 transition-colors" title="Printer Settings">
+                      <Printer size={16} />
+                    </button>
+                  </div>
+
+                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black text-muted-foreground hover:text-foreground transition-all">
+                    <Tag size={12} className="text-primary" /> {selectedPromo ? selectedPromo.name : "Pilih Promo"}
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 bg-secondary/20 p-3 rounded-2xl border border-border/50">
+                  <div className="flex justify-between text-[10px] text-muted-foreground font-bold"><span>Subtotal</span><span>{rp(subtotal)}</span></div>
+                  {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-500 font-bold italic"><span>Diskon</span><span>-{rp(discountAmount)}</span></div>}
+                  <div className="flex justify-between text-[10px] text-muted-foreground font-bold"><span>PPN (10%)</span><span>{rp(tax)}</span></div>
+                  <div className="flex justify-between font-black text-sm border-t border-border/50 pt-2 mt-1"><span>TOTAL</span><span className="text-primary font-['Poppins']">{rp(total)}</span></div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">Metode Pembayaran</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {payMethods.map(m => (
+                      <button
+                        key={m.id}
+                        onClick={() => setPayMethod(m.id)}
+                        className={`flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl border transition-all ${
+                          payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-secondary border-border text-muted-foreground hover:bg-border"
+                        }`}
+                      >
+                        {m.icon}
+                        <span className="text-[8px] font-black uppercase tracking-tighter">{m.id}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button onClick={processPayment} disabled={!payMethod || cart.length === 0 || saving || (orderMode === 'dine-in' && !selectedTable)}
+                  className="w-full py-3.5 rounded-2xl bg-primary text-white text-xs font-black hover:bg-primary/90 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 uppercase tracking-widest">
+                  {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                  {saving ? "Memproses..." : "Konfirmasi & Bayar"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <PromoModal

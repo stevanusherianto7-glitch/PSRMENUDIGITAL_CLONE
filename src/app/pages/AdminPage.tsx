@@ -106,7 +106,17 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const [session, setSession] = useState<UserSession | null>(null);
   const [activeModule, setActiveModule] = useState<Module>("transaksi");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const saved = localStorage.getItem("pawon_sidebar_open");
+    if (saved !== null) return saved === "true";
+    return window.innerWidth > 1024;
+  });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Persist sidebar state
+  useEffect(() => {
+    localStorage.setItem("pawon_sidebar_open", sidebarOpen.toString());
+  }, [sidebarOpen]);
   const [time, setTime] = useState(new Date());
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
@@ -422,118 +432,177 @@ export default function AdminPage() {
   if (!session) return null;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden relative">
+      {/* Mobile Sidebar Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`flex-shrink-0 flex flex-col border-r border-border bg-sidebar transition-all duration-200 ${sidebarOpen ? "w-56" : "w-14"}`}>
-        <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <img src={logoImg} alt="Kedai Elvera 57" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
-            {sidebarOpen && (
-              <div className="overflow-hidden">
-                <p className="font-bold text-sm text-foreground leading-tight font-['Poppins']">Kedai Elvera 57</p>
-                <p className="text-xs text-muted-foreground leading-tight">Admin Panel</p>
-              </div>
-            )}
+      <aside className={`
+        fixed inset-y-0 left-0 z-[70] flex flex-col border-r border-border bg-sidebar transition-all duration-300 ease-in-out
+        lg:static lg:z-auto
+        ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        ${sidebarOpen ? "w-64" : "w-20"}
+      `}>
+        <div className="h-16 flex items-center px-4 border-b border-sidebar-border overflow-hidden">
+          <div className="flex items-center gap-3 min-w-[200px]">
+            <img src={logoImg} alt="Logo" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-sm" />
+            <div className={`transition-opacity duration-300 ${sidebarOpen || mobileSidebarOpen ? "opacity-100" : "opacity-0 lg:hidden"}`}>
+              <p className="font-bold text-sm text-foreground leading-tight font-['Poppins'] truncate">Kedai Elvera 57</p>
+              <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-semibold">Admin Panel</p>
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
           {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = activeModule === item.id;
             const hasBadge = (item.id === "stok" && criticalAlerts > 0) || (item.id === "orders" && pendingOrdersCount > 0);
             const badgeCount = item.id === "stok" ? criticalAlerts : pendingOrdersCount;
+
             return (
-              <button key={item.id} onClick={() => setActiveModule(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all text-xs ${active ? "bg-primary/15 text-primary border border-primary/20" : "text-muted-foreground hover:bg-secondary hover:text-foreground border border-transparent"}`}>
-                <Icon size={15} className="flex-shrink-0" />
-                {sidebarOpen && <span className="font-medium truncate">{item.label}</span>}
-                {sidebarOpen && hasBadge && (
-                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{badgeCount}</span>
-                )}
-              </button>
+              <TooltipProvider key={item.id} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        setActiveModule(item.id);
+                        if (window.innerWidth < 1024) setMobileSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center rounded-xl text-left transition-all group relative ${
+                        sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
+                      } ${
+                        active
+                          ? "bg-primary text-white shadow-lg shadow-primary/20"
+                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                      }`}>
+                      <Icon size={20} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
+
+                      {(sidebarOpen || mobileSidebarOpen) && (
+                        <span className="font-semibold text-xs truncate animate-in fade-in slide-in-from-left-2 duration-300">
+                          {item.label}
+                        </span>
+                      )}
+
+                      {hasBadge && (
+                        <span className={`absolute bg-red-500 text-white text-[9px] font-bold rounded-full ring-2 ring-sidebar flex items-center justify-center ${
+                          sidebarOpen || mobileSidebarOpen
+                            ? "right-3 px-1.5 py-0.5"
+                            : "top-2 right-2 w-4 h-4"
+                        }`}>
+                          {badgeCount}
+                        </span>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  {!sidebarOpen && !mobileSidebarOpen && (
+                    <TooltipContent side="right" className="font-bold text-xs">
+                      {item.label}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             );
           })}
         </nav>
 
-        <div className="p-2 border-t border-sidebar-border">
-          {sidebarOpen && <div className="px-3 py-2 mb-1"><ConnectionBadge connected={connected} /></div>}
-          <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/5 transition-colors text-xs">
-            <LogOut size={15} className="flex-shrink-0" />
-            {sidebarOpen && <span className="font-medium">Keluar</span>}
+        <div className="p-3 border-t border-sidebar-border space-y-2">
+          <button
+            onClick={logout}
+            className={`w-full flex items-center rounded-xl text-muted-foreground hover:text-red-400 hover:bg-red-500/5 transition-all group ${
+              sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
+            }`}
+          >
+            <LogOut size={20} className="flex-shrink-0 transition-transform group-hover:scale-110" />
+            {(sidebarOpen || mobileSidebarOpen) && <span className="font-bold text-xs">Keluar</span>}
           </button>
+
+          {(sidebarOpen || mobileSidebarOpen) && (
+            <div className="px-1 animate-in fade-in duration-500">
+              <ConnectionBadge connected={connected} />
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 border-b border-border bg-card/50 backdrop-blur-sm flex items-center px-5 gap-4 flex-shrink-0">
-          <button onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle Sidebar" className="text-muted-foreground hover:text-foreground transition-colors">
-            <Grid3X3 size={16} />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
+        <header className="h-16 border-b border-border bg-card/40 backdrop-blur-md flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-50 flex-shrink-0">
+          {/* Hamburger for Mobile */}
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="lg:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+          >
+            <LayoutDashboard size={20} />
           </button>
-          <div className="flex items-center gap-3">
-            <img src={logoImg} alt="Kedai Elvera 57" className="w-8 h-8 rounded-full object-cover" />
-            <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              <span className="font-medium">Kedai Elvera 57</span>
-              <ChevronRight size={12} />
-              <span className="text-foreground font-medium">{moduleLabels[activeModule]}</span>
+
+          {/* Sidebar Toggle for Desktop */}
+          <button
+            onClick={() => setSidebarOpen(v => !v)}
+            className="hidden lg:flex p-2 -ml-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+          >
+            <Grid3X3 size={18} />
+          </button>
+
+          <div className="flex items-center gap-3 overflow-hidden">
+            <img src={logoImg} alt="Logo" className="w-8 h-8 rounded-lg object-cover flex-shrink-0 hidden sm:block" />
+            <div className="flex items-center gap-2 text-xs font-medium truncate">
+              <span className="text-muted-foreground hidden md:inline">Kedai Elvera 57</span>
+              <ChevronRight size={14} className="text-muted-foreground/50 hidden md:inline" />
+              <span className="text-foreground font-bold">{moduleLabels[activeModule]}</span>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-4">
-            {seeding && <span className="text-xs text-muted-foreground flex items-center gap-1.5"><RefreshCw size={10} className="animate-spin text-indigo-400" /> Sinkronisasi...</span>}
-            <span className="text-xs text-muted-foreground font-mono hidden sm:block">
-              {time.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })} · {time.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-            {/* TTS Toggle */}
-            <button
-              onClick={() => setTtsEnabled(v => !v)}
-              title={ttsEnabled ? "Matikan notifikasi suara" : "Aktifkan notifikasi suara"}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full border transition-all ${
-                ttsEnabled
-                  ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/20"
-                  : "bg-secondary border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {ttsEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
-              <span className="hidden lg:inline">{ttsEnabled ? "TTS On" : "TTS Off"}</span>
-            </button>
 
-            {/* Supabase Toggle */}
-            <button
-              onClick={() => setConnected(v => !v)}
-              title={connected ? "Matikan koneksi Supabase" : "Aktifkan koneksi Supabase"}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full border transition-all ${
-                connected
-                  ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
-                  : "bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20"
-              }`}
-            >
-              <div className={`w-1.5 h-1.5 rounded-full ${connected ? "bg-indigo-400" : "bg-rose-400"}`} />
-              <span className="hidden lg:inline">{connected ? "Supabase On" : "Supabase Off"}</span>
-            </button>
+          <div className="ml-auto flex items-center gap-2 lg:gap-4">
+            {seeding && (
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/5 border border-primary/10">
+                <RefreshCw size={12} className="animate-spin text-primary" />
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Sync</span>
+              </div>
+            )}
 
-            {/* Tes TTS Button */}
-            <button
-              onClick={() => speak("Tes suara notifikasi. Pesanan baru masuk dari tamu.")}
-              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-border bg-secondary hover:text-foreground transition-all"
-              title="Uji coba suara TTS"
-            >
-              <Volume2 size={12} />
-              <span className="hidden lg:inline">Tes Suara</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setTtsEnabled(v => !v)}
+                className={`p-2 rounded-lg border transition-all ${
+                  ttsEnabled
+                    ? "bg-green-500/10 border-green-500/20 text-green-500 shadow-sm"
+                    : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground"
+                }`}
+                title="TTS Toggle"
+              >
+                {ttsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              </button>
 
-            <button onClick={() => setActiveModule("orders")} className="relative text-muted-foreground hover:text-foreground transition-colors">
-              <Bell size={16} />
+              <button
+                onClick={() => speak("Cek suara.")}
+                className="hidden sm:flex p-2 rounded-lg border border-border bg-secondary/50 text-muted-foreground hover:text-foreground transition-all"
+                title="Test TTS"
+              >
+                <Volume2 size={16} />
+              </button>
+            </div>
+
+            <button onClick={() => setActiveModule("orders")} className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <Bell size={18} />
               {(criticalAlerts + pendingOrdersCount) > 0 && (
-                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">{criticalAlerts + pendingOrdersCount}</span>
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-card" />
               )}
             </button>
-            <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-[10px] font-bold">AD</div>
+
+            <div className="w-8 h-8 bg-gradient-to-tr from-primary to-primary/60 rounded-lg flex items-center justify-center text-white text-[11px] font-bold shadow-md ring-2 ring-background">
+              AD
+            </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-5">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 scroll-smooth custom-scrollbar">
+          <div className="max-w-7xl mx-auto space-y-6">
             {activeModule === "transaksi" && (
               <div className="space-y-5">
                 <div className="flex items-center justify-between border-b border-border">

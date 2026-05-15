@@ -8,11 +8,11 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 // ─── Chart helpers ─────────────────────────────────────────────────────────────
 function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
   return (
-    <div className="w-full h-[200px]">
+    <div className="w-full h-[150px]">
       <ResponsiveContainer>
         <AreaChart
           data={data}
-          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
         >
           <defs>
             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
@@ -40,24 +40,24 @@ function MetricCard({ label, value, sub, trend, trendUp, accent, loading }: {
   label: string; value: string; sub?: string; trend?: string; trendUp?: boolean; accent?: string; loading?: boolean;
 }) {
   return (
-    <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/5 hover:border-indigo-500/20">
-      <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">{label}</p>
+    <div className="bg-card border border-border/60 rounded-xl p-4 flex flex-col gap-2 transition-all duration-300 hover:shadow-md hover:border-indigo-500/20 group">
+      <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.15em] mb-0.5">{label}</p>
       {loading ? (
-        <div className="h-6 bg-secondary animate-pulse rounded-md w-3/4 mt-1"></div>
+        <div className="h-5 bg-secondary animate-pulse rounded-md w-3/4"></div>
       ) : (
-        <p className={`font-bold leading-none font-['Poppins'] text-[clamp(1.25rem,2vw,1.75rem)] ${accent || "text-[#E8EAF0]"}`}>{value}</p>
+        <p className={`font-black leading-tight font-['Poppins'] text-lg truncate ${accent || "text-[#E8EAF0]"}`} title={value}>{value}</p>
       )}
-      <div className="flex items-center gap-2 mt-auto">
+      <div className="flex items-center gap-1.5 mt-auto">
         {loading ? (
-          <div className="h-4 bg-secondary animate-pulse rounded-md w-1/2"></div>
+          <div className="h-3 bg-secondary animate-pulse rounded-md w-1/2"></div>
         ) : (
           <>
             {trend && (
-              <span className={`flex items-center gap-0.5 text-xs font-semibold ${trendUp ? "text-green-400" : "text-red-400"}`}>
-                {trendUp ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{trend}
+              <span className={`flex items-center gap-0.5 text-[10px] font-bold ${trendUp ? "text-green-500" : "text-red-500"}`}>
+                {trendUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}{trend}
               </span>
             )}
-            {sub && <span className="text-muted-foreground text-xs">{sub}</span>}
+            {sub && <span className="text-muted-foreground text-[10px] font-semibold truncate">{sub}</span>}
           </>
         )}
       </div>
@@ -176,57 +176,55 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Error Fallback Alert */}
       {fetchError && (
-        <div className="flex items-center justify-between gap-3 bg-red-500/5 border border-red-500/15 rounded-xl p-4 animate-fade">
-          <div className="flex items-center gap-3">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-            <p className="text-sm text-foreground">
-              Gagal memuat data dari Supabase. Menggunakan data lokal (Offline mode).
+        <div className="flex items-center justify-between gap-3 bg-red-500/5 border border-red-500/15 rounded-lg p-3 animate-fade">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+            <p className="text-[11px] font-bold text-foreground">
+              Offline Mode: Menggunakan data lokal.
             </p>
           </div>
           <button 
             onClick={() => setRetryCount(c => c + 1)}
-            className="text-xs font-bold text-red-500 hover:text-red-600 px-3 py-1.5 bg-red-500/10 rounded-lg transition-all"
+            className="text-[10px] font-black text-red-500 hover:text-red-600 px-2 py-1 bg-red-500/10 rounded-md transition-all uppercase"
           >
-            Coba Lagi
+            Retry
           </button>
         </div>
       )}
 
       {/* Live alerts */}
       {(pending > 0 || cooking > 0) && (
-        <div className="flex items-center gap-3 bg-yellow-500/5 border border-yellow-500/15 rounded-xl p-4">
-          <Bell size={16} className="text-yellow-400 flex-shrink-0 animate-pulse" />
-          <p className="text-sm text-foreground">
-            <span className="font-semibold text-yellow-400">{pending} pesanan</span> menunggu konfirmasi ·{" "}
-            <span className="font-semibold text-orange-400">{cooking} pesanan</span> sedang dimasak
+        <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/15 rounded-lg p-3">
+          <Bell size={14} className="text-amber-500 flex-shrink-0 animate-pulse" />
+          <p className="text-[11px] text-foreground font-semibold">
+            <span className="text-amber-500">{pending} Antrian</span> ·{" "}
+            <span className="text-orange-500">{cooking} Dimasak</span>
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <MetricCard label="Penjualan" value={rp(todaySales)} trend="+12.4%" trendUp sub="vs kemarin" accent="text-[#818CF8]" loading={loading} />
-        <MetricCard label="Laba Kotor" value={rp(Math.round(todaySales * 0.5))} trend="+8.1%" trendUp sub="margin 50%" accent="text-[#34D399]" loading={loading} />
-        <MetricCard label="Laba Bersih" value={rp(Math.round(todaySales * 0.3))} trend="+5.3%" trendUp sub="margin 30%" accent="text-[#22C55E]" loading={loading} />
-        <MetricCard label="Pesanan Aktif" value={String(liveOrders.filter(o => o.status !== "served").length)} sub="realtime" accent="text-[#F59E0B]" loading={loading} />
-        <MetricCard label="Transaksi" value={String(todayCount)} trend="+3" trendUp sub={`rata-rata ${rp(todayAvg)}`} accent="text-[#F59E0B]" loading={loading} />
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <MetricCard label="Penjualan" value={rp(todaySales)} trend="+12.4%" trendUp sub="vs kem." accent="text-indigo-400" loading={loading} />
+        <MetricCard label="Laba Kotor" value={rp(Math.round(todaySales * 0.5))} trend="+8.1%" trendUp sub="50%" accent="text-emerald-400" loading={loading} />
+        <MetricCard label="Laba Bersih" value={rp(Math.round(todaySales * 0.3))} trend="+5.3%" trendUp sub="30%" accent="text-green-400" loading={loading} />
+        <MetricCard label="Pesanan" value={String(liveOrders.filter(o => o.status !== "served").length)} sub="Aktif" accent="text-amber-400" loading={loading} />
+        <MetricCard label="Transaksi" value={String(todayCount)} trend="+3" trendUp sub={`avg ${rp(todayAvg)}`} accent="text-orange-400" loading={loading} />
       </div>
 
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between mb-5">
+      <div className="bg-card border border-border/60 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="font-semibold text-sm text-foreground">Tren Penjualan Hari Ini</h3>
-            <p className="text-muted-foreground text-xs mt-0.5">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" })}</p>
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Tren Penjualan</h3>
+            <p className="text-muted-foreground text-[10px] font-bold">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
           </div>
-          <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border">Live</span>
+          <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border uppercase">Live</span>
         </div>
         {loading ? (
-          <div className="w-full h-[200px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-xs text-muted-foreground">Memuat tren penjualan...</span>
-            </div>
+          <div className="w-full h-[150px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Loading Chart...</span>
           </div>
         ) : (
           <HourlySalesChart data={hourlyData} />
@@ -234,48 +232,46 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
       </div>
 
       {/* Recent transactions */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-sm">Transaksi Terakhir</h3>
-          <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-            <Database size={10} className="text-indigo-400" /> Supabase Live
+      <div className="bg-card border border-border/60 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Transaksi Terakhir</h3>
+          <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
+            <Database size={8} className="text-indigo-400" /> Supabase
           </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-border">
-                {["ID", "Meja", "Item", "Jumlah", "Metode", "Waktu"].map(h => (
-                  <th key={h} className={`text-muted-foreground pb-3 pr-4 font-medium ${h === "Jumlah" ? "text-right" : h === "Waktu" ? "text-right" : "text-left"}`}>{h}</th>
+              <tr className="border-b border-border/50">
+                {["ID", "Meja", "Item", "Jumlah", "Waktu"].map(h => (
+                  <th key={h} className={`text-muted-foreground pb-2 pr-3 font-black uppercase tracking-tighter ${h === "Jumlah" || h === "Waktu" ? "text-right" : h === "Waktu" ? "text-right" : "text-left"}`}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/30">
               {loading ? (
-                [...Array(5)].map((_, i) => (
-                  <tr key={i} className="border-b border-border/50">
-                    <td className="py-3 pr-4"><div className="h-4 bg-secondary animate-pulse rounded w-20"></div></td>
-                    <td className="py-3 pr-4"><div className="h-4 bg-secondary animate-pulse rounded w-16"></div></td>
-                    <td className="py-3 pr-4"><div className="h-4 bg-secondary animate-pulse rounded w-12"></div></td>
-                    <td className="py-3 pr-4 text-right"><div className="h-4 bg-secondary animate-pulse rounded w-16 ml-auto"></div></td>
-                    <td className="py-3 pr-4"><div className="h-4 bg-secondary animate-pulse rounded w-12"></div></td>
-                    <td className="py-3 text-right"><div className="h-4 bg-secondary animate-pulse rounded w-10 ml-auto"></div></td>
+                [...Array(3)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-16"></div></td>
+                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-10"></div></td>
+                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-8"></div></td>
+                    <td className="py-2 pr-3 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-12 ml-auto"></div></td>
+                    <td className="py-2 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-10 ml-auto"></div></td>
                   </tr>
                 ))
               ) : (
-                transactions.slice(0, 6).map(tx => (
-                  <tr key={tx.id} className="border-b border-border/50 hover:bg-secondary/40 transition-colors">
-                    <td className="py-3 pr-4 font-mono text-muted-foreground">{tx.id.slice(0, 10).toUpperCase()}</td>
-                    <td className="py-3 pr-4 font-semibold">{tx.table_id || "Walk-in"}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{tx.items.reduce((s, i) => s + i.qty, 0)} item</td>
-                    <td className="py-3 pr-4 text-right font-semibold text-green-400">{rp(tx.total)}</td>
-                    <td className="py-3 pr-4"><span className="bg-secondary border border-border px-2 py-0.5 rounded-full">{tx.method || "Tunai"}</span></td>
-                    <td className="py-3 text-right text-muted-foreground font-mono">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                transactions.slice(0, 5).map(tx => (
+                  <tr key={tx.id} className="hover:bg-secondary/40 transition-colors group">
+                    <td className="py-2 pr-3 font-mono text-[10px] text-muted-foreground">{tx.id.slice(-6).toUpperCase()}</td>
+                    <td className="py-2 pr-3 font-bold">{tx.table_id || "Walk-in"}</td>
+                    <td className="py-2 pr-3 font-semibold text-muted-foreground">{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
+                    <td className="py-2 pr-3 text-right font-black text-green-500">{rp(tx.total)}</td>
+                    <td className="py-2 text-right text-muted-foreground font-bold">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
                   </tr>
                 ))
               )}
               {!loading && transactions.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">Belum ada transaksi. Proses pembayaran di modul Kasir.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Belum ada transaksi.</td></tr>
               )}
             </tbody>
           </table>
