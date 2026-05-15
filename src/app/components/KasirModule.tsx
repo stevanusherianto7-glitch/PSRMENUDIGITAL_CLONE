@@ -197,7 +197,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
                 toast.success(`${item.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
               }}
               disabled={!item.available}
-              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col h-full ${
+              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col ${
                 !item.available ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-primary/30 hover:shadow-md"
               }`}
             >
