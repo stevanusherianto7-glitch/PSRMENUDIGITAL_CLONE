@@ -197,12 +197,12 @@ export function KasirModule({ menuItems, onTransaction, promos, tables }: KasirM
                 toast.success(`${item.name}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
               }}
               disabled={!item.available}
-              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col ${
+              className={`bg-card border border-border/60 rounded-xl overflow-hidden text-left transition-all active:scale-95 group shadow-sm flex flex-col h-full ${
                 !item.available ? "opacity-40 cursor-not-allowed grayscale" : "hover:border-primary/30 hover:shadow-md"
               }`}
             >
               <div className="relative aspect-[4/3] bg-secondary overflow-hidden">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                <img src={item.image} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
                 {item.tag && (
                   <span className="absolute top-1.5 left-1.5 bg-primary/90 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest shadow-lg">
                     {item.tag}
