@@ -1,11 +1,13 @@
 import { useState } from "react";
 import {
-  Plus, Search, Edit2, Trash2, XCircle, AlertTriangle, Clock, CheckCircle2
+  Plus, Search, Edit2, Trash2, XCircle, AlertTriangle, Clock, CheckCircle2,
+  Download, Calendar
 } from "lucide-react";
 import { format } from "date-fns";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./ui/tooltip";
 import { InventoryItemModal } from "./InventoryItemModal";
 import type { InventoryItem } from "../types";
+import { exportInventoryPDF } from "../../utils/exportUtils";
 
 interface InventarisModuleProps {
   inventory: InventoryItem[];
@@ -29,6 +31,8 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
   const [filter, setFilterState] = useState<"all" | "critical" | "warning">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const openModal = (item?: InventoryItem) => {
     setEditingItem(item || null);
     setIsModalOpen(true);
@@ -106,6 +110,30 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
               </button>
             ))}
           </div>
+          <div className="hidden lg:flex items-center gap-2 bg-secondary/50 border border-border/60 rounded-xl px-3 py-1 shadow-inner">
+            <Calendar size={14} className="text-muted-foreground" />
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={e => setStartDate(e.target.value)}
+              className="bg-transparent text-[10px] font-bold outline-none text-foreground w-28"
+              title="Tanggal Mulai"
+            />
+            <span className="text-muted-foreground text-[10px]">-</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={e => setEndDate(e.target.value)}
+              className="bg-transparent text-[10px] font-bold outline-none text-foreground w-28"
+              title="Tanggal Selesai"
+            />
+          </div>
+          <button 
+            onClick={() => exportInventoryPDF(filtered, startDate, endDate)}
+            className="flex items-center gap-2 bg-secondary border border-border/60 text-foreground px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all shadow-sm whitespace-nowrap"
+          >
+            <Download size={14} /> PDF
+          </button>
           <button onClick={() => openModal()} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 whitespace-nowrap"><Plus size={14} /> Tambah</button>
         </div>
       </div>

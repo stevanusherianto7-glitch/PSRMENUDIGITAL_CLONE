@@ -165,6 +165,120 @@ export function exportWeeklyPDF(
     </html>
   `;
 
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }
+}
+
+export function exportInventoryPDF(
+  inventory: any[],
+  startDate: string,
+  endDate: string
+) {
+  const startStr = new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const endStr = new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Laporan Stok Opname - Kedai Elvera 57</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px; color: #1A1A1E; background-color: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 3px solid #C8A96E; padding-bottom: 20px; }
+        .header-left h1 { color: #C8A96E; font-size: 32px; margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
+        .header-left p { color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: 600; }
+        .header-right { text-align: right; }
+        .header-right p { margin: 2px 0; font-size: 12px; font-weight: 700; color: #1A1A1E; }
+        
+        .summary-box { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 15px 25px; margin-bottom: 30px; display: flex; gap: 40px; }
+        .summary-item { display: flex; flex-direction: column; }
+        .summary-label { font-size: 10px; text-transform: uppercase; color: #6B7280; font-weight: 800; letter-spacing: 1px; }
+        .summary-value { font-size: 18px; font-weight: 900; color: #1A1A1E; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 40px; }
+        th { background-color: #1A1A1E; color: #fff; text-align: left; padding: 12px 15px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; border: 1px solid #1A1A1E; }
+        td { padding: 12px 15px; border: 1px solid #E5E7EB; color: #374151; font-weight: 500; }
+        tr:nth-child(even) { background-color: #FBFBFC; }
+        
+        .footer-sig { margin-top: 60px; display: flex; justify-content: flex-end; }
+        .sig-box { width: 200px; text-align: center; }
+        .sig-line { border-bottom: 1px solid #1A1A1E; margin-bottom: 8px; height: 80px; }
+        .sig-name { font-weight: 800; font-size: 14px; }
+        .sig-title { font-size: 12px; color: #6B7280; }
+
+        @media print {
+          body { padding: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="header-left">
+          <h1>PAWON SALAM</h1>
+          <p>LAPORAN STOK OPNAME INVENTARIS</p>
+        </div>
+        <div class="header-right">
+          <p>Periode: ${startStr} - ${endStr}</p>
+          <p>Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <div class="summary-item">
+          <span class="summary-label">Total Bahan</span>
+          <span class="summary-value">${inventory.length} Item</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Stok Kritis</span>
+          <span class="summary-value">${inventory.filter(i => i.stock < i.min_stock).length} Item</span>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5%">No</th>
+            <th style="width: 35%">Nama Bahan / Item</th>
+            <th style="width: 15%">Kategori</th>
+            <th style="width: 15%">Sisa Stok</th>
+            <th style="width: 15%">Min. Stok</th>
+            <th style="width: 15%">Kadaluarsa</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${inventory.map((item, idx) => {
+            const lowStock = item.stock < item.min_stock;
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td style="font-weight: 800">${item.name}</td>
+                <td>${item.category}</td>
+                <td style="${lowStock ? 'color: #B91C1C; font-weight: 800;' : ''}">${item.stock} ${item.unit}</td>
+                <td>${item.min_stock} ${item.unit}</td>
+                <td>${item.exp_date}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+
+      <div class="footer-sig">
+        <div class="sig-box">
+          <p style="margin-bottom: 5px; font-size: 12px;">Jakarta, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <div class="sig-line"></div>
+          <p class="sig-name">Admin / Manager</p>
+          <p class="sig-title">Kedai Elvera 57 POS System</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
   const printWindow = window.open("", "_blank");
   if (printWindow) {
     printWindow.document.write(html);
