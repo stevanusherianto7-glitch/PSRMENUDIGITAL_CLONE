@@ -7,8 +7,28 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.kedaielvera57.pos',
-  appName: 'Kedai Elvera 57 POS',
+  appName: 'Kedai Elvera 57',
   webDir: 'dist',
+  server: {
+    androidScheme: 'https',
+  },
+  plugins: {
+    StatusBar: {
+      overlaysWebView: false,
+      backgroundColor: '#F7F1E6',
+      style: 'DARK',
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
+    },
+    SplashScreen: {
+      launchAutoHide: true,
+      launchShowDuration: 2000,
+      backgroundColor: '#F7F1E6',
+      showSpinner: false,
+    },
+  },
   cordova: {
     preferences: {
       'BluetoothSerial': '0.4.7'
