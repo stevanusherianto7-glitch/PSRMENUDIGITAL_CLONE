@@ -5,7 +5,7 @@ import {
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
   Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle
 } from "lucide-react";
-import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
+import { SEED_MENU, menuCategories, rp, BRAND_NAME, SYSTEM_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
