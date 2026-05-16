@@ -1,8 +1,9 @@
-/**
- * ⚠️ DILARANG KERAS MENGUBAH ATAU MENGEDIT KODE INI TANPA IZIN ⚠️
- * File ini berisi logika Text-to-Speech (TTS) yang sangat sensitif untuk pesanan dapur dan bar.
- * Perubahan sembarangan pada jeda (setTimeout) dapat merusak sinkronisasi suara notifikasi!
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI LOGIKA TEXT-TO-SPEECH (TTS) UNTUK NOTIFIKASI PESANAN MASUK.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN GAGALNYA NOTIFIKASI SUARA DI DAPUR/KASIR. ⚠️
  */
+
 import { useRef, useEffect, useCallback } from "react";
 import type { Order } from "../types";
 
