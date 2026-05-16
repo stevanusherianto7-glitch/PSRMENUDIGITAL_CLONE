@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Printer, Download, ExternalLink, QrCode } from "lucide-react";
 import QRCode from "react-qr-code";
 import { GUEST_BASE_URL } from "../pages/AdminPage";
@@ -9,6 +10,7 @@ interface QrMenuModuleProps {
 
 export function QrMenuModule({ tables }: QrMenuModuleProps) {
   const baseUrl = GUEST_BASE_URL;
+  const [selectedTable, setSelectedTable] = useState<string>("all");
 
   function handleDownload(tableId: string) {
     const svg = document.querySelector(`#qr-code-${tableId} svg`);
@@ -32,15 +34,19 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   }
 
-  function handlePrintAll() {
-    const printContent = tables.map(t => `
-      <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #ccc; border-radius:16px; padding:24px; margin:12px; width:280px; height:320px;">
-        <p style="font-family:Poppins,sans-serif; font-size:20px; font-weight:700; margin:0 0 4px; color:#1F2937;">Buku Menu Digital</p>
-        <p style="font-family:Poppins,sans-serif; font-size:14px; font-weight:600; color:#6B7280; margin:0 0 16px;">Kedai Elvera 57</p>
-        <div style="background:#fff; padding:8px; border-radius:8px;">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="180" height="180" />
+  function handlePrint() {
+    const tablesToPrint = selectedTable === "all" ? tables : tables.filter(t => t.id === selectedTable);
+    
+    const printContent = tablesToPrint.map(t => `
+      <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #C8A96E; border-radius:16px; padding:24px; margin:12px; width:280px; height:320px; background:#fff;">
+        <img src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" style="height:40px; margin-bottom:10px;" />
+        <p style="font-family:Poppins,sans-serif; font-size:18px; font-weight:700; margin:0 0 4px; color:#1F2937;">Buku Menu Digital</p>
+        <p style="font-family:Poppins,sans-serif; font-size:12px; font-weight:600; color:#C8A96E; margin:0 0 16px; text-transform:uppercase;">Kedai Elvera 57 Semarang</p>
+        <div style="background:#fff; padding:12px; border:1px solid #E5E7EB; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="160" height="160" />
         </div>
-        <p style="font-family:Poppins,sans-serif; font-size:24px; font-weight:700; margin:16px 0 0; color:#1F2937;">Meja ${t.id}</p>
+        <p style="font-family:Poppins,sans-serif; font-size:24px; font-weight:800; margin:16px 0 0; color:#1F2937;">MEJA ${t.id}</p>
+        <p style="font-family:Poppins,sans-serif; font-size:10px; color:#9CA3AF; margin-top:8px;">Scan untuk Pesan Mandiri</p>
       </div>
     `).join("");
 
@@ -49,16 +55,16 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     printWindow.document.write(`
       <!DOCTYPE html><html><head><title>QR Menu - Kedai Elvera 57</title>
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-        body { margin:0; display:flex; flex-wrap:wrap; justify-content:center; font-family:Poppins,sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+        body { margin:0; display:flex; flex-wrap:wrap; justify-content:center; font-family:Poppins,sans-serif; background:#f3f4f6; }
         @media print { 
           @page { margin: 0; }
-          body { margin: 1cm; }
+          body { margin: 0; background:#fff; }
         }
       </style></head><body>${printContent}
       <script>
         window.onload = () => {
-          setTimeout(() => window.print(), 500);
+          setTimeout(() => { window.print(); window.close(); }, 500);
         };
       </script></body></html>
     `);
@@ -67,17 +73,29 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="font-semibold text-sm">Buku Menu Digital</h3>
           <p className="text-muted-foreground text-xs mt-0.5">QR Code untuk setiap meja — tamu scan langsung lihat menu &amp; pesan mandiri</p>
         </div>
-        <button
-          onClick={handlePrintAll}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors"
-        >
-          <Printer size={14} /> Cetak Semua Stiker
-        </button>
+        <div className="flex items-center gap-2">
+          <select 
+            value={selectedTable}
+            onChange={(e) => setSelectedTable(e.target.value)}
+            className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
+          >
+            <option value="all">Semua Meja</option>
+            {tables.map(t => (
+              <option key={t.id} value={t.id}>Meja {t.id}</option>
+            ))}
+          </select>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors whitespace-nowrap"
+          >
+            <Printer size={14} /> {selectedTable === "all" ? "Cetak Semua" : `Cetak Meja ${selectedTable}`}
+          </button>
+        </div>
       </div>
 
       <div className="bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-4 flex items-start gap-3">

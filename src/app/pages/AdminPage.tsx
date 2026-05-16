@@ -26,7 +26,8 @@ const logoImg = "/imports/logo_pawon_salam.png";
 import { format } from "date-fns";
 import {
   SEED_MENU, SEED_TABLES, SEED_INVENTORY, SEED_PROMOS,
-  menuCategories, rp, PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS
+  menuCategories, rp, PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
+  BRAND_NAME, APP_LOGO as logoImg
 } from "../data";
 import { fetchOrders, updateOrder, createOrder } from "../api";
 import { DashboardModule } from "../components/DashboardModule";
@@ -549,7 +550,7 @@ export default function AdminPage() {
             <img src={logoImg} alt="Logo" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-sm" />
             {(sidebarOpen || mobileSidebarOpen) && (
               <div className="transition-all animate-in fade-in slide-in-from-left-2 duration-300">
-                <p className="font-black text-sm text-foreground leading-tight font-['Poppins'] truncate whitespace-nowrap">Kedai Elvera 57</p>
+                <p className="font-black text-sm text-foreground leading-tight font-['Poppins'] truncate whitespace-nowrap">{BRAND_NAME}</p>
                 <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-black">Admin Panel</p>
               </div>
             )}
@@ -643,7 +644,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3 overflow-hidden">
             <img src={logoImg} alt="Logo" className="w-8 h-8 rounded-lg object-cover flex-shrink-0 hidden sm:block" />
             <div className="flex items-center gap-2 text-xs font-medium truncate">
-              <span className="text-muted-foreground hidden md:inline">Kedai Elvera 57</span>
+              <span className="text-muted-foreground hidden md:inline">{BRAND_NAME}</span>
               <ChevronRight size={14} className="text-muted-foreground/50 hidden md:inline" />
               <span className="text-foreground font-bold">{moduleLabels[activeModule]}</span>
             </div>

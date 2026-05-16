@@ -1,3 +1,8 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI STATE MANAGEMENT UTAMA (ZUSTAND/CONTEXT) UNTUK PAWON SALAM.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN SYNC DATA ANTAR MODUL TERPUTUS. ⚠️
+ */
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import type { Order, MenuItem } from "../types";
 import { fetchOrders } from "../api";

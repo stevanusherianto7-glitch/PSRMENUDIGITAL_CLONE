@@ -1,14 +1,25 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI DASHBOARD ANALITIK DAN VISUALISASI DATA (RECHARTS) PAWON SALAM.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN LAPORAN KEUANGAN TIDAK AKURAT. ⚠️
+ */
 import React, { useState, useEffect } from "react";
-import { Bell, Database, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, Download } from "lucide-react";
 import { supabase } from "../../lib/supabase";
-import { rp, HOURLY_DATA } from "../data";
+import { rp } from "../data";
 import type { Transaction, Order } from "../types";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, BarChart, Bar, Legend
+} from "recharts";
+
+// ─── Chart Colors ─────────────────────────────────────────────────────────────
+const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 // ─── Chart helpers ─────────────────────────────────────────────────────────────
 function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
   return (
-    <div className="w-full h-[150px]">
+    <div className="w-full h-[180px]">
       <ResponsiveContainer>
         <AreaChart
           data={data}
@@ -31,6 +42,53 @@ function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] })
           />
           <Area type="monotone" dataKey="sales" stroke="#6366F1" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" />
         </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function CategoryPieChart({ data }: { data: { name: string; value: number }[] }) {
+  return (
+    <div className="w-full h-[180px]">
+      <ResponsiveContainer>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={45}
+            outerRadius={70}
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '10px' }}
+            itemStyle={{ fontSize: '10px' }}
+          />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function PeakHoursBarChart({ data }: { data: { hour: string; count: number }[] }) {
+  return (
+    <div className="w-full h-[180px]">
+      <ResponsiveContainer>
+        <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
+          <XAxis dataKey="hour" stroke="#6B7080" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#6B7080" fontSize={10} tickLine={false} axisLine={false} width={40} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '10px' }}
+          />
+          <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
@@ -113,7 +171,6 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
     if (connected) {
       fetchMetrics();
 
-      // Set up realtime subscriptions
       transactionsSubscription = supabase
         .channel('transactions-changes')
         .on('postgres_changes', {
@@ -121,7 +178,6 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
           schema: 'public',
           table: 'transactions'
         }, () => {
-          // Refresh metrics when any transaction changes
           fetchMetrics();
         })
         .subscribe();
@@ -133,12 +189,10 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
           schema: 'public',
           table: 'orders'
         }, () => {
-          // Orders updates are handled by parent component
           console.log('Orders updated via realtime');
         })
         .subscribe();
 
-      // Polling fallback every 30 seconds
       interval = setInterval(fetchMetrics, 30000);
     } else {
       setLoading(false);
@@ -149,7 +203,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
       if (transactionsSubscription) transactionsSubscription.unsubscribe();
       if (ordersSubscription) ordersSubscription.unsubscribe();
     };
-  }, [connected, transactions, retryCount]);
+  }, [connected, retryCount]);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayTx = transactions.filter(tx => tx.created_at.startsWith(todayStr));
@@ -160,10 +214,13 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   const pending = liveOrders.filter(o => o.status === "pending").length;
   const cooking = liveOrders.filter(o => o.status === "cooking").length;
 
-  // Hitung data penjualan per jam secara dinamis
+  // ─── Data Processing ────────────────────────────────────────────────────────
+  
+  // 1. Hourly Sales
   const hourlyData = Array.from({ length: 24 }, (_, i) => ({
     hour: i.toString().padStart(2, "0") + ":00",
-    sales: 0
+    sales: 0,
+    count: 0
   }));
 
   transactions.forEach(tx => {
@@ -171,9 +228,25 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
       const hour = new Date(tx.created_at).getHours();
       if (hour >= 0 && hour < 24) {
         hourlyData[hour].sales += tx.total;
+        hourlyData[hour].count += 1;
       }
     }
   });
+
+  // 2. Category Composition
+  const catMap = new Map<string, number>();
+  transactions.forEach(tx => {
+    if (tx.created_at.startsWith(todayStr)) {
+      tx.items.forEach(item => {
+        const cat = item.category || "Lainnya";
+        catMap.set(cat, (catMap.get(cat) || 0) + (item.price * item.qty));
+      });
+    }
+  });
+  const categoryData = Array.from(catMap.entries()).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+
+  // 3. Peak Hours (Order Count)
+  const peakHoursData = hourlyData.map(h => ({ hour: h.hour, count: h.count })).filter(h => h.count > 0 || (parseInt(h.hour) > 9 && parseInt(h.hour) < 22));
 
   return (
     <div className="space-y-4">
@@ -214,67 +287,109 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
         <MetricCard label="Transaksi" value={String(todayCount)} trend="+3" trendUp sub={`avg ${rp(todayAvg)}`} accent="text-orange-400" loading={loading} />
       </div>
 
-      <div className="bg-card border border-border/60 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Tren Penjualan</h3>
-            <p className="text-muted-foreground text-[10px] font-bold">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Sales Trend */}
+        <div className="bg-card border border-border/60 rounded-xl p-4 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+                <BarIcon size={12} className="text-indigo-400" /> Tren Penjualan
+              </h3>
+              <p className="text-muted-foreground text-[10px] font-bold">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
+            </div>
+            <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border uppercase">Live Update</span>
           </div>
-          <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border uppercase">Live</span>
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Loading Chart...</span>
+            </div>
+          ) : (
+            <HourlySalesChart data={hourlyData} />
+          )}
         </div>
-        {loading ? (
-          <div className="w-full h-[150px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Loading Chart...</span>
+
+        {/* Category Composition */}
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+              <PieIcon size={12} className="text-emerald-400" /> Komposisi Menu
+            </h3>
+            <button className="text-[10px] font-black text-primary hover:underline uppercase">Detail</button>
           </div>
-        ) : (
-          <HourlySalesChart data={hourlyData} />
-        )}
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50"></div>
+          ) : (
+            <CategoryPieChart data={categoryData} />
+          )}
+        </div>
       </div>
 
-      {/* Recent transactions */}
-      <div className="bg-card border border-border/60 rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Transaksi Terakhir</h3>
-          <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
-            <Database size={8} className="text-indigo-400" /> Supabase
-          </span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Peak Hours */}
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+              <Clock size={12} className="text-amber-400" /> Jam Ramai
+            </h3>
+            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Berdasarkan Pesanan</span>
+          </div>
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50"></div>
+          ) : (
+            <PeakHoursBarChart data={peakHoursData} />
+          )}
         </div>
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-[11px]">
-            <thead>
-              <tr className="border-b border-border/50">
-                {["ID", "Meja", "Item", "Jumlah", "Waktu"].map(h => (
-                  <th key={h} className={`text-muted-foreground pb-2 pr-3 font-black uppercase tracking-tighter ${h === "Jumlah" || h === "Waktu" ? "text-right" : h === "Waktu" ? "text-right" : "text-left"}`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30">
-              {loading ? (
-                [...Array(3)].map((_, i) => (
-                  <tr key={i}>
-                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-16"></div></td>
-                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-10"></div></td>
-                    <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-8"></div></td>
-                    <td className="py-2 pr-3 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-12 ml-auto"></div></td>
-                    <td className="py-2 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-10 ml-auto"></div></td>
-                  </tr>
-                ))
-              ) : (
-                transactions.slice(0, 5).map(tx => (
-                  <tr key={tx.id} className="hover:bg-secondary/40 transition-colors group">
-                    <td className="py-2 pr-3 font-mono text-[10px] text-muted-foreground">{tx.id.slice(-6).toUpperCase()}</td>
-                    <td className="py-2 pr-3 font-bold">{tx.table_id || "Walk-in"}</td>
-                    <td className="py-2 pr-3 font-semibold text-muted-foreground">{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
-                    <td className="py-2 pr-3 text-right font-black text-green-500">{rp(tx.total)}</td>
-                    <td className="py-2 text-right text-muted-foreground font-bold">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
-                  </tr>
-                ))
-              )}
-              {!loading && transactions.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Belum ada transaksi.</td></tr>
-              )}
-            </tbody>
-          </table>
+
+        {/* Recent transactions */}
+        <div className="bg-card border border-border/60 rounded-xl p-4 lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Transaksi Terakhir</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
+                <Database size={8} className="text-indigo-400" /> Supabase
+              </span>
+              <button className="p-1.5 rounded-lg bg-secondary border border-border hover:text-primary transition-colors">
+                <Download size={12} />
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="border-b border-border/50">
+                  {["ID", "Meja", "Item", "Jumlah", "Waktu"].map(h => (
+                    <th key={h} className={`text-muted-foreground pb-2 pr-3 font-black uppercase tracking-tighter ${h === "Jumlah" || h === "Waktu" ? "text-right" : "text-left"}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {loading ? (
+                  [...Array(3)].map((_, i) => (
+                    <tr key={i}>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-16"></div></td>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-10"></div></td>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-8"></div></td>
+                      <td className="py-2 pr-3 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-12 ml-auto"></div></td>
+                      <td className="py-2 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-10 ml-auto"></div></td>
+                    </tr>
+                  ))
+                ) : (
+                  transactions.slice(0, 5).map(tx => (
+                    <tr key={tx.id} className="hover:bg-secondary/40 transition-colors group">
+                      <td className="py-2 pr-3 font-mono text-[10px] text-muted-foreground">{tx.id.slice(-6).toUpperCase()}</td>
+                      <td className="py-2 pr-3 font-bold">{tx.table_id || "Walk-in"}</td>
+                      <td className="py-2 pr-3 font-semibold text-muted-foreground">{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
+                      <td className="py-2 pr-3 text-right font-black text-green-500">{rp(tx.total)}</td>
+                      <td className="py-2 text-right text-muted-foreground font-bold">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                    </tr>
+                  ))
+                )}
+                {!loading && transactions.length === 0 && (
+                  <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Belum ada transaksi.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

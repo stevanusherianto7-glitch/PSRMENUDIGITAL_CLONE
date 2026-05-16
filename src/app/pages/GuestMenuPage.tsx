@@ -3,10 +3,9 @@ import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
-  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList
+  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle
 } from "lucide-react";
-const logoImg = "/imports/logo_pawon_salam.png";
-import { SEED_MENU, menuCategories, rp } from "../data";
+import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
@@ -29,7 +28,7 @@ export default function GuestMenuPage() {
   const [welcomeStep, setWelcomeStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
-  const [autoRefresh, setAutoRefresh] = useState(true); // Default aktif agar user langsung melihat update
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -37,7 +36,6 @@ export default function GuestMenuPage() {
   const tax = Math.round(subtotal * 0.1);
   const total = subtotal + tax;
 
-  // Fetch menu from Supabase (merged with local images)
   useEffect(() => {
     async function loadMenu() {
       setLoading(true);
@@ -45,8 +43,6 @@ export default function GuestMenuPage() {
         const { data } = await supabase.from("menu_items").select("*");
         if (data && data.length > 0) {
           const dbById = new Map(data.map((r: any) => [r.id, r]));
-          // SEED_MENU = source of truth untuk nama/kategori/gambar/deskripsi.
-          // Supabase hanya menentukan price & available (jika ada baris-nya).
           const merged: MenuItem[] = SEED_MENU.map(seed => {
             const r: any = dbById.get(seed.id);
             if (!r) return seed;
@@ -56,7 +52,6 @@ export default function GuestMenuPage() {
               available: typeof r.available === "boolean" ? r.available : seed.available,
             };
           });
-          // Item custom di Supabase yang tidak ada di SEED tetap ditampilkan
           const seedIds = new Set(SEED_MENU.map(m => m.id));
           const extras: MenuItem[] = data
             .filter((r: any) => !seedIds.has(r.id))
@@ -81,7 +76,6 @@ export default function GuestMenuPage() {
     loadMenu();
   }, []);
 
-  // Poll my orders
   const loadMyOrders = useCallback(async () => {
     if (!tableId) {
       setTableError(true);
@@ -163,7 +157,6 @@ export default function GuestMenuPage() {
     setShowWelcome(false);
   }
 
-  // Check if tableId is missing and show error
   if (tableError || !tableId || !tableId.trim()) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -193,18 +186,15 @@ export default function GuestMenuPage() {
           <div
             className="bg-card w-full max-w-md rounded-2xl overflow-hidden mx-4 shadow-2xl"
           >
-            {/* Top accent bar */}
             <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
-            {/* Step 1 — Sapaan & pilih tipe */}
             {welcomeStep === 1 && (
               <div className="p-6">
-                {/* Logo + judul */}
                 <div className="flex flex-col items-center text-center mb-6">
                   <div className="relative mb-3">
                     <img
                       src={logoImg}
-                      alt="Kedai Elvera 57"
+                      alt={BRAND_NAME}
                       className="w-16 h-16 rounded-2xl object-cover border-2 border-foreground/10"
                     />
                   </div>
@@ -212,15 +202,14 @@ export default function GuestMenuPage() {
                     className="text-xl font-extrabold text-foreground leading-tight font-poppins"
                   >
                     Selamat Datang di<br />
-                    <span className="text-primary">Kedai Elvera 57!</span>
+                    <span className="text-primary">{BRAND_NAME}!</span>
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                    Restoran khas Semarang, sudah resmi bersertifikat Halal.<br />
-                    Nikmati sajian terbaik kami
+                    Sajian Otentik Khas Semarang yang kini hadir lebih dekat.<br />
+                    Resmi bersertifikat **Halal** & Tanpa MSG. Selamat menikmati!
                   </p>
                 </div>
 
-                {/* Info meja */}
                 <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-4 py-3 mb-5">
                   <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
                     <MapPin size={16} className="text-primary" />
@@ -238,30 +227,25 @@ export default function GuestMenuPage() {
                   </div>
                 </div>
 
-                {/* Pilih tipe pesanan */}
                 <div className="mb-5">
                   <p className="text-xs font-semibold text-muted-foreground mb-2.5 uppercase tracking-wider">
                     Pilih Tipe Pesanan
                   </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {([
+                    {[
                       {
                         id: "dine-in" as OrderMode,
                         label: "Dine In",
                         sub: "Makan di tempat",
                         emoji: "🪑",
-                        color: orderMode === "dine-in" ? "border-indigo-500 bg-indigo-500/10" : "border-border bg-card",
-                        textColor: welcomeMode === "dine-in" ? "text-indigo-400" : "text-muted-foreground",
                       },
                       {
                         id: "take-away" as OrderMode,
                         label: "Take Away",
                         sub: "Dibawa pulang",
                         emoji: "🛍️",
-                        color: welcomeMode === "take-away" ? "border-emerald-500 bg-emerald-500/10" : "border-border bg-card",
-                        textColor: welcomeMode === "take-away" ? "text-emerald-400" : "text-muted-foreground",
                       },
-                    ]).map(m => (
+                    ].map(m => (
                       <button
                         key={m.id}
                         onClick={() => setWelcomeMode(m.id)}
@@ -294,7 +278,6 @@ export default function GuestMenuPage() {
                   </div>
                 </div>
 
-                {/* Tombol lanjut */}
                 <button
                   onClick={() => setWelcomeStep(2)}
                   className="w-full py-4 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-indigo-500 transition-all active:scale-95 flex items-center justify-center gap-2"
@@ -304,7 +287,6 @@ export default function GuestMenuPage() {
               </div>
             )}
 
-            {/* Step 2 — Cara pesan */}
             {welcomeStep === 2 && (
               <div className="p-6">
                 <div className="text-center mb-5">
@@ -321,7 +303,6 @@ export default function GuestMenuPage() {
                   </p>
                 </div>
 
-                {/* 3 langkah */}
                 <div className="space-y-3 mb-6">
                   {[
                     {
@@ -365,7 +346,6 @@ export default function GuestMenuPage() {
                   ))}
                 </div>
 
-                {/* Ringkasan pilihan */}
                 <div className="flex items-center gap-2 bg-foreground/5 border border-foreground/10 rounded-xl px-3 py-2 mb-4">
                   <span className="text-base">{welcomeMode === "dine-in" ? "🪑" : "🛍️"}</span>
                   <div>
@@ -382,7 +362,6 @@ export default function GuestMenuPage() {
                   </button>
                 </div>
 
-                {/* CTA */}
                 <button
                   onClick={handleStartOrder}
                   className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-extrabold text-sm hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30"
@@ -391,7 +370,7 @@ export default function GuestMenuPage() {
                 </button>
 
                 <p className="text-center text-[10px] text-muted-foreground mt-3">
-                  Meja {tableId} · Kedai Elvera 57 · Semarang
+                  Meja {tableId} · {BRAND_NAME} · Semarang
                 </p>
               </div>
             )}
@@ -402,9 +381,9 @@ export default function GuestMenuPage() {
       {/* Header */}
       <header className="sticky top-0 z-20 bg-card/80 backdrop-blur-md border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
-          <img src={logoImg} alt="Kedai Elvera 57" className="w-9 h-9 rounded-lg object-cover" />
+          <img src={logoImg} alt={BRAND_NAME} className="w-9 h-9 rounded-lg object-cover" />
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-foreground font-poppins">Kedai Elvera 57</p>
+            <p className="font-bold text-sm text-foreground font-poppins">{BRAND_NAME}</p>
             <p className="text-xs text-muted-foreground">Meja {tableId} · Scan & Order</p>
           </div>
           <div className="flex-shrink-0 mr-1">
@@ -429,7 +408,6 @@ export default function GuestMenuPage() {
       {/* Menu View */}
       {view === "menu" && (
         <div>
-          {/* Category Tabs */}
           <div className="flex gap-2 px-4 py-3 border-b border-border">
             {menuCategories.map(c => (
               <button
@@ -444,7 +422,6 @@ export default function GuestMenuPage() {
             ))}
           </div>
 
-          {/* Menu Grid */}
           <div className="p-4 grid grid-cols-2 gap-3">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
@@ -497,7 +474,7 @@ export default function GuestMenuPage() {
       {view === "cart" && (
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground" aria-label="Kembali">
+            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
               <X size={18} />
             </button>
             <h2 className="font-bold text-base font-poppins">Keranjang Pesanan</h2>
@@ -507,13 +484,12 @@ export default function GuestMenuPage() {
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
               <ShoppingCart size={40} className="opacity-20" />
               <p className="text-sm">Keranjang kosong</p>
-              <button onClick={() => setView("menu")} className="text-xs text-primary hover:text-indigo-400 font-semibold">
+              <button onClick={() => setView("menu")} className="text-xs text-primary font-semibold">
                 Pilih menu
               </button>
             </div>
           ) : (
             <>
-              {/* Dine-in / Take-away selector */}
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-2">Tipe Pesanan</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -552,11 +528,11 @@ export default function GuestMenuPage() {
                       <p className="text-primary font-bold text-sm font-poppins">{rp(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center" aria-label="Kurangi jumlah">
+                      <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center">
                         <Minus size={12} />
                       </button>
                       <span className="text-sm font-bold w-5 text-center">{item.qty}</span>
-                      <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-full bg-primary flex items-center justify-center" aria-label="Tambah jumlah">
+                      <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                         <Plus size={12} className="text-white" />
                       </button>
                     </div>
@@ -564,42 +540,17 @@ export default function GuestMenuPage() {
                 ))}
               </div>
 
-              {/* Catatan untuk Chef */}
               <div>
                 <label className="text-xs font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
                   <ChefHat size={13} className="text-orange-400" />
                   Catatan untuk Chef
-                  <span className="text-muted-foreground font-normal">(opsional)</span>
                 </label>
-                <div className="relative">
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Contoh: masak pedas, tidak pakai bawang, sambal terpisah..."
-                    className="w-full bg-card border border-border rounded-xl p-3 text-xs resize-none h-20 focus:outline-none focus:border-orange-400/50 transition-colors"
-                  />
-                  {notes && (
-                    <button
-                      onClick={() => setNotes("")}
-                      className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
-                      aria-label="Hapus catatan"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-                {/* Quick note chips */}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {["Masak pedas 🌶️", "Tidak pakai bawang", "Sambal terpisah", "Kuah sedikit", "Extra nasi"].map(chip => (
-                    <button
-                      key={chip}
-                      onClick={() => setNotes(prev => prev ? `${prev}, ${chip.replace(/ 🌶️/, "")}` : chip.replace(/ 🌶️/, ""))}
-                      className="text-[10px] px-2.5 py-1 rounded-full bg-secondary border border-border text-muted-foreground hover:text-foreground hover:border-orange-400/30 transition-colors"
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
+                <textarea
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="Contoh: masak pedas, tidak pakai bawang..."
+                  className="w-full bg-card border border-border rounded-xl p-3 text-xs resize-none h-20 focus:outline-none focus:border-primary/50 transition-colors"
+                />
               </div>
 
               <div className="bg-card border border-border rounded-xl p-4 space-y-2">
@@ -634,7 +585,7 @@ export default function GuestMenuPage() {
       {view === "status" && (
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground" aria-label="Kembali">
+            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
               <ChevronLeft size={18} />
             </button>
             <h2 className="font-bold text-base font-poppins">Status Pesanan</h2>
@@ -648,7 +599,7 @@ export default function GuestMenuPage() {
                 {autoRefresh && <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>}
                 {autoRefresh ? "Auto Aktif" : "Auto Off"}
               </button>
-              <button onClick={loadMyOrders} className="text-muted-foreground hover:text-foreground" aria-label="Segarkan pesanan">
+              <button onClick={loadMyOrders} className="text-muted-foreground hover:text-foreground">
                 <RefreshCw size={14} />
               </button>
             </div>
@@ -674,7 +625,6 @@ export default function GuestMenuPage() {
                       <span className="ml-auto text-xs text-muted-foreground font-mono">{order.id}</span>
                     </div>
 
-                    {/* Progress steps */}
                     <div className="flex items-center px-4 py-3 gap-1">
                       {["pending", "cooking", "ready", "served"].map((s, i) => {
                         const done = cfg.step > i + 1;
@@ -745,15 +695,15 @@ export default function GuestMenuPage() {
               <div className="flex gap-3 mt-5">
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold text-muted-foreground"
                 >
                   Batal
                 </button>
                 <button
                   onClick={() => addToCart(selectedItem)}
-                  className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-indigo-500 transition-all active:scale-95 flex items-center justify-center"
+                  className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-indigo-500 transition-all active:scale-95"
                 >
-                  Tambah ke Keranjang
+                  Tambah
                 </button>
               </div>
             </div>
