@@ -1,3 +1,9 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI ADALAH MODUL PUSAT KENDALI (ADMIN) SISTEM PAWON SALAM.
+ * PERUBAHAN LOGIKA DI SINI AKAN BERDAMPAK PADA SELURUH ALUR KERJA RESTORAN. ⚠️
+ */
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Routes, Route, useLocation } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import {

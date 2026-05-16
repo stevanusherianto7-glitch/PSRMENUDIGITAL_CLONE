@@ -1,3 +1,9 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI LOGIKA FETCHING DAN TRANSAKSI DATABASE PAWON SALAM.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN KORUPSI DATA TRANSAKSI. ⚠️
+ */
+
 import { projectId, publicAnonKey } from "../../utils/supabase/info";
 import type { Order, CartItem, OrderType, OrderMode } from "./types";
 

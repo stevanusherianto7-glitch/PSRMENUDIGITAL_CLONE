@@ -1,3 +1,9 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI LOGIKA PRINTING DAN GENERASI QR CODE TAMU.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN STIKER TIDAK BISA DISCAN OLEH TAMU. ⚠️
+ */
+
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import QRCode from "react-qr-code";
