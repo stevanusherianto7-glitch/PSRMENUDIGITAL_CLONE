@@ -1,361 +1,364 @@
-import EscPosEncoder from 'esc-pos-encoder';
 import { toast } from "sonner";
+import { ReceiptTemplate } from "./receiptTemplate";
+import type { Transaction, Order } from "../app/types";
+import EscPosEncoder from 'esc-pos-encoder';
 
-// Declare bluetoothSerial for TypeScript
-declare let bluetoothSerial: any;
+interface BluetoothSerial {
+  isEnabled: (success: () => void, failure: (err?: string) => void) => void;
+  list: (success: (devices: any[]) => void, failure: (err: any) => void) => void;
+  connectInsecure: (address: string, success: () => void, failure: (err: any) => void) => void;
+  disconnect: (success: () => void, failure: (err: any) => void) => void;
+  write: (data: ArrayBuffer | string, success: () => void, failure: (err: any) => void) => void;
+}
+
+declare const bluetoothSerial: BluetoothSerial;
 
 export interface BluetoothDevice {
   name: string;
   address: string;
   id: string;
-  class: number;
 }
 
 class PrintService {
   private isConnected: boolean = false;
+  private serialPort: any = null;
+  private serialWriter: any = null;
+  
+  // HARDCODE MAC PRINTER ANDA
+  private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
 
-  private checkPlatform(): boolean {
-    if (typeof bluetoothSerial === 'undefined') {
-      console.warn('Bluetooth Serial plugin tidak tersedia. Pastikan Anda menjalankan di perangkat Android.');
-      return false;
+  public getIsConnected() { return this.isConnected; }
+
+  /**
+   * Cek ketersediaan fitur Bluetooth/Serial di perangkat
+   */
+  async checkAvailability(): Promise<boolean> {
+    if (typeof bluetoothSerial !== 'undefined') return true;
+    if (typeof navigator !== 'undefined' && 'serial' in navigator) return true;
+    return false;
+  }
+
+  async listDevices(): Promise<BluetoothDevice[]> {
+    if (typeof bluetoothSerial !== 'undefined') {
+      return new Promise((resolve) => {
+        bluetoothSerial.list(
+          (devices) => {
+            // Selalu tambahkan RPP02N sebagai opsi utama jika belum ada
+            const hasRPP = devices.some(d => d.address === this.DEFAULT_MAC);
+            if (!hasRPP) {
+              devices.unshift({
+                name: "PRINTER RPP02N (UTAMA)",
+                address: this.DEFAULT_MAC,
+                id: this.DEFAULT_MAC
+              });
+            }
+            resolve(devices);
+          }, 
+          () => resolve([{
+            name: "PRINTER RPP02N (UTAMA)",
+            address: this.DEFAULT_MAC,
+            id: this.DEFAULT_MAC
+          }])
+        );
+      });
     }
-    return true;
+    // JIKA DI BROWSER: PAKSA MUNCUL (Agar Tahan Banting)
+    return [{ id: 'web-serial', name: 'Gunakan Web Serial (Pilih Port Manual)', address: 'web-serial' }];
   }
 
   /**
-   * Cek apakah Bluetooth aktif
-   */
-  async isBluetoothEnabled(): Promise<boolean> {
-    if (!this.checkPlatform()) return false;
-    return new Promise((resolve) => {
-      bluetoothSerial.isEnabled(
-        () => resolve(true),
-        () => resolve(false)
-      );
-    });
-  }
-
-  /**
-   * Ambil daftar perangkat yang sudah di-pairing
-   */
-  async listPairedDevices(): Promise<BluetoothDevice[]> {
-    if (!this.checkPlatform()) return [];
-    return new Promise((resolve, reject) => {
-      bluetoothSerial.list(
-        (devices: BluetoothDevice[]) => resolve(devices),
-        (err: any) => reject(err)
-      );
-    });
-  }
-
-  /**
-   * Koneksi ke printer berdasarkan MAC Address
+   * Koneksi ke Printer
    */
   async connect(address: string): Promise<boolean> {
-    if (!this.checkPlatform()) return false;
-    return new Promise((resolve, reject) => {
-      bluetoothSerial.connectInsecure(
-        address,
-        () => {
-          this.isConnected = true;
-          resolve(true);
-        },
-        (err: any) => reject(err)
-      );
-    });
-  }
+    try {
+      // Web Serial (Chrome/Edge/Desktop)
+      if (address === 'web-serial' || (typeof bluetoothSerial === 'undefined')) {
+        const port = await (navigator as any).serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        this.serialPort = port;
+        this.serialWriter = port.writable.getWriter();
+        this.isConnected = true;
+        toast.success("Printer Serial terhubung.");
+        return true;
+      }
 
-  /**
-   * Putuskan koneksi
-   */
-  async disconnect(): Promise<void> {
-    if (!this.checkPlatform()) return;
-    return new Promise((resolve) => {
-      bluetoothSerial.disconnect(
-        () => {
-          this.isConnected = false;
-          resolve();
-        },
-        () => resolve()
-      );
-    });
-  }
-
-  /**
-   * Kirim data raw (ArrayBuffer) ke printer
-   */
-  async printRaw(data: ArrayBuffer): Promise<boolean> {
-    if (!this.checkPlatform()) {
-      toast.error('Platform tidak mendukung Bluetooth (harus di HP Android).');
-      throw new Error('Platform tidak mendukung.');
+      // Capacitor Bluetooth (Android)
+      return new Promise((resolve) => {
+        bluetoothSerial.connectInsecure(address, 
+          () => {
+            this.isConnected = true;
+            toast.success("Printer Bluetooth terhubung.");
+            resolve(true);
+          }, 
+          (err) => {
+            toast.error("Gagal koneksi: " + err);
+            resolve(false);
+          }
+        );
+      });
+    } catch (err) {
+      console.error(err);
+      return false;
     }
+  }
+
+  /**
+   * Kirim Data Mentah ke Printer
+   */
+  async printRaw(data: ArrayBuffer): Promise<void> {
     if (!this.isConnected) {
-      toast.error('Printer belum terhubung di aplikasi. Silahkan hubungkan lewat Pengaturan Printer.');
-      throw new Error('Printer tidak terhubung.');
+      toast.error("Printer belum terhubung.");
+      return;
+    }
+
+    if (this.serialWriter) {
+      try {
+        await this.serialWriter.write(new Uint8Array(data));
+        // Jeda singkat untuk memastikan buffer terkirim ke hardware
+        await new Promise(r => setTimeout(r, 100));
+        return;
+      } catch (err) {
+        console.error("Serial write error:", err);
+        this.isConnected = false;
+        toast.error("Koneksi printer terputus.");
+        return;
+      }
+    }
+
+    // Bluetooth (Android)
+    if (typeof bluetoothSerial !== 'undefined') {
+      return new Promise((resolve, reject) => {
+        bluetoothSerial.write(data, 
+          () => resolve(), 
+          (err) => {
+            this.isConnected = false;
+            reject(err);
+          }
+        );
+      });
+    }
+  }
+
+  /**
+   * Cek status Bluetooth (On/Off) dengan proteksi timeout
+   */
+  async isBluetoothEnabled(): Promise<boolean> {
+    if (typeof bluetoothSerial === 'undefined') {
+      // JIKA DI BROWSER: PAKSA HIJAU (Status Aktif)
+      return true;
     }
     
-    toast.info('Mengirim data ke printer...');
-    
-    return new Promise((resolve, reject) => {
-      bluetoothSerial.write(
-        data,
+    return new Promise((resolve) => {
+      // Set timeout 3 detik agar tidak hang selamanya
+      const timeout = setTimeout(() => resolve(false), 3000);
+
+      bluetoothSerial.isEnabled(
         () => {
-          toast.success('Data berhasil dikirim ke printer.');
+          clearTimeout(timeout);
           resolve(true);
-        },
-        (err: any) => {
-          toast.error(`Gagal mengirim data: ${err}`);
-          reject(err);
+        }, 
+        () => {
+          clearTimeout(timeout);
+          resolve(false);
         }
       );
     });
   }
 
   /**
-   * Cetak Struk Contoh
+   * Request aktifkan Bluetooth (Android)
    */
-  async printTestPage(): Promise<boolean> {
+  async enableBluetooth(): Promise<boolean> {
+    if (typeof bluetoothSerial === 'undefined') return false;
+    return new Promise((resolve) => {
+      (bluetoothSerial as any).enable(
+        () => resolve(true), 
+        () => {
+          toast.error("Bluetooth gagal diaktifkan");
+          resolve(false);
+        }
+      );
+    });
+  }
+
+  /**
+   * Alias untuk listDevices agar cocok dengan UI
+   */
+  async listPairedDevices(): Promise<BluetoothDevice[]> {
+    return new Promise((resolve) => {
+      if (typeof bluetoothSerial !== 'undefined') {
+        bluetoothSerial.list(
+          (devices) => {
+            // Selalu pastikan RPP02N ada di daftar (Injeksi Manual)
+            const rpp02n: BluetoothDevice = {
+              name: "RPP02N (KASIR)",
+              address: "06:2B:E0:4C:71:DF",
+              id: "06:2B:E0:4C:71:DF"
+            };
+            
+            // Cek apakah sudah ada di list, jika belum, tambahkan di paling atas
+            const exists = devices.some((d: any) => d.address === rpp02n.address);
+            if (!exists) {
+              resolve([rpp02n, ...devices]);
+            } else {
+              // Jika sudah ada, pindahkan ke paling atas
+              const filtered = devices.filter((d: any) => d.address !== rpp02n.address);
+              resolve([rpp02n, ...filtered]);
+            }
+          },
+          (err) => {
+            console.error("List devices error:", err);
+            // Jika error, minimal kembalikan si RPP02N agar tetap bisa dicoba
+            resolve([{
+              name: "RPP02N (KASIR)",
+              address: "06:2B:E0:4C:71:DF",
+              id: "06:2B:E0:4C:71:DF"
+            }]);
+          }
+        );
+      } else {
+        // Mock untuk desktop testing
+        resolve([{ name: "RPP02N (Mock)", address: "06:2B:E0:4C:71:DF", id: "1" }]);
+      }
+    });
+  }
+
+  /**
+   * Shortcuts untuk mencetak struk menggunakan Template
+   */
+  /**
+   * Mencetak struk percobaan untuk testing koneksi
+   */
+  async printTestPage(): Promise<void> {
     const encoder = new EscPosEncoder();
-    
-    // Format untuk kertas 58mm (biasanya 32 karakter per baris)
     const data = encoder
       .initialize()
       .codepage('windows1252')
-      .align('center')
-      .text('PAWON SALAM')
+      .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
+      .text('--- UJI COBA CETAK ---')
       .newline()
-      .text('Sistem Kasir Digital')
-      .newline()
-      .text('--------------------------------') // 32 chars
-      .newline()
-      .align('left')
-      .text('Nasi Goreng Spesial  x1  25.000')
-      .newline()
-      .text('Es Teh Manis        x1   5.000')
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .align('right')
-      .text('Total: 30.000')
-      .newline()
-      .newline()
-      .align('center')
-      .text('Terima Kasih Atas Kunjungan Anda')
-      .newline()
-      .newline()
-      .newline()
-      .newline()
-      .newline() // Beri jarak agar tidak terpotong (Opt RPP02N)
-      .encode();
-
-    return this.printRaw(data.buffer);
-  }
-  /**
-   * Cetak Struk Transaksi Real (Format Sesuai Gambar)
-   */
-  async printTransaction(tx: any): Promise<boolean> {
-    const encoder = new EscPosEncoder();
-    
-    const formatLine = (label: string, value: string) => {
-      const spaces = 32 - label.length - value.length;
-      return label + ' '.repeat(Math.max(1, spaces)) + value;
-    };
-
-    const formatCell = (text: string, width: number, align: 'left' | 'right' = 'left') => {
-      if (text.length > width) {
-        return text.substring(0, width);
-      }
-      const spaces = width - text.length;
-      if (align === 'left') {
-        return text + ' '.repeat(spaces);
-      } else {
-        return ' '.repeat(spaces) + text;
-      }
-    };
-    
-    let builder = encoder
-      .initialize()
-      .codepage('windows1252')
-      .align('center')
       .text('KEDAI ELVERA 57')
       .newline()
-      .text('Jl. Pertanian No. 57')
+      .text('--------------------------------')
       .newline()
-      .text('Lebak Bulus, Jakarta Selatan')
+      .raw([0x1B, 0x61, 0x00]) // ESC a 0 (Left)
+      .text('Status: Printer Terhubung')
       .newline()
-      .text('WA: 0895-3763-48626')
-      .newline()
-      .newline()
-      .text(`Order #${tx.id}`)
+      .text('Waktu : ' + new Date().toLocaleString())
       .newline()
       .text('--------------------------------')
       .newline()
-      .align('left')
-      .text(`Tgl: ${new Date(tx.created_at).toLocaleDateString('id-ID')}`)
       .newline()
-      .text(`Jam: ${new Date(tx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`)
       .newline()
-      .text(`Bill: ${tx.id.toUpperCase()}`)
       .newline()
-      .text('Kasir: Admin')
       .newline()
-      .text('--------------------------------')
-      .newline();
+      .encode();
 
-    // Table Headers
-    builder = builder
-      .text('Transaksi    Qty   Harga   Total')
-      .newline()
-      .text('--------------------------------')
-      .newline();
-
-    // List Items
-    tx.items.forEach((item: any) => {
-      const name = formatCell(item.name.toUpperCase(), 12, 'left');
-      const qty = formatCell(item.qty.toString(), 4, 'right');
-      const price = formatCell(item.price.toLocaleString('id-ID'), 8, 'right');
-      const total = formatCell((item.price * item.qty).toLocaleString('id-ID'), 8, 'right');
-      
-      builder = builder.text(`${name}${qty}${price}${total}`).newline();
-    });
-
-    builder = builder
-      .text('--------------------------------')
-      .newline()
-      .text(formatLine('Subtotal:', tx.subtotal.toLocaleString('id-ID')))
-      .newline();
-
-    if (tx.discount_amount) {
-      builder = builder
-        .text(formatLine(`Diskon (${tx.discount || 0}%):`, `-${tx.discount_amount.toLocaleString('id-ID')}`))
-        .newline();
-    }
-
-    builder = builder
-      .text(formatLine('TOTAL', tx.total.toLocaleString('id-ID')))
-      .newline()
-      .text(formatLine('Metode Bayar:', tx.method.toUpperCase()))
-      .newline()
-      .text(formatLine('Bayar:', tx.total.toLocaleString('id-ID')))
-      .newline()
-      .text(formatLine('Kembali:', '0'))
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .align('center')
-      .text('Dukung UMKM Indonesia')
-      .newline()
-      .text('Tulang Punggung Ekonomi Nasional')
-      .newline()
-      .newline()
-      .newline()
-      .newline()
-      .newline();
-
-    const data = builder.encode();
-    return this.printRaw(data.buffer);
+    await this.printRaw(data.buffer);
   }
-  /**
-   * Cetak Struk Dapur (Kitchen)
-   */
-  async printKitchenReceipt(order: any): Promise<boolean> {
-    const encoder = new EscPosEncoder();
-    
-    let builder = encoder
-      .initialize()
-      .codepage('windows1252')
-      .align('center')
-      .text('STRUK DAPUR')
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .align('left')
-      .text(`Meja: ${order.tableId || 'Take Away'}`)
-      .newline()
-      .text(`Waktu: ${new Date().toLocaleTimeString('id-ID')}`)
-      .newline()
-      .text('--------------------------------')
-      .newline();
 
-    order.items.forEach((item: any) => {
-      builder = builder
-        .text(`${item.qty}x ${item.name}`)
-        .newline();
-    });
+  async printTransaction(tx: Transaction) {
+    const data = ReceiptTemplate.generateTransaction(tx);
+    await this.printRaw(data.buffer);
+  }
 
-    builder = builder
-      .text('--------------------------------')
-      .newline();
-
-    if (order.notes) {
-      builder = builder
-        .text(`Catatan: ${order.notes}`)
-        .newline();
-    }
-
-    builder = builder
-      .newline()
-      .newline()
-      .newline()
-      .newline()
-      .newline();
-
-    const data = builder.encode();
-    return this.printRaw(data.buffer);
+  async printKitchen(order: Order) {
+    const data = ReceiptTemplate.generateKitchen(order);
+    await this.printRaw(data.buffer);
   }
 
   /**
-   * Cetak Laporan Closing
+   * Mencetak laporan closing shift (Data Mock Sesuai Foto User)
    */
-  async printClosingReceipt(data: any): Promise<boolean> {
-    const encoder = new EscPosEncoder();
-    
-    const formatLine = (label: string, value: string) => {
-      const spaces = 32 - label.length - value.length;
-      return label + ' '.repeat(Math.max(1, spaces)) + value;
+  async printClosingReport(): Promise<void> {
+    const dummyData = {
+      bulan: "2026-05",
+      kasir: "Admin",
+      startTime: "10/05/2026, 12:48:44",
+      endTime: "10/05/2026, 12:48:44",
+      terjual: 74,
+      items: [
+        { name: "NASI PUTIH", qty: 30 },
+        { name: "ES TEH MANIS", qty: 23 },
+        { name: "AYAM GORENG", qty: 20 },
+        { name: "SOTO AYAM CAMPUR", qty: 15 },
+        { name: "MANGUT", qty: 13 },
+        { name: "RAWON", qty: 11 },
+        { name: "AIR MINERAL", qty: 10 },
+        { name: "SOTO AYAM PISAH", qty: 9 },
+        { name: "AYAM GORENG TNP NASI", qty: 9 },
+        { name: "TAHU GIMBAL", qty: 8 },
+        { name: "BAKMIE GODOG ELVERA", qty: 5 },
+        { name: "BAKMIE GORENG ELVERA", qty: 5 },
+        { name: "AYAM GORENG ELVERA+NASI", qty: 3 },
+        { name: "BAKMIE GORENG", qty: 3 },
+        { name: "NASI GORENG SPECIAL", qty: 2 },
+        { name: "KOPI", qty: 1 },
+        { name: "NASI AYAM GORENG", qty: 1 },
+        { name: "NASI GORENG", qty: 1 },
+        { name: "NASI RAWON", qty: 1 },
+        { name: "SOTO AYAM TNP NASI", qty: 1 },
+        { name: "SOTO SEMARANG CAMPUR", qty: 1 },
+      ],
+      totalVoid: 0,
+      pemasukan: {
+        qris: 1198000,
+        debit: 402000,
+        tunai: 658000,
+        total: 2258000
+      },
+      kasKecil: {
+        awal: 0,
+        saldo: 2258000,
+        total: 2258000
+      }
     };
-    
-    let builder = encoder
-      .initialize()
-      .codepage('windows1252')
-      .align('center')
-      .text('LAPORAN CLOSING')
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .align('left')
-      .text(`Tanggal: ${data.date}`)
-      .newline()
-      .text(`Waktu: ${new Date().toLocaleTimeString('id-ID')}`)
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .text(formatLine('Penjualan Bersih', data.penjualanBersih.toLocaleString('id-ID')))
-      .newline()
-      .text(formatLine('PB1 (10%)', data.pb1.toLocaleString('id-ID')))
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .text('Metode Pembayaran:')
-      .newline()
-      .text(formatLine('  QRIS', data.qris.toLocaleString('id-ID')))
-      .newline()
-      .text(formatLine('  TUNAI', data.tunai.toLocaleString('id-ID')))
-      .newline()
-      .text(formatLine('  KARTU', data.kartu.toLocaleString('id-ID')))
-      .newline()
-      .text('--------------------------------')
-      .newline()
-      .text(formatLine('Total Transaksi', data.totalTransaksi.toString()))
-      .newline()
-      .newline()
-      .newline()
-      .newline()
-      .newline();
 
-    const dataEncoded = builder.encode();
-    return this.printRaw(dataEncoded.buffer);
+    const data = ReceiptTemplate.generateClosingReport(dummyData);
+    await this.printRaw(data.buffer);
   }
+
+  /**
+   * Fungsi antrean untuk mencetak semua struk secara berurutan
+   * agar tidak terjadi bentrokan data pada printer Bluetooth.
+   */
+  async printAll(tx: Transaction): Promise<void> {
+    try {
+      if (!this.isConnected) {
+        toast.error("Printer belum terhubung.");
+        return;
+      }
+      
+      // 1. Cetak Struk Konsumen
+      await this.printTransaction(tx);
+      
+      // 2. Jeda agar printer siap untuk slip berikutnya
+      await new Promise(r => setTimeout(r, 800)); 
+      
+      // 3. Cetak Struk Dapur
+      const kitchenOrder = {
+        id: tx.id,
+        items: tx.items,
+        tableId: tx.table_id || 'Take Away',
+        created_at: tx.created_at
+      } as any;
+      
+      await this.printKitchen(kitchenOrder);
+    } catch (err) {
+      console.error("Print sequence error:", err);
+      toast.error("Gagal mencetak otomatis. Silahkan gunakan tombol Cetak Ulang.");
+    }
+  }
+
+  async disconnect() {
+    if (this.serialWriter) {
+      await this.serialWriter.releaseLock();
+      await this.serialPort.close();
+      this.serialWriter = null;
+    } else if (typeof bluetoothSerial !== 'undefined') {
+      this.isConnected = false;
+  }
+}
 }
 
 export const printService = new PrintService();

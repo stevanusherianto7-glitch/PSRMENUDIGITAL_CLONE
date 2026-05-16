@@ -42,23 +42,29 @@ export default function WaiterPage() {
   const { speak } = useTTS(orders, ttsEnabled);
 
   useEffect(() => {
-    const s = localStorage.getItem("pawon_session");
-    if (!s) { navigate("/"); return; }
-    const parsed = JSON.parse(s) as UserSession;
-    setSession(parsed);
-    
-    // Redirect manager/owner to admin page
-    if (parsed.role === "manager" || parsed.role === "owner") {
-      navigate("/admin");
-      return;
-    }
+    try {
+      const s = localStorage.getItem("pawon_session");
+      if (!s) { navigate("/"); return; }
+      const parsed = JSON.parse(s) as UserSession;
+      setSession(parsed);
+      
+      // Redirect manager/owner to admin page
+      if (parsed.role === "manager" || parsed.role === "owner") {
+        navigate("/admin");
+        return;
+      }
 
-    // Set tab based on role for other users
-    if (parsed.role === "waiter") {
-      setTab("waiter");
-    }
+      // Set tab based on role for other users
+      if (parsed.role === "waiter") {
+        setTab("waiter");
+      }
 
-    preloadVoices();
+      preloadVoices();
+    } catch (e) {
+      console.error("Failed to parse session from localStorage", e);
+      localStorage.removeItem("pawon_session");
+      navigate("/");
+    }
   }, [navigate]);
 
   const loadOrders = useCallback(async () => {

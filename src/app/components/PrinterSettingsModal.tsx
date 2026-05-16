@@ -13,13 +13,26 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   const [scanning, setScanning] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectedAddress, setConnectedAddress] = useState<string | null>(
-    localStorage.getItem("connectedPrinterAddress")
+    printService.getIsConnected() ? localStorage.getItem("connectedPrinterAddress") : null
   );
   const [printing, setPrinting] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<string>("");
 
   useEffect(() => {
     checkBluetooth();
   }, []);
+
+  useEffect(() => {
+    if (devices.length > 0 && !selectedDevice) {
+      // Prioritaskan RPP02N jika ada di daftar
+      const rpp02n = devices.find(d => d.address === "06:2B:E0:4C:71:DF");
+      if (rpp02n) {
+        setSelectedDevice(rpp02n.address);
+      } else {
+        setSelectedDevice(devices[0].address);
+      }
+    }
+  }, [devices, selectedDevice]);
 
   async function checkBluetooth() {
     // Memancing pop-up izin di Android 12+ dengan memanggil listPairedDevices
@@ -48,7 +61,11 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
     }
   }
 
-  async function handleConnect(address: string) {
+  async function handleConnect(e: React.MouseEvent, address: string) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setConnecting(address);
     try {
       const success = await printService.connect(address);
@@ -66,7 +83,11 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
     }
   }
 
-  async function handleDisconnect() {
+  async function handleDisconnect(e: React.MouseEvent) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     try {
       await printService.disconnect();
       setConnectedAddress(null);
@@ -77,17 +98,27 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
     }
   }
 
-  async function handleTestPrint() {
+  async function handleTestPrint(e: React.MouseEvent) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setPrinting(true);
     try {
+      // Sederhanakan: Langsung cetak saja. 
+      // Jika belum terhubung, printService.printRaw akan memberikan Toast peringatan secara internal.
       await printService.printTestPage();
       toast.success("Struk tes berhasil dikirim");
     } catch (error) {
+      console.error("Test print error:", error);
       toast.error("Gagal mencetak: " + (error as Error).message);
     } finally {
       setPrinting(false);
     }
   }
+
+  const isPrinterConnected = printService.getIsConnected();
 
   return (
     <div
@@ -108,7 +139,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
               Hubungkan ke printer thermal 58mm
             </p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tutup">
+          <button type="button" onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Tutup">
             <X size={18} />
           </button>
         </div>
@@ -128,6 +159,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
             </div>
             {!isEnabled && (
               <button
+                type="button"
                 onClick={checkBluetooth}
                 className="text-xs font-semibold text-amber-500 hover:text-amber-600"
               >
@@ -143,6 +175,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                 Perangkat Tersedia (Paired)
               </label>
               <button
+                type="button"
                 onClick={loadDevices}
                 disabled={scanning || !isEnabled}
                 className="text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
@@ -157,7 +190,6 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                 Aktifkan Bluetooth untuk melihat perangkat
               </div>
             ) : scanning ? (
-              // Skeleton Loading
               <div className="space-y-2">
                 <div className="animate-pulse bg-secondary h-12 w-full rounded-xl" />
                 <div className="animate-pulse bg-secondary h-12 w-full rounded-xl" />
@@ -167,70 +199,72 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                 Tidak ada perangkat yang ditemukan.<br />Pastikan printer sudah di-pairing di pengaturan Android.
               </div>
             ) : (
-              <div className="space-y-2">
-                {devices.map((device) => {
-                  const isConnected = connectedAddress === device.address;
-                  return (
-                    <div
-                      key={device.address}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                        isConnected
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-border/80 bg-secondary/50"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {device.name || "Unknown Device"}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {device.address}
-                        </p>
-                      </div>
-                      {isConnected ? (
-                        <button
-                          onClick={handleDisconnect}
-                          className="flex items-center gap-1 text-xs font-semibold text-red-400 hover:text-red-500"
-                        >
-                          Putuskan
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleConnect(device.address)}
-                          disabled={connecting !== null}
-                          className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50"
-                        >
-                          {connecting === device.address ? (
-                            <RefreshCw size={12} className="animate-spin" />
-                          ) : (
-                            "Hubungkan"
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="flex gap-2">
+                <div className="flex-1 relative group">
+                  <select
+                    value={selectedDevice}
+                    aria-label="Pilih perangkat printer"
+                    onChange={(e) => setSelectedDevice(e.target.value)}
+                    disabled={scanning || connecting !== null || connectedAddress !== null}
+                    className="w-full bg-secondary/80 border border-border rounded-xl px-4 py-3 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" disabled>-- Pilih Perangkat --</option>
+                    {devices.map((device) => (
+                      <option key={device.address} value={device.address} className="bg-card py-2">
+                        {device.name || "Unknown"} ({device.address})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {connectedAddress && isPrinterConnected ? (
+                  <button
+                    type="button"
+                    onClick={(e) => handleDisconnect(e)}
+                    className="px-6 py-3 rounded-xl bg-red-500 text-white text-xs font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center gap-2"
+                  >
+                    <X size={14} /> Putuskan
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      // Jika dropdown kosong, gunakan HARDCODE MAC RPP02N sebagai default
+                      const targetAddress = selectedDevice || '06:2B:E0:4C:71:DF';
+                      handleConnect(e, targetAddress);
+                    }}
+                    disabled={connecting !== null}
+                    className="px-6 py-3 rounded-xl bg-primary text-white text-xs font-black shadow-xl shadow-primary/30 hover:bg-primary/90 disabled:opacity-50 disabled:grayscale transition-all flex items-center gap-2 min-w-[120px] justify-center"
+                  >
+                    {connecting ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        Sedang Menghubungkan...
+                      </>
+                    ) : (
+                      <>Hubungkan</>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {/* Test Print */}
-          {connectedAddress && (
-            <div className="pt-2">
-              <button
-                onClick={handleTestPrint}
-                disabled={printing}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-xs font-semibold text-foreground hover:bg-secondary/80 disabled:opacity-50 transition-colors"
-              >
-                {printing ? (
-                  <RefreshCw size={12} className="animate-spin" />
-                ) : (
-                  <Printer size={12} />
-                )}
-                Cetak Struk Tes
-              </button>
-            </div>
-          )}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={(e) => handleTestPrint(e)}
+              disabled={printing}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary border-2 border-primary/20 text-xs font-black text-primary hover:bg-primary/5 transition-all"
+            >
+              {printing ? (
+                <RefreshCw size={14} className="animate-spin" />
+              ) : (
+                <Printer size={14} />
+              )}
+              CETAK STRUK TES
+            </button>
+          </div>
         </div>
 
         {/* Footer */}

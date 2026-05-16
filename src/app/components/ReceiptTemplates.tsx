@@ -101,7 +101,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
         <div>Tgl: {new Date(tx.created_at).toLocaleDateString("id-ID")}</div>
         <div>Jam: {new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</div>
         <div>Bill: {tx.id.toUpperCase()}</div>
-        <div>Kasir: Admin</div>
+        <div>Kasir: Verena</div>
       </div>
       
       <div className="border-b border-dashed mb-1"></div>

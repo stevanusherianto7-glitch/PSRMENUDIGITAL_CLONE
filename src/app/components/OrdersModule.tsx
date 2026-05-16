@@ -3,7 +3,11 @@ import { RefreshCw, CheckCircle2, ChefHat, Clock, Flame, ShoppingBag, XCircle } 
 import { supabase } from "../../lib/supabase";
 import { rp } from "../data";
 import type { Order, OrderStatus } from "../types";
-import { orderModeConfig } from "../pages/AdminPage";
+
+const orderModeConfig = {
+  "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
+  "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+} as const;
 
 const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
   pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
@@ -17,9 +21,10 @@ interface OrdersModuleProps {
   orders: Order[];
   onRefresh: () => void;
   connected: boolean;
+  onNavigateToKasir?: (orderId: string) => void;
 }
 
-export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps) => {
+export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }: OrdersModuleProps) => {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
   // Subscribe to real-time updates
@@ -78,11 +83,10 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${
-                  filter === s
+                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${filter === s
                     ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
                     : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
-                }`}
+                  }`}
               >
                 <div className="text-sm">{s === "all" ? <ShoppingBag size={14} /> : orderStatusConfig[s as OrderStatus].icon}</div>
                 <div className="truncate w-full text-center">{s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label}</div>
@@ -98,11 +102,10 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${
-                  filter === s
+                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${filter === s
                     ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
                     : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
-                }`}
+                  }`}
               >
                 <div className="text-sm">{orderStatusConfig[s as OrderStatus].icon}</div>
                 <div className="truncate w-full text-center">{orderStatusConfig[s as OrderStatus].label}</div>
@@ -123,7 +126,11 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
           {filtered.map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
-              <div key={order.id} className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg ${order.status === "pending" ? "ring-2 ring-yellow-400/30" : ""}`}>
+              <div 
+                key={order.id} 
+                onClick={order.status === "served" && onNavigateToKasir ? () => onNavigateToKasir(order.id) : undefined}
+                className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg text-left w-full ${order.status === "pending" ? "ring-2 ring-yellow-400/30" : ""} ${order.status === "served" ? "cursor-pointer ring-2 ring-transparent hover:ring-primary/50" : ""}`}
+              >
                 <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className={`relative flex items-center justify-center ${cfg.color} flex-shrink-0`}>
@@ -136,9 +143,8 @@ export const OrdersModule = ({ orders, onRefresh, connected }: OrdersModuleProps
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${
-                      order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                    }`}>
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                      }`}>
                       {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
                     </span>
                     {(() => {

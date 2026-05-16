@@ -1,6 +1,6 @@
 import type { MenuItem, TableData, InventoryItem, Promo } from "./types";
 
-const today   = new Date();
+const today = new Date();
 const addDays = (d: Date, n: number) => {
   const r = new Date(d);
   r.setDate(r.getDate() + n);
@@ -314,58 +314,72 @@ export const SEED_TABLES: TableData[] = [
 ];
 
 export const SEED_INVENTORY: InventoryItem[] = [
-  { id: "i1",  name: "Ayam Kampung",  qty: 5,   unit: "kg",   exp_date: addDays(today, 1),  category: "Protein",  method: "FIFO", stock: 5,   min_stock: 8  },
-  { id: "i2",  name: "Daun Salam",    qty: 200, unit: "gram", exp_date: addDays(today, 0),  category: "Rempah",   method: "FIFO", stock: 200, min_stock: 100},
-  { id: "i3",  name: "Santan Kelapa", qty: 3,   unit: "liter",exp_date: addDays(today, 2),  category: "Dairy",    method: "FIFO", stock: 3,   min_stock: 5  },
-  { id: "i4",  name: "Beras Premium", qty: 25,  unit: "kg",   exp_date: addDays(today, 90), category: "Pokok",    method: "LIFO", stock: 25,  min_stock: 10 },
-  { id: "i5",  name: "Cabe Merah",    qty: 2,   unit: "kg",   exp_date: addDays(today, 3),  category: "Sayuran",  method: "FIFO", stock: 2,   min_stock: 3  },
-  { id: "i6",  name: "Gula Merah",    qty: 1,   unit: "kg",   exp_date: addDays(today, 40), category: "Bumbu",    method: "LIFO", stock: 1,   min_stock: 2  },
-  { id: "i7",  name: "Tahu Putih",    qty: 3,   unit: "kg",   exp_date: addDays(today, 1),  category: "Protein",  method: "FIFO", stock: 3,   min_stock: 5  },
-  { id: "i8",  name: "Santan UHT",    qty: 6,   unit: "liter",exp_date: addDays(today, 6),  category: "Dairy",    method: "LIFO", stock: 6,   min_stock: 4  },
-  { id: "i9",  name: "Kencur",        qty: 500, unit: "gram", exp_date: addDays(today, 14), category: "Rempah",   method: "FIFO", stock: 500, min_stock: 200},
-  { id: "i10", name: "Kelapa Parut",  qty: 1.5, unit: "kg",   exp_date: addDays(today, 2),  category: "Bumbu",    method: "FIFO", stock: 1.5, min_stock: 2  },
+  { id: "i1", name: "Ayam Kampung", qty: 5, unit: "kg", exp_date: addDays(today, 1), category: "Protein", method: "FIFO", stock: 5, min_stock: 8 },
+  { id: "i2", name: "Daun Salam", qty: 200, unit: "gram", exp_date: addDays(today, 0), category: "Rempah", method: "FIFO", stock: 200, min_stock: 100 },
+  { id: "i3", name: "Santan Kelapa", qty: 3, unit: "liter", exp_date: addDays(today, 2), category: "Dairy", method: "FIFO", stock: 3, min_stock: 5 },
+  { id: "i4", name: "Beras Premium", qty: 25, unit: "kg", exp_date: addDays(today, 90), category: "Pokok", method: "LIFO", stock: 25, min_stock: 10 },
+  { id: "i5", name: "Cabe Merah", qty: 2, unit: "kg", exp_date: addDays(today, 3), category: "Sayuran", method: "FIFO", stock: 2, min_stock: 3 },
+  { id: "i6", name: "Gula Merah", qty: 1, unit: "kg", exp_date: addDays(today, 40), category: "Bumbu", method: "LIFO", stock: 1, min_stock: 2 },
+  { id: "i7", name: "Tahu Putih", qty: 3, unit: "kg", exp_date: addDays(today, 1), category: "Protein", method: "FIFO", stock: 3, min_stock: 5 },
+  { id: "i8", name: "Santan UHT", qty: 6, unit: "liter", exp_date: addDays(today, 6), category: "Dairy", method: "LIFO", stock: 6, min_stock: 4 },
+  { id: "i9", name: "Kencur", qty: 500, unit: "gram", exp_date: addDays(today, 14), category: "Rempah", method: "FIFO", stock: 500, min_stock: 200 },
+  { id: "i10", name: "Kelapa Parut", qty: 1.5, unit: "kg", exp_date: addDays(today, 2), category: "Bumbu", method: "FIFO", stock: 1.5, min_stock: 2 },
 ];
 
 export const SEED_PROMOS: Promo[] = [
-  { id: "p1", name: "Happy Hour",    description: "Diskon 20% semua minuman pukul 14:00 - 16:00",          discount: 20,    type: "percentage", active: true,  code: "HAPPYHOUR" },
-  { id: "p2", name: "Makan Berdua",  description: "Beli 2 Makanan Utama gratis 2 Es Teh",                  discount: 10000, type: "fixed",      active: true,  min_order: 50000, code: "BERDUA"    },
-  { id: "p3", name: "Paket Keluarga",description: "Diskon Rp 15.000 untuk pesanan ≥ Rp 100.000",           discount: 15000, type: "fixed",      active: false, min_order: 100000, code: "KELUARGA", valid_until: addDays(today, 30) },
+  { id: "p1", name: "Happy Hour", description: "Diskon 20% semua minuman pukul 14:00 - 16:00", discount: 20, type: "percentage", active: true, code: "HAPPYHOUR" },
+  { id: "p2", name: "Makan Berdua", description: "Beli 2 Makanan Utama gratis 2 Es Teh", discount: 10000, type: "fixed", active: true, min_order: 50000, code: "BERDUA" },
+  { id: "p3", name: "Paket Keluarga", description: "Diskon Rp 15.000 untuk pesanan ≥ Rp 100.000", discount: 15000, type: "fixed", active: false, min_order: 100000, code: "KELUARGA", valid_until: addDays(today, 30) },
 ];
 
 export const menuCategories = ["Makanan", "Snack", "Minuman"];
 export const rp = (n: number) => "Rp " + n.toLocaleString("id-ID");
 
+export const orderModeConfig = {
+  "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
+  "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+} as const;
+
+export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
+
+export const tableStatusConfig = {
+  available: { label: "Kosong", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" },
+  occupied: { label: "Terisi", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
+  service: { label: "Butuh Layanan", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20" },
+  reserved: { label: "Reservasi", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+};
+
 export const PAYMENT_DATA = [
-  { name: "Tunai",    value: 43, color: "#6366F1" },
-  { name: "QRIS",    value: 32, color: "#22C55E" },
-  { name: "Debit",   value: 17, color: "#F59E0B" },
-  { name: "E-Wallet",value: 8,  color: "#EC4899" },
+  { name: "Tunai", value: 43, color: "#6366F1" },
+  { name: "QRIS", value: 32, color: "#22C55E" },
+  { name: "Debit", value: 17, color: "#F59E0B" },
+  { name: "E-Wallet", value: 8, color: "#EC4899" },
 ];
 
 export const BEST_SELLER_DATA = [
-  { name: "Nasi Ayam Penyet",       qty: 42, revenue: 1260000 },
-  { name: "Nasi Ayam Lengkuas",     qty: 35, revenue: 1050000 },
-  { name: "Soto Ayam Semarang",     qty: 28, revenue:  784000 },
-  { name: "Gulai Mangut Semarang",  qty: 24, revenue:  840000 },
-  { name: "Rawon Semarang",         qty: 22, revenue:  704000 },
-  { name: "Tahu Gimbal Semarang",   qty: 18, revenue:  450000 },
+  { name: "Nasi Ayam Penyet", qty: 42, revenue: 1260000 },
+  { name: "Nasi Ayam Lengkuas", qty: 35, revenue: 1050000 },
+  { name: "Soto Ayam Semarang", qty: 28, revenue: 784000 },
+  { name: "Gulai Mangut Semarang", qty: 24, revenue: 840000 },
+  { name: "Rawon Semarang", qty: 22, revenue: 704000 },
+  { name: "Tahu Gimbal Semarang", qty: 18, revenue: 450000 },
 ];
 
 export const HOURLY_DATA = [
-  { hour: "10:00", sales:  340000, tx: 4  },
-  { hour: "11:00", sales:  680000, tx: 7  },
+  { hour: "10:00", sales: 340000, tx: 4 },
+  { hour: "11:00", sales: 680000, tx: 7 },
   { hour: "12:00", sales: 1250000, tx: 13 },
-  { hour: "13:00", sales:  890000, tx: 9  },
-  { hour: "14:00", sales:  420000, tx: 5  },
-  { hour: "15:00", sales:  310000, tx: 3  },
-  { hour: "16:00", sales:  280000, tx: 3  },
-  { hour: "17:00", sales:  390000, tx: 4  },
-  { hour: "18:00", sales:  610000, tx: 6  },
-  { hour: "19:00", sales:  420000, tx: 4  },
+  { hour: "13:00", sales: 890000, tx: 9 },
+  { hour: "14:00", sales: 420000, tx: 5 },
+  { hour: "15:00", sales: 310000, tx: 3 },
+  { hour: "16:00", sales: 280000, tx: 3 },
+  { hour: "17:00", sales: 390000, tx: 4 },
+  { hour: "18:00", sales: 610000, tx: 6 },
+  { hour: "19:00", sales: 420000, tx: 4 },
 ];
 
 export const CREDENTIALS = {
-  admin:   { password: "[REDACTED_ADMIN_PASSWORD]",   name: "Admin Kedai Elvera 57" },
-  waiter:  { password: "[REDACTED_WAITER_PASSWORD]",  name: "Pelayan"           },
-  kitchen: { password: "[REDACTED_KITCHEN_PASSWORD]", name: "Dapur"             },
+  admin: { password: "[REDACTED_ADMIN_PASSWORD]", name: "Admin Kedai Elvera 57" },
+  waiter: { password: "[REDACTED_WAITER_PASSWORD]", name: "Pelayan" },
+  kitchen: { password: "[REDACTED_KITCHEN_PASSWORD]", name: "Dapur" },
 };

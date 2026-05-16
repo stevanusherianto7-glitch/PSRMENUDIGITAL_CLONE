@@ -50,7 +50,7 @@ import type {
 export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
 
 export const orderModeConfig = {
-  "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
+  "dine-in": { label: "Dine In", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
   "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
 } as const;
 
@@ -160,6 +160,7 @@ export default function AdminPage() {
   const [stokSubModule, setStokSubModule] = useState<"bahan" | "asset">("bahan");
   const [transaksiSubModule, setTransaksiSubModule] = useState<"summary" | "laporan">("summary");
   const [kasirSubModule, setKasirSubModule] = useState<"pos" | "promo" | "petty">("pos");
+  const [autoSelectOrderId, setAutoSelectOrderId] = useState<string | null>(null);
 
   // Data state
   const [tables, setTables] = useState<TableData[]>(SEED_TABLES);
@@ -238,12 +239,18 @@ export default function AdminPage() {
 
   // Auth check
   useEffect(() => {
-    const s = localStorage.getItem("pawon_session");
-    if (!s) { navigate("/"); return; }
-    const parsed = JSON.parse(s) as UserSession;
-    if (parsed.role !== "admin") { navigate("/waiter"); return; }
-    setSession(parsed);
-    preloadVoices();
+    try {
+      const s = localStorage.getItem("pawon_session");
+      if (!s) { navigate("/"); return; }
+      const parsed = JSON.parse(s) as UserSession;
+      if (parsed.role !== "admin") { navigate("/waiter"); return; }
+      setSession(parsed);
+      preloadVoices();
+    } catch (e) {
+      console.error("Failed to parse session from localStorage", e);
+      localStorage.removeItem("pawon_session");
+      navigate("/");
+    }
   }, [navigate]);
 
   // Clock
@@ -253,8 +260,8 @@ export default function AdminPage() {
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
-      // Filter hanya pesanan yang aktif (belum selesai/dibatalkan) agar sama dengan modul waiter
-      const active = orders.filter(o => o.status !== "served" && o.status !== "cancelled");
+      // Filter pesanan (simpan yang served untuk kasir, buang yang dibatalkan)
+      const active = orders.filter(o => o.status !== "cancelled");
       setLiveOrders(active);
     } catch (e) { console.log("Error loading orders:", e); }
   }, []);
@@ -412,17 +419,17 @@ export default function AdminPage() {
     setTransactions(prev => [tx, ...prev]);
     if (connected) {
       // 1. Simpan ke tabel transactions (utama)
-      const { error } = await supabase.from("transactions").insert({ 
-        id: tx.id, 
-        table_id: tx.table_id, 
-        items: tx.items, 
-        subtotal: tx.subtotal, 
-        discount: tx.discount, 
-        discount_amount: tx.discount_amount, 
-        tax: tx.tax, 
-        total: tx.total, 
-        method: tx.method, 
-        created_at: tx.created_at 
+      const { error } = await supabase.from("transactions").insert({
+        id: tx.id,
+        table_id: tx.table_id,
+        items: tx.items,
+        subtotal: tx.subtotal,
+        discount: tx.discount,
+        discount_amount: tx.discount_amount,
+        tax: tx.tax,
+        total: tx.total,
+        method: tx.method,
+        created_at: tx.created_at
       });
       if (error) console.error("Error saving transaction:", error);
 
@@ -559,13 +566,11 @@ export default function AdminPage() {
                         setActiveModule(item.id);
                         if (window.innerWidth < 1024) setMobileSidebarOpen(false);
                       }}
-                      className={`w-full flex items-center rounded-xl text-left transition-all group relative ${
-                        sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
-                      } ${
-                        active
+                      className={`w-full flex items-center rounded-xl text-left transition-all group relative ${sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
+                        } ${active
                           ? "text-primary drop-shadow-[0_0_8px_rgba(232,119,34,0.8)]"
                           : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                      }`}>
+                        }`}>
                       <Icon size={22} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
 
                       {(sidebarOpen || mobileSidebarOpen) && (
@@ -575,11 +580,10 @@ export default function AdminPage() {
                       )}
 
                       {hasBadge && (
-                        <span className={`absolute bg-red-500 text-white text-[9px] font-bold rounded-full ring-2 ring-sidebar flex items-center justify-center ${
-                          sidebarOpen || mobileSidebarOpen
+                        <span className={`absolute bg-red-500 text-white text-[9px] font-bold rounded-full ring-2 ring-sidebar flex items-center justify-center ${sidebarOpen || mobileSidebarOpen
                             ? "right-3 px-1.5 py-0.5"
                             : "top-2 right-2 w-4 h-4"
-                        }`}>
+                          }`}>
                           {badgeCount}
                         </span>
                       )}
@@ -616,6 +620,7 @@ export default function AdminPage() {
           <button
             onClick={() => setMobileSidebarOpen(true)}
             className="lg:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+            title="Buka menu mobile"
           >
             <LayoutDashboard size={20} />
           </button>
@@ -624,6 +629,7 @@ export default function AdminPage() {
           <button
             onClick={() => setSidebarOpen(v => !v)}
             className="hidden lg:flex p-2 -ml-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+            title="Toggle sidebar"
           >
             <Grid3X3 size={18} />
           </button>
@@ -648,11 +654,10 @@ export default function AdminPage() {
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setTtsEnabled(v => !v)}
-                className={`p-2 rounded-lg border transition-all ${
-                  ttsEnabled
+                className={`p-2 rounded-lg border transition-all ${ttsEnabled
                     ? "bg-green-500/10 border-green-500/20 text-green-500 shadow-sm"
                     : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
                 title="TTS Toggle"
               >
                 {ttsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
@@ -695,7 +700,7 @@ export default function AdminPage() {
                       Laporan
                     </button>
                   </div>
-                  
+
                   {/* Filter Button */}
                   <button
                     onClick={() => setShowDatePicker(true)}
@@ -714,16 +719,16 @@ export default function AdminPage() {
                 {showDatePicker && (
                   <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="relative max-w-4xl w-full">
-                      <button 
+                      <button
                         onClick={() => setShowDatePicker(false)}
                         title="Tutup"
                         className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10"
                       >
                         <XCircle size={20} />
                       </button>
-                      <DateRangePicker 
-                        onSelect={(range) => setDateRange(range)} 
-                        onClose={() => setShowDatePicker(false)} 
+                      <DateRangePicker
+                        onSelect={(range) => setDateRange(range)}
+                        onClose={() => setShowDatePicker(false)}
                       />
                     </div>
                   </div>
@@ -733,7 +738,7 @@ export default function AdminPage() {
                 {transaksiSubModule === "laporan" && <LaporanModule transactions={filteredTransactions} />}
               </div>
             )}
-            {activeModule === "orders" && <OrdersModule orders={liveOrders} onRefresh={loadOrders} connected={connected} />}
+            {activeModule === "orders" && <OrdersModule orders={liveOrders} onRefresh={loadOrders} connected={connected} onNavigateToKasir={(orderId) => { setAutoSelectOrderId(orderId); setActiveModule("kasir"); }} />}
             {activeModule === "stok" && (
               <div className="space-y-5">
                 <div className="flex border-b border-border">
@@ -771,7 +776,7 @@ export default function AdminPage() {
                       Jadwal Shift
                     </button>
                   </div>
-                  
+
                   {/* Filter Button */}
                   <button
                     onClick={() => setShowDatePicker(true)}
@@ -812,7 +817,7 @@ export default function AdminPage() {
                     Petty Cash
                   </button>
                 </div>
-                {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} />}
+                {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
                 {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
                 {kasirSubModule === "petty" && <PettyCashModule />}
               </div>
@@ -839,9 +844,9 @@ export default function AdminPage() {
                 </div>
                 <div className="bg-card border border-border rounded-xl p-5 space-y-4">
                   <p className="text-xs text-muted-foreground">Dokumentasi resmi untuk mengintegrasikan metrik Supabase menggunakan OpenTelemetry.</p>
-                  <a 
-                    href="https://supabase.com/docs/guides/telemetry/metrics/vendor-agnostic" 
-                    target="_blank" 
+                  <a
+                    href="https://supabase.com/docs/guides/telemetry/metrics/vendor-agnostic"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors"
                   >

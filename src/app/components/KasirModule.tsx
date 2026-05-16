@@ -3,25 +3,23 @@ import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
   ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
-  Printer, ShoppingBag, X
+  Printer, ShoppingBag, X, Clock, Flame, XCircle
 } from "lucide-react";
 import { rp, menuCategories } from "../data";
-import { createOrder } from "../api";
+
+const orderModeConfig = {
+  "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
+  "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+} as const;
+import { createOrder, deleteOrder } from "../api";
 import { PromoModal } from "./PromoModal";
 import { PrinterSettingsModal } from "./PrinterSettingsModal";
 import { GuestReceipt, KitchenReceipt } from "./ReceiptTemplates";
 import { printService } from "../../utils/printService";
 import { toast } from "sonner";
-import { orderModeConfig } from "../pages/AdminPage";
 import type { MenuItem, CartItem, Transaction, Promo, TableData, Order, OrderStatus } from "../types";
 
-const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
-  pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
-  cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={12} /> },
-  ready: { label: "Siap Antar", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <ShoppingBag size={12} /> },
-  served: { label: "Selesai", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: <CheckCircle2 size={12} /> },
-  cancelled: { label: "Dibatal", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: <XCircle size={12} /> },
-};
+
 
 interface KasirModuleProps {
   menuItems: MenuItem[];
@@ -29,13 +27,42 @@ interface KasirModuleProps {
   promos: Promo[];
   tables: TableData[];
   orders: Order[];
+  autoSelectOrderId?: string | null;
+  onClearAutoSelect?: () => void;
 }
 
-export function KasirModule({ menuItems, onTransaction, promos, tables, orders }: KasirModuleProps) {
+export function KasirModule({ menuItems, onTransaction, promos, tables, orders, autoSelectOrderId, onClearAutoSelect }: KasirModuleProps) {
+  const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
+    pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
+    cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={12} /> },
+    ready: { label: "Siap Antar", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <ShoppingBag size={12} /> },
+    served: { label: "Selesai", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: <CheckCircle2 size={12} /> },
+    cancelled: { label: "Dibatal", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: <XCircle size={12} /> },
+  };
+
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const savedCart = localStorage.getItem("pawon_cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = localStorage.getItem("pawon_cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (e) {
+      console.error("Failed to parse cart from localStorage", e);
+      return [];
+    }
   });
+  
+  useEffect(() => {
+    if (autoSelectOrderId && orders) {
+      const targetOrder = orders.find(o => o.id === autoSelectOrderId);
+      if (targetOrder) {
+        setCart(targetOrder.items);
+        setSelectedTable(targetOrder.tableId || "");
+        setCurrentPayingOrderId(targetOrder.id);
+        toast.success(`Memuat bill ${targetOrder.tableId ? 'Meja ' + targetOrder.tableId : 'Take Away'}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
+        if (onClearAutoSelect) onClearAutoSelect();
+      }
+    }
+  }, [autoSelectOrderId, orders, onClearAutoSelect]);
+
   const [cat, setCat] = useState("Semua");
 
   useEffect(() => {
@@ -55,6 +82,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
+  const [currentPayingOrderId, setCurrentPayingOrderId] = useState<string | null>(null);
 
   const mockOrders: Order[] = [
     {
@@ -89,27 +117,27 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
       notes: "Pedas sedang"
     }
   ];
-  const activeBills = orders && orders.length > 0 
+  const activeBills = orders && orders.length > 0
     ? orders
-        .filter(o => o.status === "served")
-        .map(o => ({
-          id: o.id,
-          table: o.tableId,
-          mode: o.orderMode,
-          items: o.items,
-          total: o.total,
-          name: `Pesanan ${o.id}`
-        }))
+      .filter(o => o.status === "served")
+      .map(o => ({
+        id: o.id,
+        table: o.tableId,
+        mode: o.orderMode,
+        items: o.items,
+        total: o.total,
+        name: `Pesanan ${o.id}`
+      }))
     : mockActiveBills;
 
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  
-  const discountAmount = selectedPromo 
-    ? (selectedPromo.type === "percentage" 
-        ? Math.round(subtotal * (selectedPromo.discount / 100)) 
-        : selectedPromo.discount)
+
+  const discountAmount = selectedPromo
+    ? (selectedPromo.type === "percentage"
+      ? Math.round(subtotal * (selectedPromo.discount / 100))
+      : selectedPromo.discount)
     : 0;
-    
+
   const tax = Math.round((subtotal - discountAmount) * 0.1);
   const total = subtotal - discountAmount + tax;
 
@@ -121,66 +149,71 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
 
   async function processPayment() {
     if (!payMethod || cart.length === 0) return;
-    if (!confirm("Proses pembayaran " + (selectedTable ? "untuk meja " + selectedTable : "untuk take-away") + "?")) return;
-    setSaving(true);
-    const txId = `TX-${Date.now().toString(36).toUpperCase()}`;
-    const tx: Transaction = {
-      id: txId,
-      table_id: orderMode === "take-away" ? null : selectedTable,
-      items: cart,
-      subtotal,
-      discount: selectedPromo?.type === "percentage" ? selectedPromo.discount : undefined,
-      discount_amount: discountAmount,
-      tax,
-      total,
-      method: payMethod,
-      created_at: new Date().toISOString()
-    };
-    await onTransaction(tx);
-    // Also save as order
-    const orderObj = { 
-      id: txId, 
-      tableId: orderMode === "take-away" ? null : selectedTable, 
-      items: cart, 
-      subtotal, 
-      total, 
-      notes: chefNotes, 
-      orderMode, 
-      type: "kasir",
-      created_at: new Date().toISOString()
-    };
-    try {
-      await createOrder(orderObj);
-    } catch (e) { console.log("Order create error:", e); }
-    setLastTxId(txId);
-    setCurrentTx(tx);
-    setCurrentOrder(orderObj);
-    setSaving(false);
-    setPaid(true);
     
-    // Auto print if connected
+    setSaving(true);
     try {
-      await printService.printTransaction(tx);
-      await printService.printKitchenReceipt(orderObj);
-    } catch (e) {
-      console.log("Auto print failed:", e);
+      const txId = `TX-${Date.now().toString(36).toUpperCase()}`;
+      const tx: Transaction = {
+        id: txId,
+        table_id: orderMode === "take-away" ? null : selectedTable,
+        items: cart,
+        subtotal,
+        discount: selectedPromo?.type === "percentage" ? selectedPromo.discount : undefined,
+        discount_amount: discountAmount,
+        tax,
+        total,
+        method: payMethod,
+        created_at: new Date().toISOString()
+      };
+
+      // 1. Simpan Transaksi & Detail ke Database (Latar Belakang)
+      onTransaction(tx).catch(err => {
+        console.error("Database save failed in background:", err);
+        toast.error("Data gagal simpan ke cloud, silahkan cek koneksi.");
+      });
+      
+      // 3. Hapus antrean (Latar Belakang)
+      if (currentPayingOrderId) {
+        deleteOrder(currentPayingOrderId).catch(e => console.log("Order delete error:", e));
+      }
+
+      // 4. Update UI seketika
+      setLastTxId(txId);
+      setCurrentTx(tx);
+      setCurrentOrder({ ...tx, type: "kasir", orderMode, tableId: tx.table_id });
+      setPaid(true);
+
+    } catch (err) {
+      toast.error("Gagal memproses transaksi. Silahkan coba lagi.");
+      console.error("Payment error:", err);
+    } finally {
+      // Pastikan tombol aktif kembali
+      setSaving(false);
     }
 
-    setTimeout(() => { 
-      setPaid(false); 
-      setCart([]); 
-      localStorage.removeItem("pawon_cart"); 
-      setPayMethod(null); 
-      setLastTxId(null); 
+    setTimeout(() => {
+      setPaid(false);
+      setCart([]);
+      localStorage.removeItem("pawon_cart");
+      setPayMethod(null);
+      setLastTxId(null);
       setCurrentTx(null);
       setCurrentOrder(null);
-      setChefNotes(""); 
-      setOrderMode("dine-in"); 
-    }, 10000);
+      setCurrentPayingOrderId(null);
+      setChefNotes("");
+      setOrderMode("dine-in");
+    }, 60000);
   }
 
-  async function handlePrintReceipt() {
-    if (!currentTx) return;
+  async function handlePrintReceipt(e: React.MouseEvent) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!currentTx) {
+      toast.error("Data struk tidak ditemukan atau sudah dibersihkan.");
+      return;
+    }
     try {
       await printService.printTransaction(currentTx);
       toast.success("Struk berhasil dicetak");
@@ -189,13 +222,34 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
     }
   }
 
-  async function handlePrintKitchenReceipt() {
-    if (!currentOrder) return;
+  async function handlePrintKitchenReceipt(e: React.MouseEvent) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!currentOrder) {
+      toast.error("Data pesanan tidak ditemukan.");
+      return;
+    }
     try {
-      await printService.printKitchenReceipt(currentOrder);
+      // Perbaikan nama fungsi agar sesuai dengan printService.ts
+      await printService.printKitchen(currentOrder as any);
       toast.success("Struk dapur berhasil dicetak");
     } catch (error) {
       toast.error("Gagal mencetak: " + (error as Error).message);
+    }
+  }
+
+  async function handlePrintClosingReport(e: React.MouseEvent) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      await printService.printClosingReport();
+      toast.success("Laporan closing berhasil dicetak");
+    } catch (error) {
+      toast.error("Gagal mencetak laporan: " + (error as Error).message);
     }
   }
 
@@ -221,47 +275,39 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
     <div className="relative h-full lg:h-[calc(100vh-160px)] flex flex-col md:flex-row gap-6">
       {/* Active Bills Area */}
       <div className="flex-1 h-full flex flex-col overflow-hidden">
-        {/* Tabs for Dine In / Take Away */}
-        <div className="flex gap-2 mb-4">
+        {/* Title for Kasir Bills */}
+        <div className="flex items-center mb-4">
+          <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary font-black text-xs uppercase tracking-wider">
+            Antrean Pembayaran (Siap Cetak)
+          </div>
+          
           <button
-            onClick={() => setOrderMode("dine-in")}
-            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-              orderMode === "dine-in"
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                : "bg-card border border-border/60 text-muted-foreground hover:bg-secondary"
-            }`}
+            onClick={() => setIsPrinterModalOpen(true)}
+            title="Pengaturan Printer Bluetooth"
+            className="ml-auto px-4 py-2 rounded-xl bg-card border border-border/60 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all flex items-center justify-center"
           >
-            Dine In (Meja)
-          </button>
-          <button
-            onClick={() => setOrderMode("take-away")}
-            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
-              orderMode === "take-away"
-                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                : "bg-card border border-border/60 text-muted-foreground hover:bg-secondary"
-            }`}
-          >
-            Take Away
+            <Printer size={16} />
           </button>
         </div>
 
         {/* Grid of Active Bills */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 custom-scrollbar content-start">
-          {(orders && orders.length > 0 ? orders : mockOrders).filter(o => o.orderMode === orderMode && o.status === "served").map(order => {
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 p-2 custom-scrollbar content-start">
+          {(orders && orders.length > 0 ? orders : mockOrders).filter(o => o.status === "served").map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
-              <button
+              <div
+                role="button"
                 key={order.id}
                 onClick={() => {
                   setCart(order.items);
                   setSelectedTable(order.tableId || "");
+                  setCurrentPayingOrderId(order.id);
                   toast.success(`Memuat bill Meja ${order.tableId}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
                 }}
-                className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg text-left ${
-                  cart.length > 0 && cart[0].id === order.items[0].id ? "ring-2 ring-primary" : ""
-                }`}
+                className={`bg-card border border-border/60 rounded-2xl transition-all duration-300 hover:shadow-lg text-left w-full h-auto min-h-[160px] flex flex-col cursor-pointer relative ${currentPayingOrderId === order.id ? "ring-2 ring-primary shadow-lg shadow-primary/20 z-10" : "hover:border-primary/30"
+                  }`}
               >
-                <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border}`}>
+                <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border} rounded-t-2xl`}>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className={`relative flex items-center justify-center ${cfg.color} flex-shrink-0`}>
                       <span className="relative">{cfg.icon}</span>
@@ -270,9 +316,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${
-                      order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                    }`}>
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
+                      }`}>
                       {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
                     </span>
                     {(() => {
@@ -287,7 +332,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                   </div>
                 </div>
                 <div className="p-4 space-y-2">
-                  {order.items.map((item, i) => (
+                  {order.items?.map((item, i) => (
                     <div key={i} className="flex justify-between text-xs items-center gap-4">
                       <span className="text-muted-foreground font-bold truncate">{item.name} <span className="text-foreground ml-1">×{item.qty}</span></span>
                       <span className="font-black flex-shrink-0">{rp(item.price * item.qty)}</span>
@@ -307,18 +352,17 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                     <span className="text-green-500 font-black text-sm">{rp(order.total)}</span>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Floating Action Button: Lanjut Bayar */}
+      {/* Floating Action Button: Lanjut Bayar (Only visible on mobile) */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-3 px-6 py-3 rounded-full bg-primary text-white shadow-xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-300 ${
-          cart.length === 0 ? "scale-0" : "scale-100"
-        }`}
+        className={`fixed bottom-6 right-6 z-40 flex md:hidden items-center gap-3 px-6 py-3 rounded-full bg-primary text-white shadow-xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-300 ${cart.length === 0 ? "scale-0" : "scale-100"
+          }`}
       >
         <div className="flex flex-col items-start leading-tight border-r border-white/20 pr-3">
           <span className="text-[8px] font-black uppercase tracking-widest opacity-80">Total</span>
@@ -332,18 +376,18 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
         </div>
       </button>
 
-      {/* Checkout Drawer Overlay */}
+      {/* Checkout Drawer Overlay (Only on mobile) */}
       {isCartOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] animate-in fade-in duration-300 md:hidden"
           onClick={() => setIsCartOpen(false)}
         />
       )}
 
-      {/* Checkout Drawer */}
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[380px] bg-card border-l border-border shadow-2xl z-[60] flex flex-col transition-transform duration-500 ease-out transform ${
-        isCartOpen ? "translate-x-0" : "translate-x-full"
-      }`}>
+      {/* Checkout Drawer / Sidebar */}
+      {cart.length > 0 && (
+        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[380px] lg:w-[400px] bg-card border-l border-border shadow-2xl z-[60] transform transition-transform duration-300 ease-in-out ${isCartOpen ? "translate-x-0" : "translate-x-full"
+          } md:relative md:translate-x-0 md:shadow-none md:border md:rounded-2xl md:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-300`}>
         <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
@@ -356,13 +400,14 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-1.5 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+            className="p-1.5 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-colors md:hidden"
+            title="Tutup keranjang"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
           <div className="p-4 border-b border-border bg-card space-y-3">
             {orderMode === "dine-in" && (
               <div>
@@ -386,9 +431,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                 const mcfg = orderModeConfig[m];
                 return (
                   <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black border transition-all ${
-                      orderMode === m ? `${mcfg.bg} ${mcfg.border} ${mcfg.color} shadow-sm` : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
-                    }`}>
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black border transition-all ${orderMode === m ? `${mcfg.bg} ${mcfg.border} ${mcfg.color} shadow-sm` : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
+                      }`}>
                     {m === "dine-in" ? "🍽️ Dine In" : "📦 Take Away"}
                   </button>
                 );
@@ -412,16 +456,31 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                 </div>
               )}
 
-              <div className="w-full grid grid-cols-2 gap-3">
+              <div className="w-full flex flex-col gap-4">
                 <div className="space-y-2">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Customer</p>
-                  <button onClick={handlePrintReceipt} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-primary text-white text-[10px] font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"><Printer size={12} /> Thermal</button>
-                  <button onClick={() => handlePrintPDF('customer')} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black hover:bg-border transition-all"><ExternalLink size={12} /> PDF</button>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-left ml-1">Cetak Ulang Struk</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-white text-[8px] font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                      <Printer size={14} /> <span>STRUK BELANJA</span>
+                    </button>
+                    <button type="button" onClick={(e) => handlePrintKitchenReceipt(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-orange-500 text-white text-[8px] font-black shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all">
+                      <ChefHat size={14} /> <span>STRUK DAPUR</span>
+                    </button>
+                    <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-indigo-600 text-white text-[8px] font-black shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all">
+                      <Save size={14} /> <span>LAPORAN CLOSING</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Kitchen</p>
-                  <button onClick={handlePrintKitchenReceipt} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-orange-500 text-white text-[10px] font-black shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"><ChefHat size={12} /> Thermal</button>
-                  <button onClick={() => handlePrintPDF('kitchen')} className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black hover:bg-border transition-all"><ExternalLink size={12} /> PDF</button>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <div className="h-[1px] flex-1 bg-border/50"></div>
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Opsi Lain</span>
+                  <div className="h-[1px] flex-1 bg-border/50"></div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 opacity-60">
+                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-[9px] font-black hover:bg-secondary transition-all"><ExternalLink size={12} /> PDF Customer</button>
+                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-[9px] font-black hover:bg-secondary transition-all"><ExternalLink size={12} /> PDF Dapur</button>
                 </div>
               </div>
 
@@ -429,6 +488,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                 onClick={() => {
                   setPaid(false);
                   setCart([]);
+                  setCurrentPayingOrderId(null);
                   setIsCartOpen(false);
                 }}
                 className="mt-2 text-xs font-black text-primary hover:scale-105 transition-transform"
@@ -438,7 +498,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+              <div className="flex-shrink-0 p-4 space-y-3">
                 {cart.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 opacity-30">
                     <div className="p-6 bg-secondary rounded-full border-2 border-dashed border-border"><ShoppingCart size={32} /></div>
@@ -456,9 +516,9 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                       <p className="text-xs text-primary font-black mt-0.5 font-['Poppins']">{rp(c.price)}</p>
                     </div>
                     <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-2 py-1 shadow-sm">
-                      <button onClick={() => updateQty(c.id, -1)} className="p-0.5 hover:text-red-500 transition-colors"><Minus size={12} /></button>
+                      <button onClick={() => updateQty(c.id, -1)} className="p-0.5 hover:text-red-500 transition-colors" title="Kurangi jumlah"><Minus size={12} /></button>
                       <span className="text-xs font-black w-3 text-center">{c.qty}</span>
-                      <button onClick={() => updateQty(c.id, 1)} className="p-0.5 hover:text-primary transition-colors"><Plus size={12} /></button>
+                      <button onClick={() => updateQty(c.id, 1)} className="p-0.5 hover:text-primary transition-colors" title="Tambah jumlah"><Plus size={12} /></button>
                     </div>
                   </div>
                 ))}
@@ -487,9 +547,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
                       <button
                         key={m.id}
                         onClick={() => setPayMethod(m.id)}
-                        className={`flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl border transition-all ${
-                          payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-secondary border-border text-muted-foreground hover:bg-border"
-                        }`}
+                        className={`flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl border transition-all ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-secondary border-border text-muted-foreground hover:bg-border"
+                          }`}
                       >
                         {m.icon}
                         <span className="text-[8px] font-black uppercase tracking-tighter">{m.id}</span>
@@ -508,6 +567,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders }
           )}
         </div>
       </div>
+    )}
 
       <PromoModal
         isOpen={isPromoModalOpen}
