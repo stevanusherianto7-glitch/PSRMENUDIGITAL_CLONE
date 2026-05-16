@@ -31,8 +31,11 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
   const [filter, setFilterState] = useState<"all" | "critical" | "warning">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  
+  // Default periode 30 hari kedepan untuk audit stok
   const [startDate, setStartDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(Date.now() + 30 * 86400000), "yyyy-MM-dd"));
+
   const openModal = (item?: InventoryItem) => {
     setEditingItem(item || null);
     setIsModalOpen(true);
@@ -60,6 +63,13 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
     const s = getStatus(item);
     if (filter === "critical" && s !== "critical" && s !== "expired") return false;
     if (filter === "warning" && s !== "warning") return false;
+    
+    // Filter berdasarkan periode Kadaluarsa (Audit Stok)
+    const itemDate = new Date(item.exp_date).getTime();
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    if (itemDate < start || itemDate > end) return false;
+
     return item.name.toLowerCase().includes(search.toLowerCase());
   });
 

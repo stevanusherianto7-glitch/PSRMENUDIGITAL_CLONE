@@ -7,9 +7,7 @@ import {
 } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
-const logoImg = "/imports/logo_pawon_salam.png";
-
-import { rp } from "../data";
+import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { fetchOrders, updateOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import type { Order, OrderStatus, UserSession } from "../types";
@@ -142,10 +140,10 @@ export default function WaiterPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-4 gap-3 flex-shrink-0">
-        <img src={logoImg} alt="Kedai Elvera 57" className="w-8 h-8 rounded-lg object-cover" />
+        <img src={logoImg} alt={BRAND_NAME} className="w-8 h-8 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-bold text-sm text-foreground font-poppins">
-            {session.role === "kitchen" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · Kedai Elvera 57
+            {session.role === "kitchen" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · {BRAND_NAME}
           </p>
           <p className="text-xs text-muted-foreground">{session.name}</p>
         </div>

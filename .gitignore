@@ -50,3 +50,7 @@ coverage/
 .vercel
 
 /generated/prisma
+
+# Executables
+*.exe
+supabase.exe
