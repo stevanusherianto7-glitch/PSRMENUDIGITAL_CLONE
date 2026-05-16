@@ -1,3 +1,8 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI HALAMAN LOGIN DAN ROUTING AUTENTIKASI ROLE (ADMIN/WAITER/KITCHEN).
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN USER TIDAK BISA MASUK ATAU REDIRECT SALAH. ⚠️
+ */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";

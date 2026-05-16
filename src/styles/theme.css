@@ -1,3 +1,8 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI DESIGN SYSTEM DAN DUAL THEME (HERITAGE LIGHT + DARK STUDIO) PAWON SALAM.
+ * KESALAHAN MODIFIKASI DAPAT MERUSAK SELURUH TAMPILAN APLIKASI DI SEMUA MODUL. ⚠️
+ */
 @custom-variant dark (&:is(.dark *));
 
 /* ──────────────────────────────────────────────────────────────
