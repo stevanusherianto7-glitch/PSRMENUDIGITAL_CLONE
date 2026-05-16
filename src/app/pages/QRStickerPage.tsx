@@ -31,55 +31,51 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
     <div className="sticker-print-wrap flex items-center justify-center">
       <div 
         ref={wrapperRef}
-        className={`${sizeClass} sticker-main-card relative flex flex-col items-center justify-between p-6 overflow-hidden shadow-2xl rounded-[2.5rem] border border-white/5`}
+        className={`${sizeClass} sticker-main-card relative flex flex-col items-center justify-between p-4 overflow-hidden shadow-2xl rounded-[2.5rem] border border-white/5`}
       >
         {/* Background Texture & Glow */}
         <div className="sticker-bg-overlay absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" />
         <div className="sticker-glow absolute -top-24 -left-24 w-64 h-64 rounded-full blur-[80px]" />
 
         {/* Branding */}
-        <div className="z-10 flex flex-col items-center gap-1">
-          <img src={logoImg} alt="Logo" className="w-10 h-10 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
-          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-0 text-gold-theme">Kedai Elvera 57</h2>
-          <div className="h-[1px] w-8 bg-gold-gradient-fade mt-1" />
+        <div className="z-10 flex flex-col items-center gap-0.5">
+          <img src={logoImg} alt="Logo" className="w-8 h-8 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+          <h2 className="text-[9px] font-black uppercase tracking-[0.35em] mb-0 text-gold-theme">Kedai Elvera 57</h2>
+          <div className="h-[1px] w-6 bg-gold-gradient-fade mt-0.5" />
         </div>
 
         {/* QR Code Container */}
-        <div className="z-10 relative p-4 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.4)] group border-4 border-[#141418]">
-          <div className="absolute -inset-1 rounded-[2.2rem] opacity-20 group-hover:opacity-30 blur-md transition-opacity bg-gold-gradient" />
-          <div className="bg-white p-2 rounded-2xl relative">
-            <QRCode value={url} size={140} level="H" fgColor="#0C0C0E" bgColor="#FFFFFF" />
+        <div className="z-10 relative p-3 bg-white rounded-[1.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.4)] group border-[3px] border-[#141418]">
+          <div className="absolute -inset-1 rounded-[1.7rem] opacity-20 group-hover:opacity-30 blur-md transition-opacity bg-gold-gradient" />
+          <div className="bg-white p-1.5 rounded-xl relative">
+            <QRCode value={url} size={110} level="H" fgColor="#0C0C0E" bgColor="#FFFFFF" />
           </div>
         </div>
 
-        {/* Halal ID Badge */}
-        <div className="z-10 flex items-center justify-center">
+        {/* Halal ID + Table Number — compact section */}
+        <div className="z-10 flex flex-col items-center gap-1">
           <img 
             src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
             alt="Halal Indonesia" 
-            className="h-7 w-auto object-contain drop-shadow-[0_2px_6px_rgba(200,169,110,0.25)]"
+            className="h-5 w-auto object-contain drop-shadow-[0_2px_6px_rgba(200,169,110,0.25)]"
             crossOrigin="anonymous"
           />
-        </div>
-
-        {/* Table Number Badge */}
-        <div className="z-10 flex flex-col items-center gap-2 mb-2">
-          <div className="px-5 py-1.5 rounded-full border border-white/10 flex flex-col items-center shadow-inner bg-white/5 backdrop-blur-md">
-            <span className="text-[9px] uppercase tracking-[0.3em] opacity-40 font-bold mb-0.5 text-white">Nomor Meja</span>
-            <span className="text-2xl font-black leading-none text-gold-theme">{tableId}</span>
+          <div className="px-4 py-1 rounded-full border border-white/10 flex flex-col items-center shadow-inner bg-white/5 backdrop-blur-md">
+            <span className="text-[7px] uppercase tracking-[0.3em] opacity-40 font-bold text-white">Nomor Meja</span>
+            <span className="text-xl font-black leading-none text-gold-theme">{tableId}</span>
           </div>
         </div>
 
         {/* Footer Text */}
-        <div className="z-10 flex items-center gap-3 w-full px-4 mb-1">
+        <div className="z-10 flex items-center gap-2 w-full px-3">
           <div className="h-[1px] flex-1 opacity-20 bg-fade-right" />
-          <span className="text-[7px] uppercase tracking-[0.2em] font-black opacity-30 whitespace-nowrap text-white">Scan Untuk Pesan Menu Digital</span>
+          <span className="text-[6px] uppercase tracking-[0.15em] font-black opacity-30 whitespace-nowrap text-white">Scan Untuk Pesan Menu Digital</span>
           <div className="h-[1px] flex-1 opacity-20 bg-fade-left" />
         </div>
 
         {/* Corner Accents */}
-        <div className="absolute top-8 right-8 w-2 h-2 rounded-full opacity-20 bg-gold-theme" />
-        <div className="absolute bottom-8 left-8 w-2 h-2 rounded-full opacity-20 bg-gold-theme" />
+        <div className="absolute top-6 right-6 w-1.5 h-1.5 rounded-full opacity-20 bg-gold-theme" />
+        <div className="absolute bottom-6 left-6 w-1.5 h-1.5 rounded-full opacity-20 bg-gold-theme" />
       </div>
     </div>
   );
