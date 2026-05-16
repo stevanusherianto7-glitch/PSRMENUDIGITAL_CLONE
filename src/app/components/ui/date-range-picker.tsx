@@ -87,7 +87,7 @@ export function DateRangePicker({ onSelect, onClose, className }: DateRangePicke
   return (
     <div className={cn("bg-card border border-border rounded-2xl shadow-2xl overflow-hidden max-w-2xl w-full flex flex-col", className)}>
       {/* Header */}
-      <div className="bg-[#FFF5F8] p-4 border-b border-border">
+      <div className="bg-primary/5 p-4 border-b border-border">
         <h3 className="text-lg font-semibold text-foreground">Ubah Range Tanggal</h3>
       </div>
 
@@ -103,7 +103,7 @@ export function DateRangePicker({ onSelect, onClose, className }: DateRangePicke
                 className={cn(
                   "w-full text-left px-3 py-1.5 text-sm font-medium rounded-lg transition-all",
                   isActive
-                    ? "bg-pink-50 text-[#EC4899]"
+                    ? "bg-primary/10 text-[#EC4899]"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
@@ -151,8 +151,8 @@ export function DateRangePicker({ onSelect, onClose, className }: DateRangePicke
                 day_selected: "bg-[#EC4899] text-white hover:bg-[#D946EF] hover:text-white focus:bg-[#EC4899] focus:text-white",
                 day_range_start: "day-range-start bg-[#EC4899] text-white rounded-l-md",
                 day_range_end: "day-range-end bg-[#EC4899] text-white rounded-r-md",
-                day_range_middle: "aria-selected:bg-pink-50 aria-selected:text-[#EC4899]",
-                day_today: "bg-pink-100 text-[#EC4899] font-bold",
+                day_range_middle: "aria-selected:bg-[#EC4899]/10 aria-selected:text-[#EC4899]",
+                day_today: "bg-[#EC4899]/15 text-[#EC4899] font-bold",
               }}
             />
           </div>
@@ -169,7 +169,7 @@ export function DateRangePicker({ onSelect, onClose, className }: DateRangePicke
               "border rounded-lg px-4 py-2 text-sm font-semibold transition-all",
               isAllDay
                 ? "bg-[#EC4899] text-white border-transparent"
-                : "border-[#EC4899] text-[#EC4899] hover:bg-pink-50"
+                : "border-[#EC4899] text-[#EC4899] hover:bg-[#EC4899]/10"
             )}
           >
             All Day

@@ -23,7 +23,7 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
       case ShiftType.LIBUR:
         return "bg-rose-500 text-white border-rose-400";
       default:
-        return "bg-slate-50 text-slate-300 border-slate-100";
+        return "bg-secondary text-muted-foreground/40 border-border";
     }
   };
 
@@ -45,13 +45,13 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
 
   return (
     <div className="space-y-6 mb-24">
-      <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+      <div className="bg-card rounded-[2rem] shadow-xl border border-border overflow-hidden">
         <div className="overflow-x-auto no-scrollbar">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-slate-50/50">
-                <th className="sticky left-0 z-40 bg-white p-4 text-left border-b border-r border-slate-100 min-w-[160px]">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">KARYAWAN</span>
+              <tr className="bg-secondary/50">
+                <th className="sticky left-0 z-40 bg-card p-4 text-left border-b border-r border-border min-w-[160px]">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">KARYAWAN</span>
                 </th>
                 {dates.map((dateStr) => {
                   const [year, month, day] = dateStr.split('-').map(Number);
@@ -63,19 +63,19 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
 
                   return (
                     <th key={dateStr} className={cn(
-                      "p-2 border-b border-slate-100 min-w-[32px] text-center",
-                      isToday ? "bg-blue-50/30" : (isWeekend ? "bg-rose-50/30" : "")
+                      "p-2 border-b border-border min-w-[32px] text-center",
+                      isToday ? "bg-blue-500/5" : (isWeekend ? "bg-rose-500/5" : "")
                     )}>
                       <div className="flex flex-col items-center">
                         <span className={cn(
                           "text-[8px] font-black uppercase tracking-tight mb-0.5",
-                          isWeekend ? "text-rose-400" : "text-slate-400"
+                          isWeekend ? "text-rose-400" : "text-muted-foreground"
                         )}>
                           {dayName}
                         </span>
                         <span className={cn(
                           "text-xs font-black tabular-nums",
-                          isToday ? "text-blue-600" : (isWeekend ? "text-rose-500" : "text-slate-900")
+                          isToday ? "text-blue-500" : (isWeekend ? "text-rose-500" : "text-foreground")
                         )}>
                           {dayNum}
                         </span>
@@ -85,15 +85,15 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
                 })}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-border/30">
               {employees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="sticky left-0 z-30 bg-white p-4 border-r border-slate-100 min-w-[160px]">
+                <tr key={emp.id} className="hover:bg-secondary/50 transition-colors">
+                  <td className="sticky left-0 z-30 bg-card p-4 border-r border-border min-w-[160px]">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-slate-800 uppercase leading-none mb-1">
+                      <span className="text-[11px] font-black text-foreground uppercase leading-none mb-1">
                         {emp.name}
                       </span>
-                      <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">
+                      <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-widest">
                         {emp.role}
                       </span>
                     </div>
@@ -107,7 +107,7 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
                     return (
                       <td key={dateStr} className={cn(
                         "p-1 text-center min-w-[32px]",
-                        isWeekend ? "bg-rose-50/10" : ""
+                        isWeekend ? "bg-rose-500/5" : ""
                       )}>
                         <button
                           onClick={() => onShiftClick(emp.id, dateStr, nextShift(shiftType))}
