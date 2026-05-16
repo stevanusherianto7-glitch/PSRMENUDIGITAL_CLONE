@@ -5,7 +5,7 @@ import {
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
   Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList
 } from "lucide-react";
-const logoImg = "/imports/logo_kedai_Elvera57.png";
+const logoImg = "/imports/logo_pawon_salam.png";
 import { SEED_MENU, menuCategories, rp } from "../data";
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders } from "../api";

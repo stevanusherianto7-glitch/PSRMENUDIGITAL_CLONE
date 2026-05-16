@@ -26,8 +26,10 @@ class PrintService {
   
   // HARDCODE MAC PRINTER ANDA
   private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
+  private readonly DEFAULT_NAME = 'RPP02N (KASIR)';
 
   public getIsConnected() { return this.isConnected; }
+  public getDefaultMac() { return this.DEFAULT_MAC; }
 
   /**
    * Cek ketersediaan fitur Bluetooth/Serial di perangkat
@@ -47,7 +49,7 @@ class PrintService {
             const hasRPP = devices.some(d => d.address === this.DEFAULT_MAC);
             if (!hasRPP) {
               devices.unshift({
-                name: "PRINTER RPP02N (UTAMA)",
+                name: this.DEFAULT_NAME,
                 address: this.DEFAULT_MAC,
                 id: this.DEFAULT_MAC
               });
@@ -55,7 +57,7 @@ class PrintService {
             resolve(devices);
           }, 
           () => resolve([{
-            name: "PRINTER RPP02N (UTAMA)",
+            name: this.DEFAULT_NAME,
             address: this.DEFAULT_MAC,
             id: this.DEFAULT_MAC
           }])
@@ -107,8 +109,12 @@ class PrintService {
    */
   async printRaw(data: ArrayBuffer): Promise<void> {
     if (!this.isConnected) {
-      toast.error("Printer belum terhubung.");
-      return;
+      // Auto-connect ke default MAC jika belum terhubung
+      const connected = await this.connect(this.DEFAULT_MAC);
+      if (!connected) {
+        toast.error("Printer belum terhubung. Pastikan printer nyala dan sudah di-pairing.");
+        return;
+      }
     }
 
     if (this.serialWriter) {
@@ -191,9 +197,9 @@ class PrintService {
           (devices) => {
             // Selalu pastikan RPP02N ada di daftar (Injeksi Manual)
             const rpp02n: BluetoothDevice = {
-              name: "RPP02N (KASIR)",
-              address: "06:2B:E0:4C:71:DF",
-              id: "06:2B:E0:4C:71:DF"
+              name: this.DEFAULT_NAME,
+              address: this.DEFAULT_MAC,
+              id: this.DEFAULT_MAC
             };
             
             // Cek apakah sudah ada di list, jika belum, tambahkan di paling atas
@@ -210,15 +216,15 @@ class PrintService {
             console.error("List devices error:", err);
             // Jika error, minimal kembalikan si RPP02N agar tetap bisa dicoba
             resolve([{
-              name: "RPP02N (KASIR)",
-              address: "06:2B:E0:4C:71:DF",
-              id: "06:2B:E0:4C:71:DF"
+              name: this.DEFAULT_NAME,
+              address: this.DEFAULT_MAC,
+              id: this.DEFAULT_MAC
             }]);
           }
         );
       } else {
         // Mock untuk desktop testing
-        resolve([{ name: "RPP02N (Mock)", address: "06:2B:E0:4C:71:DF", id: "1" }]);
+        resolve([{ name: this.DEFAULT_NAME + " (Mock)", address: this.DEFAULT_MAC, id: "1" }]);
       }
     });
   }
@@ -237,7 +243,7 @@ class PrintService {
       .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
       .text('--- UJI COBA CETAK ---')
       .newline()
-      .text('KEDAI ELVERA 57')
+      .text('Kedai Elvera 57')
       .newline()
       .text('--------------------------------')
       .newline()

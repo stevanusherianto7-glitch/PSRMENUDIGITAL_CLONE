@@ -25,7 +25,8 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   useEffect(() => {
     if (devices.length > 0 && !selectedDevice) {
       // Prioritaskan RPP02N jika ada di daftar
-      const rpp02n = devices.find(d => d.address === "06:2B:E0:4C:71:DF");
+      const defaultMac = printService.getDefaultMac();
+      const rpp02n = devices.find(d => d.address === defaultMac);
       if (rpp02n) {
         setSelectedDevice(rpp02n.address);
       } else {
@@ -230,7 +231,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                     type="button"
                     onClick={(e) => {
                       // Jika dropdown kosong, gunakan HARDCODE MAC RPP02N sebagai default
-                      const targetAddress = selectedDevice || '06:2B:E0:4C:71:DF';
+                      const targetAddress = selectedDevice || printService.getDefaultMac();
                       handleConnect(e, targetAddress);
                     }}
                     disabled={connecting !== null}

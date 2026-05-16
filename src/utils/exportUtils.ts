@@ -37,7 +37,7 @@ export function exportMonthlyPDF(
     </head>
     <body>
       <div class="header">
-        <h1>JADWAL SHIFT KEDAI ELVERA 57</h1>
+        <h1>JADWAL SHIFT Kedai Elvera 57</h1>
         <p class="subtitle">Periode: ${monthYearStr}</p>
       </div>
       <table>

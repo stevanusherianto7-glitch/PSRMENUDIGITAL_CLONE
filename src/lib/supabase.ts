@@ -73,8 +73,8 @@ import { createClient } from '@supabase/supabase-js';
 // Using credentials from auto-generated config file
 import { projectId, publicAnonKey } from '../../utils/supabase/info';
 
-const supabaseUrl = `https://${projectId}.supabase.co`;
-const supabaseKey = publicAnonKey;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || `https://${projectId}.supabase.co`;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || publicAnonKey;
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {

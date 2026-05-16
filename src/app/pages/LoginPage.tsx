@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom 
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
-const logoImg = "/imports/logo_kedai_Elvera57.png";
+const logoImg = "/imports/logo_pawon_salam.png";
 
 import { CREDENTIALS } from "../data";
 import type { UserRole, UserSession } from "../types";

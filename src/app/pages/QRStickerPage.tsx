@@ -6,7 +6,7 @@ import {
   CheckCircle2, UtensilsCrossed, Loader2, ImageDown,
 } from "lucide-react";
 import html2canvas from "html2canvas";
-const logoImg = "/imports/logo_kedai_Elvera57.png";
+const logoImg = "/imports/logo_pawon_salam.png";
 import { SEED_TABLES } from "../data";
 import "../../styles/QRStickerPage.css";
 
