@@ -10,7 +10,7 @@ const logoImg = "/imports/logo_pawon_salam.png";
 import { SEED_TABLES } from "../data";
 import "../../styles/QRStickerPage.css";
 
-const BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital-clone.vercel.app";
+const BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital.vercel.app";
 
 // ─── Palette (sama untuk semua stiker — luxury monochrome + gold) ─────────────
 const PALETTE = {

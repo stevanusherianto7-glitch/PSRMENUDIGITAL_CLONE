@@ -340,7 +340,7 @@ export const orderModeConfig = {
   "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
 } as const;
 
-export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
+export const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
 
 export const tableStatusConfig = {
   available: { label: "Kosong", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" },
