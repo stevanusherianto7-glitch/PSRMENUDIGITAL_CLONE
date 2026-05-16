@@ -8,8 +8,8 @@ import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import QRCode from "react-qr-code";
 import {
-  Printer, ArrowLeft, Download, QrCode,
-  CheckCircle2, UtensilsCrossed, Loader2, ImageDown,
+  Printer, ArrowLeft, Download, Grid3X3,
+  CheckCircle2, Loader2, Activity,
 } from "lucide-react";
 import html2canvas from "html2canvas";
 const logoImg = "/imports/logo_pawon_salam.png";
@@ -18,177 +18,60 @@ import "../../styles/QRStickerPage.css";
 
 const BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital.vercel.app";
 
-// ─── Palette (sama untuk semua stiker — luxury monochrome + gold) ─────────────
-const PALETTE = {
-  bg:        "#0C0C0E",
-  surface:   "#141418",
-  gold:      "#C8A96E",
-  goldLight: "#E2C98A",
-  goldFaint: "#C8A96E18",
-  goldBorder:"#C8A96E35",
-  white:     "#FFFFFF",
-  muted:     "#FFFFFF30",
-  dimmed:    "#FFFFFF15",
-};
-
-// ─── Print area wrapper: crop-marks + sticker ────────────────────────────────
-interface StickerWrapperProps {
-  tableId: string;
-  index: number;
+// ─── Sticker Component ────────────────────────────────────────────────────────
+function StickerWithPrintArea({ tableId, size, wrapperRef }: { 
+  tableId: string; 
+  index: number; 
   size: "sm" | "md" | "lg";
   wrapperRef?: (el: HTMLDivElement | null) => void;
-}
-
-const SIZES = {
-  sm: { card: 230, qr: 88,  pad: 18, h1: 11.5, h2: 8.5, tableFs: 52, labelFs: 7,  bleed: 14, mark: 10 },
-  md: { card: 270, qr: 108, pad: 22, h1: 13,   h2: 9.5, tableFs: 62, labelFs: 7.5,bleed: 16, mark: 12 },
-  lg: { card: 320, qr: 130, pad: 26, h1: 15,   h2: 11,  tableFs: 76, labelFs: 8.5,bleed: 18, mark: 14 },
-};
-
-
-
-function StickerWithPrintArea({ tableId, index, size, wrapperRef }: StickerWrapperProps) {
-  return (
-    <div
-      ref={wrapperRef}
-      className={`sticker-print-wrap size-${size}`}
-    >
-      {/* ── Crop marks at 4 corners ── */}
-      {/* Top-left */}
-      <div className="corner-box top-0 left-0">
-        <div className="corner-line-h left-0" />
-        <div className="corner-line-v top-0" />
-      </div>
-      {/* Top-right */}
-      <div className="corner-box top-0 right-0">
-        <div className="corner-line-h right-0" />
-        <div className="corner-line-v top-0" />
-      </div>
-      {/* Bottom-left */}
-      <div className="corner-box bottom-0 left-0">
-        <div className="corner-line-h left-0" />
-        <div className="corner-line-v bottom-0" />
-      </div>
-      {/* Bottom-right */}
-      <div className="corner-box bottom-0 right-0">
-        <div className="corner-line-h right-0" />
-        <div className="corner-line-v bottom-0" />
-      </div>
-
-      {/* ── Bleed border indicator (dashed) ── */}
-      <div className="bleed-border" />
-
-      {/* ── The sticker itself ── */}
-      <div className="relative z-10">
-        <StickerCard tableId={tableId} size={size} />
-      </div>
-
-      {/* ── Size label (tiny, for reference) ── */}
-      <div className="size-label">
-        {tableId} · cut here
-      </div>
-    </div>
-  );
-}
-
-// ─── The actual sticker card ──────────────────────────────────────────────────
-function StickerCard({ tableId, size }: { tableId: string; size: "sm" | "md" | "lg" }) {
-  const d = SIZES[size];
+}) {
   const url = `${BASE_URL}/menu/${tableId}`;
-  const P = PALETTE;
+  const sizeClass = size === "sm" ? "w-[70mm] h-[70mm]" : size === "md" ? "w-[90mm] h-[90mm]" : "w-[110mm] h-[110mm]";
 
   return (
-    <div className={`sticker-card size-${size}`}>
-      {/* ── Top gold accent bar ── */}
-      <div className="top-gold-bar" />
+    <div className="sticker-print-wrap flex items-center justify-center">
+      <div 
+        ref={wrapperRef}
+        className={`${sizeClass} sticker-main-card relative flex flex-col items-center justify-between p-6 overflow-hidden shadow-2xl rounded-[2.5rem] border border-white/5`}
+      >
+        {/* Background Texture & Glow */}
+        <div className="sticker-bg-overlay absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" />
+        <div className="sticker-glow absolute -top-24 -left-24 w-64 h-64 rounded-full blur-[80px]" />
 
-      {/* ── Subtle background texture lines ── */}
-      <div className="bg-texture" />
+        {/* Branding */}
+        <div className="z-10 flex flex-col items-center gap-1">
+          <img src={logoImg} alt="Logo" className="w-10 h-10 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+          <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-0 text-gold-theme">Kedai Elvera 57</h2>
+          <div className="h-[1px] w-8 bg-gold-gradient-fade mt-1" />
+        </div>
 
-      <div className="sticker-content">
-
-        {/* ── HEADER ── */}
-        <div className="flex items-center gap-[9px] mb-[14px]">
-          <div className="header-logo-wrap">
-            <img src={logoImg} alt="logo" className="header-logo" />
-          </div>
-          <div className="flex-1 min-width-0">
-            <div className="header-title">
-              Buku Menu Digital
-            </div>
-            <div className="header-subtitle">
-              Kedai Elvera 57
-            </div>
+        {/* QR Code Container */}
+        <div className="z-10 relative p-4 bg-white rounded-[2rem] shadow-[0_15px_40px_rgba(0,0,0,0.4)] group border-4 border-[#141418]">
+          <div className="absolute -inset-1 rounded-[2.2rem] opacity-20 group-hover:opacity-30 blur-md transition-opacity bg-gold-gradient" />
+          <div className="bg-white p-2 rounded-2xl relative">
+            <QRCode value={url} size={140} level="H" fgColor="#0C0C0E" bgColor="#FFFFFF" />
           </div>
         </div>
 
-        {/* ── Gold divider ── */}
-        <div className="gold-divider" />
-
-        {/* ── QR code area ── */}
-        <div className="flex justify-center mb-4">
-          <div className="qr-frame">
-            {/* Corner accents on QR frame */}
-            {[
-              "qr-corner-tl",
-              "qr-corner-tr",
-              "qr-corner-bl",
-              "qr-corner-br",
-            ].map((cls, i) => (
-              <div key={i} className={`qr-corner-accent ${cls}`} />
-            ))}
-            <QRCode
-              value={url}
-              size={d.qr}
-              bgColor="#FFFFFF"
-              fgColor="#0C0C0E"
-              level="H"
-              style={{ display: "block" }}
-            />
+        {/* Table Number Badge */}
+        <div className="z-10 flex flex-col items-center gap-2 mb-2">
+          <div className="px-5 py-1.5 rounded-full border border-white/10 flex flex-col items-center shadow-inner bg-white/5 backdrop-blur-md">
+            <span className="text-[9px] uppercase tracking-[0.3em] opacity-40 font-bold mb-0.5 text-white">Nomor Meja</span>
+            <span className="text-2xl font-black leading-none text-gold-theme">{tableId}</span>
           </div>
         </div>
 
-        {/* ── Table number ── */}
-        <div className="text-center mb-[14px]">
-          <div className="table-number">
-            {tableId}
-          </div>
+        {/* Footer Text */}
+        <div className="z-10 flex items-center gap-3 w-full px-4 mb-1">
+          <div className="h-[1px] flex-1 opacity-20 bg-fade-right" />
+          <span className="text-[7px] uppercase tracking-[0.2em] font-black opacity-30 whitespace-nowrap text-white">Scan Untuk Pesan Menu Digital</span>
+          <div className="h-[1px] flex-1 opacity-20 bg-fade-left" />
         </div>
 
-        {/* ── Gold divider ── */}
-        <div className="gold-divider-bottom" />
-
-        {/* ── Scan instruction ── */}
-        <div className="text-center">
-          <div className="scan-instruction-badge">
-            <svg width={8} height={8} viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2.5">
-              <rect width="5" height="5" x="3" y="3" rx="1"/>
-              <rect width="5" height="5" x="16" y="3" rx="1"/>
-              <rect width="5" height="5" x="3" y="16" rx="1"/>
-              <path d="M21 16h-3a2 2 0 0 0-2 2v3"/>
-              <path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/>
-              <path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/>
-              <path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>
-            </svg>
-            <span className="scan-instruction-text">
-              Scan untuk Memesan
-            </span>
-          </div>
-          <div className="scan-instruction-sub text-[var(--ps-muted)]">
-            Arahkan kamera HP ke QR code di atas
-          </div>
-        </div>
-
-        {/* ── Bottom micro footer ── */}
-        <div className="micro-footer">
-          <div className="micro-footer-line" />
-          <span className="uppercase">Pesan · Bayar · Selesai</span>
-          <div className="micro-footer-line" />
-        </div>
+        {/* Corner Accents */}
+        <div className="absolute top-8 right-8 w-2 h-2 rounded-full opacity-20 bg-gold-theme" />
+        <div className="absolute bottom-8 left-8 w-2 h-2 rounded-full opacity-20 bg-gold-theme" />
       </div>
-
-      {/* ── Bottom gold accent bar ── */}
-      <div className="top-gold-bar" />
     </div>
   );
 }
@@ -197,20 +80,12 @@ function StickerCard({ tableId, size }: { tableId: string; size: "sm" | "md" | "
 export default function QRStickerPage() {
   const navigate = useNavigate();
   const [stickerSize, setStickerSize] = useState<"sm" | "md" | "lg">("md");
-  const [selectedTables, setSelectedTables] = useState<string[]>(SEED_TABLES.map(t => t.id));
-  const [cols, setCols] = useState(3);
+  const [selectedTableId, setSelectedTableId] = useState<string>(SEED_TABLES[0].id);
   const [downloading, setDownloading] = useState<string | null>(null);
-  const [downloadingAll, setDownloadingAll] = useState(false);
 
-  // Store refs for each sticker wrapper
   const wrapperRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const tables = SEED_TABLES.filter(t => selectedTables.includes(t.id));
-
   function handlePrint() { window.print(); }
-  function toggleTable(id: string) {
-    setSelectedTables(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  }
 
   const downloadSticker = useCallback(async (tableId: string) => {
     const el = wrapperRefs.current[tableId];
@@ -219,7 +94,7 @@ export default function QRStickerPage() {
     try {
       const canvas = await html2canvas(el, {
         scale: 3,
-        backgroundColor: "#F5F5F5",
+        backgroundColor: "#0C0C0E",
         useCORS: true,
         logging: false,
       });
@@ -233,37 +108,23 @@ export default function QRStickerPage() {
     setDownloading(null);
   }, []);
 
-  const downloadAll = useCallback(async () => {
-    setDownloadingAll(true);
-    for (const t of tables) {
-      const el = wrapperRefs.current[t.id];
-      if (!el) continue;
-      try {
-        const canvas = await html2canvas(el, {
-          scale: 3,
-          backgroundColor: "#F5F5F5",
-          useCORS: true,
-          logging: false,
-        });
-        const link = document.createElement("a");
-        link.download = `stiker-qr-meja-${t.id}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-        await new Promise(r => setTimeout(r, 300)); // slight delay between downloads
-      } catch (e) {
-        console.error("Download error:", e);
-      }
-    }
-    setDownloadingAll(false);
-  }, [tables]);
-
   const sizeLabels = { sm: "Kecil (7cm)", md: "Sedang (9cm)", lg: "Besar (11cm)" };
 
   return (
     <>
-      {/* ── Fonts + Print styles ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+        /* Theme Classes to avoid inline styles */
+        .sticker-main-card { background-color: #0C0C0E; }
+        .sticker-bg-overlay { background-image: radial-gradient(#C8A96E 0.5px, transparent 0.5px); background-size: 12px 12px; }
+        .sticker-glow { background: radial-gradient(circle, rgba(200, 169, 110, 0.09) 0%, transparent 70%); }
+        .text-gold-theme { color: #C8A96E; }
+        .bg-gold-theme { background-color: #C8A96E; }
+        .bg-gold-gradient { background: linear-gradient(45deg, #C8A96E, #E2C98A); }
+        .bg-gold-gradient-fade { background: linear-gradient(90deg, transparent, #C8A96E, transparent); opacity: 0.4; }
+        .bg-fade-right { background: linear-gradient(to right, transparent, #FFFFFF); }
+        .bg-fade-left { background: linear-gradient(to left, transparent, #FFFFFF); }
 
         @media print {
           body * { visibility: hidden !important; }
@@ -272,12 +133,11 @@ export default function QRStickerPage() {
             position: fixed !important;
             top: 0 !important; left: 0 !important;
             width: 100vw !important;
-            padding: 8mm !important;
-            background: #F5F5F5 !important;
-          }
-          .sticker-print-wrap {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+            padding: 10mm !important;
+            background: white !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
           }
           .no-print { display: none !important; }
         }
@@ -286,19 +146,20 @@ export default function QRStickerPage() {
       <div className="min-h-screen bg-background">
 
         {/* ── Top bar ── */}
-        <div className="no-print sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-xl px-6 py-4 flex items-center gap-4">
+        <div className="no-print sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-xl px-6 py-4 flex items-center justify-between">
           <button
             onClick={() => navigate("/admin")}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft size={16} /> Kembali
-                    <div className="ml-auto flex items-center gap-3">
+          </button>
+
+          <div className="flex items-center gap-3">
             <div className="flex flex-col items-end">
               <span className="text-[10px] uppercase tracking-widest text-gold-dimmed font-bold">Siap Cetak</span>
               <span className="text-sm font-black text-white">Meja {selectedTableId}</span>
             </div>
 
-            {/* Print */}
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-black font-bold text-sm transition-all btn-gold-gradient shadow-[0_0_20px_rgba(200,169,110,0.3)] hover:scale-105 active:scale-95"
@@ -324,6 +185,8 @@ export default function QRStickerPage() {
                 <select 
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(e.target.value)}
+                  title="Pilih nomor meja untuk dicetak"
+                  aria-label="Pilih nomor meja"
                   className="w-full bg-[#1A1A1E] border border-white/10 rounded-xl px-4 py-3 text-white font-bold text-sm appearance-none focus:outline-none focus:border-gold/50 transition-all cursor-pointer"
                 >
                   {SEED_TABLES.map(t => (
