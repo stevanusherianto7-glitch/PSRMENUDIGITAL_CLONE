@@ -72,62 +72,44 @@
 }
 
 .dark {
-  /* ── Dark Studio — Soft Dark Gray ── */
-  --background: #1A1A1E;          /* dark gray lembut, BUKAN hitam */
-  --foreground: #E8E8ED;          /* cool white untuk teks */
-  --card: #222228;                /* card sedikit lebih terang */
-  --card-foreground: #E8E8ED;
-  --popover: #222228;
-  --popover-foreground: #E8E8ED;
-
-  /* Brand — tetap orange Kedai Elvera 57 */
-  --primary: #F08938;             /* orange hangat, sedikit lebih lembut */
-  --primary-foreground: #1A1A1E;
-
-  /* Secondary — slate gelap */
-  --secondary: #2A2A30;
-  --secondary-foreground: #C8C8D0;
-
-  /* Muted — medium gray */
-  --muted: #252529;
-  --muted-foreground: #8E8E9A;
-
-  /* Accent — hijau segar */
-  --accent: #4CAF6A;
-  --accent-foreground: #1A1A1E;
-
-  --destructive: #E05545;
-  --destructive-foreground: #FFFFFF;
-
-  --border: rgba(255, 255, 255, 0.09);
-  --input: #2A2A30;
-  --input-background: #252529;
-  --switch-background: #3A3A42;
-
-  --ring: #F08938;
-
-  /* Charts — warm/cool balanced palette */
-  --chart-1: #F08938;             /* orange brand */
-  --chart-2: #4CAF6A;             /* hijau */
-  --chart-3: #E0B973;             /* gold */
-  --chart-4: #FFB880;             /* peach */
-  --chart-5: #6FCF97;             /* mint */
-
-  /* Sidebar — sedikit lebih gelap dari background */
-  --sidebar: #16161A;
-  --sidebar-foreground: #E8E8ED;
-  --sidebar-primary: #F08938;
-  --sidebar-primary-foreground: #1A1A1E;
-  --sidebar-accent: #2A2A30;
-  --sidebar-accent-foreground: #E8E8ED;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #F08938;
-
-  /* Heritage tokens */
+  --background: #1A1410;
+  --foreground: #F4ECD8;
+  --card: #241B14;
+  --card-foreground: #F4ECD8;
+  --popover: #241B14;
+  --popover-foreground: #F4ECD8;
+  --primary: #FF8F3D;
+  --primary-foreground: #1A1410;
+  --secondary: #2E241B;
+  --secondary-foreground: #D9CCB3;
+  --muted: #241B14;
+  --muted-foreground: #A89878;
+  --accent: #5FA168;
+  --accent-foreground: #1A1410;
+  --destructive: #D9594A;
+  --destructive-foreground: #1A1410;
+  --border: rgba(244, 236, 216, 0.12);
+  --input: #2E241B;
+  --input-background: #2E241B;
+  --switch-background: #4A3A2A;
+  --ring: #FF8F3D;
+  --chart-1: #FF8F3D;
+  --chart-2: #5FA168;
+  --chart-3: #E0B973;
+  --chart-4: #FFB880;
+  --chart-5: #8FBE94;
+  --sidebar: #14100C;
+  --sidebar-foreground: #F4ECD8;
+  --sidebar-primary: #E0B973;
+  --sidebar-primary-foreground: #1A1410;
+  --sidebar-accent: #2E241B;
+  --sidebar-accent-foreground: #F4ECD8;
+  --sidebar-border: rgba(244, 236, 216, 0.08);
+  --sidebar-ring: #E0B973;
   --gold: #E0B973;
   --gold-soft: #C68A3D;
-  --ink: #E8E8ED;
-  --paper: #222228;
+  --ink: #F4ECD8;
+  --paper: #241B14;
 }
 
 @theme inline {
@@ -188,13 +170,6 @@
       radial-gradient(at 0% 0%, rgba(232, 119, 34, 0.07) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(63, 125, 69, 0.06) 0px, transparent 50%);
     background-attachment: fixed;
-  }
-
-  /* Dark Studio: subtle cool gradient, bukan orange/green */
-  .dark body {
-    background-image:
-      radial-gradient(at 0% 0%, rgba(240, 137, 56, 0.04) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(76, 175, 106, 0.03) 0px, transparent 50%);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -273,14 +248,6 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(74, 56, 41, 0.32);
-  }
-
-  .dark ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.22);
   }
 }
 

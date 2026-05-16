@@ -53,6 +53,16 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
           </div>
         </div>
 
+        {/* Halal ID Badge */}
+        <div className="z-10 flex items-center justify-center">
+          <img 
+            src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
+            alt="Halal Indonesia" 
+            className="h-7 w-auto object-contain drop-shadow-[0_2px_6px_rgba(200,169,110,0.25)]"
+            crossOrigin="anonymous"
+          />
+        </div>
+
         {/* Table Number Badge */}
         <div className="z-10 flex flex-col items-center gap-2 mb-2">
           <div className="px-5 py-1.5 rounded-full border border-white/10 flex flex-col items-center shadow-inner bg-white/5 backdrop-blur-md">

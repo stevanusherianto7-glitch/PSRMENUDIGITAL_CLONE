@@ -44,6 +44,7 @@ import { useTTS, preloadVoices } from "../hooks/useTTS";
 import { KaryawanModule } from "../components/KaryawanModule";
 import { AssetModule } from "../components/AssetModule";
 import { MenuManagement } from "../components/MenuManagement";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { DateRangePicker } from "../components/ui/date-range-picker";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../components/ui/tooltip";
 import type { DateRange } from "react-day-picker";
@@ -677,6 +678,8 @@ export default function AdminPage() {
                 <Volume2 size={16} />
               </button>
             </div>
+
+            <ThemeToggle />
 
             <button onClick={() => setActiveModule("orders")} className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
               <Bell size={18} />
