@@ -411,7 +411,7 @@ export default function GuestMenuPage() {
             <img 
               src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
               alt="Sertifikat Halal" 
-              className="h-14 w-auto object-contain drop-shadow-sm"
+              className="h-[65px] w-auto object-contain drop-shadow-sm"
               title="Restoran Bersertifikat Halal"
             />
           </div>
