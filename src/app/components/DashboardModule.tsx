@@ -4,7 +4,7 @@
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN LAPORAN KEUANGAN TIDAK AKURAT. ⚠️
  */
 import React, { useState, useEffect } from "react";
-import { Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, Download } from "lucide-react";
+import { Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, Download, Clock } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { rp } from "../data";
 import type { Transaction, Order } from "../types";
@@ -348,8 +348,6 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
               <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
                 <Database size={8} className="text-indigo-400" /> Supabase
               </span>
-                <Download size={12} />
-              </button>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar">

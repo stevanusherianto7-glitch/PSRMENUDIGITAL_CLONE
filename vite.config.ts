@@ -28,30 +28,71 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'icon.png'],
+      includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Kedai Elvera 57 POS',
-        short_name: 'PawonSalam',
-        description: 'Sistem Kasir & Menu Digital Kedai Elvera 57',
-        theme_color: '#C8A96E',
-        background_color: '#ffffff',
+        name: 'Kedai Elvera 57 — POS & Menu Digital',
+        short_name: 'Elvera57',
+        description: 'Sistem Kasir & Menu Digital Kedai Elvera 57. Sajian Otentik Khas Semarang.',
+        theme_color: '#F7F1E6',
+        background_color: '#F7F1E6',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'any',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: 'icon.png',
+            src: 'icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
-            src: 'icon.png',
+            src: 'icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
           }
         ]
-      }
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-images',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/ugfpbkjuxrdgveyfbfks\.supabase\.co\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-assets',
+              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
     }),
   ],
   resolve: {

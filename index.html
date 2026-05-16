@@ -1,19 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- SEO & Brand -->
+    <title>Kedai Elvera 57 — POS & Menu Digital</title>
+    <meta name="description" content="Sistem Kasir & Menu Digital Kedai Elvera 57. Sajian Otentik Khas Semarang. Pesan langsung dari meja via QR Code." />
+    <meta name="author" content="Kedai Elvera 57" />
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-      <link rel="apple-touch-icon" href="/icon.png">
-      <title>Kedai Elvera 57 - Restaurant System</title>
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-    </head>
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#F7F1E6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kedai Elvera 57" />
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://pbitlwrgainrcippjuwd.supabase.co" />
+
+    <!-- Critical inline styles -->
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #root { height: 100%; }
+      /* Prevent FOUC — apply saved theme instantly */
+      .dark { --background: #1A1A1E; }
+    </style>
+    <script>
+      // Apply dark theme before paint to prevent flash
+      try { if (localStorage.getItem('pawon_theme') === 'dark') document.documentElement.classList.add('dark'); } catch(e) {}
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

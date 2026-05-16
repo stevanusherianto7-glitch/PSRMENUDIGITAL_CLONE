@@ -79,6 +79,9 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
           <p className="text-muted-foreground text-xs mt-0.5">QR Code untuk setiap meja — tamu scan langsung lihat menu &amp; pesan mandiri</p>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            title="Pilih meja"
+            aria-label="Pilih meja"
             value={selectedTable}
             onChange={(e) => setSelectedTable(e.target.value)}
             className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"

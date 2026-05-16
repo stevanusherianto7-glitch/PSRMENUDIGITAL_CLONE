@@ -20,8 +20,7 @@ import {
 import QRCode from "react-qr-code";
 import { supabase } from "../../lib/supabase";
 
-// Menggunakan string path untuk logo agar tidak error di Vite
-const logoImg = "/imports/logo_pawon_salam.png";
+// Logo sekarang diambil dari APP_LOGO di data.ts (import alias: logoImg)
 
 import { format } from "date-fns";
 import {

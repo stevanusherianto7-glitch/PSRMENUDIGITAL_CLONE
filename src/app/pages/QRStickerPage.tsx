@@ -12,8 +12,7 @@ import {
   CheckCircle2, Loader2, Activity,
 } from "lucide-react";
 import html2canvas from "html2canvas";
-const logoImg = "/imports/logo_pawon_salam.png";
-import { SEED_TABLES } from "../data";
+import { SEED_TABLES, APP_LOGO as logoImg } from "../data";
 import "../../styles/QRStickerPage.css";
 
 const BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital.vercel.app";
