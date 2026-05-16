@@ -474,7 +474,7 @@ export default function GuestMenuPage() {
       {view === "cart" && (
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
+            <button title="Tutup Keranjang" onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
               <X size={18} />
             </button>
             <h2 className="font-bold text-base font-poppins">Keranjang Pesanan</h2>
@@ -528,11 +528,11 @@ export default function GuestMenuPage() {
                       <p className="text-primary font-bold text-sm font-poppins">{rp(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center">
+                      <button title="Kurangi Jumlah" onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center">
                         <Minus size={12} />
                       </button>
                       <span className="text-sm font-bold w-5 text-center">{item.qty}</span>
-                      <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                      <button title="Tambah Jumlah" onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                         <Plus size={12} className="text-white" />
                       </button>
                     </div>
@@ -585,7 +585,7 @@ export default function GuestMenuPage() {
       {view === "status" && (
         <div className="p-4 space-y-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
+            <button title="Kembali ke Menu" onClick={() => setView("menu")} className="text-muted-foreground hover:text-foreground">
               <ChevronLeft size={18} />
             </button>
             <h2 className="font-bold text-base font-poppins">Status Pesanan</h2>
@@ -599,7 +599,7 @@ export default function GuestMenuPage() {
                 {autoRefresh && <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>}
                 {autoRefresh ? "Auto Aktif" : "Auto Off"}
               </button>
-              <button onClick={loadMyOrders} className="text-muted-foreground hover:text-foreground">
+              <button title="Segarkan Pesanan" onClick={loadMyOrders} className="text-muted-foreground hover:text-foreground">
                 <RefreshCw size={14} />
               </button>
             </div>

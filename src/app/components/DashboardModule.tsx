@@ -348,7 +348,6 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
               <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
                 <Database size={8} className="text-indigo-400" /> Supabase
               </span>
-              <button className="p-1.5 rounded-lg bg-secondary border border-border hover:text-primary transition-colors">
                 <Download size={12} />
               </button>
             </div>
