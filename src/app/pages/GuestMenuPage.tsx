@@ -407,6 +407,14 @@ export default function GuestMenuPage() {
             <p className="font-bold text-sm text-foreground font-poppins">Kedai Elvera 57</p>
             <p className="text-xs text-muted-foreground">Meja {tableId} · Scan & Order</p>
           </div>
+          <div className="flex-shrink-0 mr-1">
+            <img 
+              src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+              alt="Sertifikat Halal" 
+              className="h-10 w-auto object-contain drop-shadow-sm"
+              title="Restoran Bersertifikat Halal"
+            />
+          </div>
           {myOrders.length > 0 && (
             <button
               onClick={() => setView(view === "status" ? "menu" : "status")}
