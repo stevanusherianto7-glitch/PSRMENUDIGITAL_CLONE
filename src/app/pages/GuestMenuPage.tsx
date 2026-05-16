@@ -214,8 +214,9 @@ export default function GuestMenuPage() {
                     Selamat Datang di<br />
                     <span className="text-primary">Kedai Elvera 57!</span>
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    Restoran khas Semarang · Nikmati sajian terbaik kami
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                    Restoran khas Semarang, sudah resmi bersertifikat Halal.<br />
+                    Nikmati sajian terbaik kami
                   </p>
                 </div>
 
