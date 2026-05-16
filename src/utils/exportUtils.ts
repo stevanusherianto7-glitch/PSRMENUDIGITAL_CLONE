@@ -79,6 +79,107 @@ export function exportMonthlyPDF(
     </html>
   `;
 
+  if (printWindow) {
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setTimeout(() => printWindow.print(), 500);
+  }
+}
+
+export function exportCategorySalesReport(
+  categoryData: { name: string; value: number; amount: number }[],
+  totalSales: number
+) {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Laporan Penjualan Per Kategori - Kedai Elvera 57</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px; color: #1A1A1E; background-color: #fff; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #C8A96E; padding-bottom: 20px; }
+        h1 { color: #C8A96E; font-size: 28px; margin: 0; font-weight: 900; }
+        p.subtitle { color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: 600; text-transform: uppercase; }
+        
+        .summary-grid { display: grid; grid-template-cols: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .summary-card { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 20px; text-align: center; }
+        .summary-label { font-size: 10px; color: #6B7280; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        .summary-value { font-size: 20px; font-weight: 900; color: #1A1A1E; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        th { background: #1A1A1E; color: #fff; padding: 12px; text-align: left; font-size: 12px; font-weight: 800; }
+        td { padding: 12px; border-bottom: 1px solid #E5E7EB; font-size: 13px; color: #374151; }
+        tr:last-child td { border-bottom: 2px solid #1A1A1E; }
+        .font-bold { font-weight: 800; }
+        
+        .footer { margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .info { font-size: 10px; color: #9CA3AF; }
+        .sig-box { width: 200px; text-align: center; }
+        .sig-line { border-bottom: 1px solid #1A1A1E; height: 80px; margin-bottom: 10px; }
+        
+        @media print { body { padding: 0; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>PAWON SALAM</h1>
+        <p class="subtitle">Laporan Penjualan Per Kategori</p>
+        <p style="font-size: 11px; margin-top: 5px;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <p class="summary-label">Total Omzet</p>
+          <p class="summary-value">Rp ${totalSales.toLocaleString('id-ID')}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Kategori Terlaris</p>
+          <p class="summary-value">${categoryData.reduce((prev, current) => (prev.amount > current.amount) ? prev : current).name}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Total Kategori</p>
+          <p class="summary-value">${categoryData.length}</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th style="text-align: center">Persentase</th>
+            <th style="text-align: right">Total Penjualan (IDR)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${categoryData.map(d => `
+            <tr>
+              <td class="font-bold">${d.name.toUpperCase()}</td>
+              <td style="text-align: center">${d.value}%</td>
+              <td style="text-align: right" class="font-bold">${d.amount.toLocaleString('id-ID')}</td>
+            </tr>
+          `).join('')}
+          <tr style="background: #F9F9FB">
+            <td colspan="2" class="font-bold" style="text-align: right">TOTAL</td>
+            <td style="text-align: right" class="font-bold">Rp ${totalSales.toLocaleString('id-ID')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        <div class="info">
+          * Laporan ini dihasilkan secara otomatis oleh Kedai Elvera 57 POS.<br>
+          * Data bersifat rahasia dan hanya untuk keperluan internal.
+        </div>
+        <div class="sig-box">
+          <div class="sig-line"></div>
+          <p style="font-weight: 800; font-size: 13px; margin: 5px 0 0 0;">Owner / Manager</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
   const printWindow = window.open("", "_blank");
   if (printWindow) {
     printWindow.document.write(html);
