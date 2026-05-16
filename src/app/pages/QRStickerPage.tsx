@@ -286,134 +286,97 @@ export default function QRStickerPage() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft size={16} /> Kembali
-          </button>
-
-          <div className="flex items-center gap-3 ml-1">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center gold-icon-wrapper">
-              <QrCode size={16} className="text-gold" />
+                    <div className="ml-auto flex items-center gap-3">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] uppercase tracking-widest text-gold-dimmed font-bold">Siap Cetak</span>
+              <span className="text-sm font-black text-white">Meja {selectedTableId}</span>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Stiker QR Meja</p>
-              <p className="text-xs text-gold-dimmed">Kedai Elvera 57 — Cetak & Tempel</p>
-            </div>
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <span className="text-xs text-muted-foreground hidden sm:block">{selectedTables.length} meja dipilih</span>
-
-            {/* Download All */}
-            <button
-              onClick={downloadAll}
-              disabled={downloadingAll || tables.length === 0}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 btn-gold-outline"
-            >
-              {downloadingAll
-                ? <Loader2 size={14} className="animate-spin" />
-                : <ImageDown size={14} />}
-              Download Semua
-            </button>
 
             {/* Print */}
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-black font-bold text-sm transition-all btn-gold-gradient"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-black font-bold text-sm transition-all btn-gold-gradient shadow-[0_0_20px_rgba(200,169,110,0.3)] hover:scale-105 active:scale-95"
             >
               <Printer size={15} /> Cetak Stiker
             </button>
           </div>
         </div>
 
-        <div className="no-print flex gap-6 p-6 max-w-[1500px] mx-auto">
+        <div className="no-print flex gap-8 p-8 max-w-[1200px] mx-auto">
 
           {/* ── Sidebar settings ── */}
-          <div className="w-60 flex-shrink-0 space-y-4">
+          <div className="w-72 flex-shrink-0 space-y-6">
+
+            {/* Dropdown Pilih Meja */}
+            <div className="sidebar-box">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1.5 h-4 bg-gold rounded-full" />
+                <p className="sidebar-title text-[var(--ps-gold)] mb-0">Pilih Meja</p>
+              </div>
+              
+              <div className="relative group">
+                <select 
+                  value={selectedTableId}
+                  onChange={(e) => setSelectedTableId(e.target.value)}
+                  className="w-full bg-[#1A1A1E] border border-white/10 rounded-xl px-4 py-3 text-white font-bold text-sm appearance-none focus:outline-none focus:border-gold/50 transition-all cursor-pointer"
+                >
+                  {SEED_TABLES.map(t => (
+                    <option key={t.id} value={t.id} className="bg-[#1A1A1E]">
+                      Meja {t.id} ({t.seat} Kursi)
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gold/50 group-hover:text-gold transition-colors">
+                  <Grid3X3 size={14} />
+                </div>
+              </div>
+              <p className="text-[10px] text-white/30 mt-3 italic">
+                *Pilih nomor meja untuk memperbarui tampilan QR di sebelah kanan.
+              </p>
+            </div>
 
             {/* Ukuran */}
             <div className="sidebar-box">
-              <p className="sidebar-title text-[var(--ps-gold)] opacity-50">Ukuran Stiker</p>
-              <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1.5 h-4 bg-gold rounded-full" />
+                <p className="sidebar-title text-[var(--ps-gold)] mb-0">Ukuran Cetak</p>
+              </div>
+              <div className="grid grid-cols-1 gap-2">
                 {(["sm", "md", "lg"] as const).map(s => (
                   <button
                     key={s}
                     onClick={() => setStickerSize(s)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all ${
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all ${
                       stickerSize === s
-                        ? 'bg-[var(--ps-gold-faint)] border border-[rgba(200, 169, 110, 0.37)] text-[var(--ps-gold-light)] font-bold'
-                        : 'bg-transparent border border-[rgba(255, 255, 255, 0.1)] text-white/25'
+                        ? 'bg-[var(--ps-gold-faint)] border border-gold/40 text-[var(--ps-gold-light)] font-bold shadow-[inset_0_0_20px_rgba(200,169,110,0.1)]'
+                        : 'bg-transparent border border-white/5 text-white/25 hover:border-white/10'
                     }`}
                   >
-                    <span>{sizeLabels[s]}</span>
-                    {stickerSize === s && <CheckCircle2 size={13} className="text-[var(--ps-gold)]" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Kolom */}
-            <div className="sidebar-box">
-              <p className="sidebar-title text-[var(--ps-gold)] opacity-50">Kolom per Baris</p>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[2, 3, 4, 5].map(n => (
-                  <button
-                    key={n}
-                    onClick={() => setCols(n)}
-                    className={`py-2.5 rounded-xl text-sm font-bold transition-all ${
-                      cols === n
-                        ? 'bg-gradient-to-br from-[var(--ps-gold)] to-[var(--ps-gold-light)] text-[#0C0C0E]'
-                        : 'bg-transparent border border-[rgba(255, 255, 255, 0.1)] text-white/25'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Pilih meja */}
-            <div className="sidebar-box">
-              <div className="flex items-center justify-between mb-3">
-                <p className="sidebar-title text-[var(--ps-gold)] opacity-50 mb-0">Pilih Meja</p>
-                <button
-                  onClick={() =>
-                    selectedTables.length === SEED_TABLES.length
-                      ? setSelectedTables([])
-                      : setSelectedTables(SEED_TABLES.map(t => t.id))
-                  }
-                  className="text-[10px] font-semibold transition-colors text-[var(--ps-gold)]"
-                >
-                  {selectedTables.length === SEED_TABLES.length ? "Hapus Semua" : "Pilih Semua"}
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                {SEED_TABLES.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => toggleTable(t.id)}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                      selectedTables.includes(t.id)
-                        ? 'bg-[var(--ps-gold-faint)] border border-[rgba(200, 169, 110, 0.31)] text-[var(--ps-gold)]'
-                        : 'bg-transparent border border-[rgba(255, 255, 255, 0.1)] text-white/15'
-                    }`}
-                  >
-                    {t.id}
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs uppercase tracking-wider">{s === 'sm' ? 'Small' : s === 'md' ? 'Medium' : 'Large'}</span>
+                      <span className="text-[10px] opacity-60 font-medium">{sizeLabels[s]}</span>
+                    </div>
+                    {stickerSize === s && <CheckCircle2 size={14} className="text-gold" />}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Tips */}
-            <div className="rounded-2xl p-4 space-y-2 bg-[var(--ps-gold-faint)] border border-[var(--ps-gold-border)]">
-              <p className="text-[10px] font-semibold uppercase tracking-widest mb-2 text-[var(--ps-gold)]">💡 Tips Cetak</p>
+            <div className="rounded-2xl p-5 space-y-3 bg-[var(--ps-gold-faint)] border border-[var(--ps-gold-border)] relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Printer size={40} className="text-gold" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gold mb-1">💡 Tips Produksi</p>
               {[
-                "Kertas glossy A4 — hasil terbaik",
-                "Print skala 100%, tanpa scaling",
-                "Gunting di sepanjang garis putus",
-                "Laminating agar tahan lama",
-                "Download PNG untuk cetak offline",
+                "Gunakan Kertas Sticker Glossy (A4)",
+                "Skala Print 100% (No Scaling)",
+                "Laminasi Dingin agar anti-air",
+                "Gunting presisi di garis potong",
               ].map((tip, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0 bg-[var(--ps-gold)]" />
-                  <p className="text-xs text-[var(--ps-gold)] opacity-90 leading-[1.5]">{tip}</p>
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0 bg-gold" />
+                  <p className="text-[11px] text-gold/90 font-medium leading-relaxed">{tip}</p>
                 </div>
               ))}
             </div>
@@ -422,76 +385,48 @@ export default function QRStickerPage() {
           {/* ── Preview area ── */}
           <div className="flex-1 min-w-0">
             <div className="preview-box">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <p className="text-base font-bold text-white">Preview Stiker</p>
-                  <p className="text-xs mt-0.5 text-white/25">
-                    Garis putus-putus = area potong · Tanda L = crop mark cetak
+                  <h3 className="text-lg font-black text-white font-['Poppins']">Preview Stiker Meja {selectedTableId}</h3>
+                  <p className="text-[11px] mt-1 text-white/40 flex items-center gap-2">
+                    <Activity size={10} className="text-gold" /> Tampilan di bawah adalah hasil akhir yang akan dicetak
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs rounded-lg px-3 py-1.5 url-badge">
-                  <UtensilsCrossed size={11} />
-                  <span>{BASE_URL}/menu/[meja]</span>
-                </div>
+                
+                <button
+                  onClick={() => downloadSticker(selectedTableId)}
+                  disabled={downloading === selectedTableId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-[10px] font-bold uppercase tracking-widest"
+                >
+                  {downloading === selectedTableId ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                  Simpan Gambar
+                </button>
               </div>
 
-              {tables.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-center">
-                  <QrCode size={44} className="text-white/5 mb-3" />
-                  <p className="text-sm text-white/15">Pilih minimal satu meja</p>
+              <div className="flex justify-center items-center py-10 bg-[#0C0C0E]/50 rounded-2xl border border-white/5">
+                <div className="relative group">
+                  <StickerWithPrintArea
+                    tableId={selectedTableId}
+                    index={0}
+                    size={stickerSize}
+                    wrapperRef={el => { wrapperRefs.current[selectedTableId] = el; }}
+                  />
+                  {/* Floating ID badge */}
+                  <div className="absolute -top-3 -left-3 bg-gold text-[#0C0C0E] text-[10px] font-black px-3 py-1 rounded-full shadow-lg">
+                    READY TO PRINT
+                  </div>
                 </div>
-              ) : (
-                <div
-                  className={`grid gap-6 justify-start ${
-                    cols === 2 ? "grid-cols-[repeat(2,_max-content)]" :
-                    cols === 3 ? "grid-cols-[repeat(3,_max-content)]" :
-                    cols === 4 ? "grid-cols-[repeat(4,_max-content)]" :
-                    "grid-cols-[repeat(5,_max-content)]"
-                  }`}
-                >
-                  {tables.map((t, i) => (
-                    <div key={t.id} className="group relative">
-                      <StickerWithPrintArea
-                        tableId={t.id}
-                        index={i}
-                        size={stickerSize}
-                        wrapperRef={el => { wrapperRefs.current[t.id] = el; }}
-                      />
-                      {/* Per-sticker download button */}
-                      <button
-                        onClick={() => downloadSticker(t.id)}
-                        disabled={downloading === t.id}
-                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10 bg-gradient-to-br from-[var(--ps-gold)] to-[var(--ps-gold-light)] text-[#0C0C0E]"
-                        title={`Download stiker ${t.id}`}
-                      >
-                        {downloading === t.id
-                          ? <Loader2 size={12} className="animate-spin" />
-                          : <Download size={12} />}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Print area (hidden on screen, shown on print) ── */}
+        {/* ── Print area (hanya merender meja yang dipilih) ── */}
         <div id="print-area" className="hidden">
-          <div
-            className={`grid gap-5 justify-start p-[8mm] bg-[#F5F5F5] ${
-              cols === 2 ? "grid-cols-[repeat(2,_max-content)]" :
-              cols === 3 ? "grid-cols-[repeat(3,_max-content)]" :
-              cols === 4 ? "grid-cols-[repeat(4,_max-content)]" :
-              "grid-cols-[repeat(5,_max-content)]"
-            }`}
-          >
-            {tables.map((t, i) => (
-              <StickerWithPrintArea key={t.id} tableId={t.id} index={i} size={stickerSize} />
-            ))}
+          <div className="p-[10mm] flex justify-center items-center bg-white min-h-screen">
+            <StickerWithPrintArea tableId={selectedTableId} index={0} size={stickerSize} />
           </div>
         </div>
-
       </div>
     </>
   );
