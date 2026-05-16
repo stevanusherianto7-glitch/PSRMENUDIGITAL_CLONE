@@ -38,15 +38,16 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     const tablesToPrint = selectedTable === "all" ? tables : tables.filter(t => t.id === selectedTable);
     
     const printContent = tablesToPrint.map(t => `
-      <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #C8A96E; border-radius:16px; padding:24px; margin:12px; width:280px; height:320px; background:#fff;">
-        <img src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" style="height:40px; margin-bottom:10px;" />
-        <p style="font-family:Poppins,sans-serif; font-size:18px; font-weight:700; margin:0 0 4px; color:#1F2937;">Buku Menu Digital</p>
-        <p style="font-family:Poppins,sans-serif; font-size:12px; font-weight:600; color:#C8A96E; margin:0 0 16px; text-transform:uppercase;">Kedai Elvera 57 Semarang</p>
-        <div style="background:#fff; padding:12px; border:1px solid #E5E7EB; border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="160" height="160" />
+      <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #C8A96E; border-radius:20px; padding:32px 28px; margin:16px; width:380px; background:#fff;">
+        <p style="font-family:Poppins,sans-serif; font-size:20px; font-weight:800; margin:0 0 4px; color:#1F2937; letter-spacing:0.5px;">Buku Menu Digital</p>
+        <p style="font-family:Poppins,sans-serif; font-size:12px; font-weight:600; color:#C8A96E; margin:0 0 24px; text-transform:uppercase; letter-spacing:2px;">Kedai Elvera 57 Semarang</p>
+        <div style="background:#fff; padding:16px; border:1px solid #E5E7EB; border-radius:16px; box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="220" height="220" />
         </div>
-        <p style="font-family:Poppins,sans-serif; font-size:24px; font-weight:800; margin:16px 0 0; color:#1F2937;">MEJA ${t.id}</p>
-        <p style="font-family:Poppins,sans-serif; font-size:10px; color:#9CA3AF; margin-top:8px;">Scan untuk Pesan Mandiri</p>
+        <img src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" style="height:36px; margin:20px 0 4px; object-fit:contain;" crossorigin="anonymous" />
+        <p style="font-family:Poppins,sans-serif; font-size:11px; font-weight:600; color:#9CA3AF; margin:0; text-transform:uppercase; letter-spacing:3px;">Nomor Meja</p>
+        <p style="font-family:Poppins,sans-serif; font-size:36px; font-weight:900; margin:4px 0 0; color:#1F2937; letter-spacing:1px;">MEJA ${t.id}</p>
+        <p style="font-family:Poppins,sans-serif; font-size:10px; color:#9CA3AF; margin-top:12px;">Scan QR untuk pesan menu favorit Anda</p>
       </div>
     `).join("");
 
