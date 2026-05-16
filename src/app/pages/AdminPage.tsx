@@ -26,7 +26,7 @@ import { format } from "date-fns";
 import {
   SEED_MENU, SEED_TABLES, SEED_INVENTORY, SEED_PROMOS,
   menuCategories, rp, PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
-  BRAND_NAME, APP_LOGO as logoImg
+  BRAND_NAME, SYSTEM_LOGO as logoImg
 } from "../data";
 import { fetchOrders, updateOrder, createOrder } from "../api";
 import { DashboardModule } from "../components/DashboardModule";

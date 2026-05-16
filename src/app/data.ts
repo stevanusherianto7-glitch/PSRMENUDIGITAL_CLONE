@@ -15,7 +15,8 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-export const APP_LOGO = "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png";
+export const SYSTEM_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/icon-maskable-192.png"; // Logo Kedai Elvera 57 (sistem/admin/sidebar/QR)
+export const APP_LOGO = "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/image_url/logo_kedai_Elvera57.png"; // Logo brand Kedai Elvera 57 (tamu)
 export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
 
 // ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────

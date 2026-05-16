@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
-import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
+import { rp, BRAND_NAME, SYSTEM_LOGO as logoImg } from "../data";
 import { fetchOrders, updateOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import type { Order, OrderStatus, UserSession } from "../types";

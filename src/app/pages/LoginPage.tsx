@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom 
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
-import { CREDENTIALS, BRAND_NAME, APP_LOGO as logoImg } from "../data";
+import { CREDENTIALS, BRAND_NAME, SYSTEM_LOGO as logoImg } from "../data";
 import type { UserRole, UserSession } from "../types";
 
 export default function LoginPage() {
