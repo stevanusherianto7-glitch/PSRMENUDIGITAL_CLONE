@@ -45,6 +45,7 @@ import { KaryawanModule } from "../components/KaryawanModule";
 import { AssetModule } from "../components/AssetModule";
 import { MenuManagement } from "../components/MenuManagement";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 import { DateRangePicker } from "../components/ui/date-range-picker";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../components/ui/tooltip";
 import type { DateRange } from "react-day-picker";
@@ -267,8 +268,23 @@ export default function AdminPage() {
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
-      // Filter pesanan (simpan yang served untuk kasir, buang yang dibatalkan)
-      const active = orders.filter(o => o.status !== "cancelled");
+      // Filter: hanya order hari ini & belum lewat 4 jam (untuk active orders).
+      // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
+      const now = Date.now();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
+
+      const active = orders.filter(o => {
+        if (o.status === "cancelled") return false;
+        const createdAt = new Date(o.created_at).getTime();
+        // Order hari ini saja
+        if (createdAt < todayStart.getTime()) return false;
+        // Served orders: tampilkan sepanjang hari ini (untuk kasir)
+        if (o.status === "served") return true;
+        // Active orders (pending/cooking/ready): maks 4 jam
+        return (now - createdAt) < MAX_AGE_MS;
+      });
       setLiveOrders(active);
     } catch (e) { console.log("Error loading orders:", e); }
   }, []);
@@ -691,6 +707,7 @@ export default function AdminPage() {
         </header>
 
         <main className="flex-1 overflow-y-scroll px-0 lg:px-10 pb-40 pb-safe scroll-smooth custom-scrollbar relative">
+          <ErrorBoundary key={activeModule}>
           <div className="max-w-full mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 px-0">
             {activeModule === "transaksi" && (
               <div className="space-y-5">
@@ -900,6 +917,7 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+          </ErrorBoundary>
         </main>
       </div>
     </div>

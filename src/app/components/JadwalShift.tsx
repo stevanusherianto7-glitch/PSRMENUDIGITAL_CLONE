@@ -246,22 +246,22 @@ export const JadwalShift = ({ dateRange }: { dateRange: DateRange | undefined })
             <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border-white/5">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-1.5 h-5 bg-rose-500 rounded-full" />
-                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Absence Matrix (Alpha)</h3>
+                <h3 className="text-[10px] font-black text-foreground uppercase tracking-[0.2em]">Absence Matrix (Alpha)</h3>
               </div>
 
               <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                 {employees.map(emp => {
                   const count = getAlphaCount(emp.id);
                   return (
-                    <div key={emp.id} className="flex-shrink-0 flex items-center gap-4 bg-white/2 border border-white/5 px-5 py-3 rounded-2xl group hover:border-rose-500/30 transition-all duration-500">
-                      <div className="w-9 h-9 rounded-xl bg-black/40 flex items-center justify-center font-black text-[10px] text-slate-500 border border-white/5 group-hover:text-rose-400 transition-colors">
+                    <div key={emp.id} className="flex-shrink-0 flex items-center gap-4 bg-secondary/50 border border-border px-5 py-3 rounded-2xl group hover:border-rose-500/30 transition-all duration-500">
+                      <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center font-black text-[10px] text-muted-foreground border border-border group-hover:text-rose-400 transition-colors">
                         {emp.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-xs font-black text-white uppercase tracking-tight">{emp.name}</p>
+                        <p className="text-xs font-black text-foreground uppercase tracking-tight">{emp.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">{emp.role}</span>
-                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border ${count > 0 ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.1)]' : 'bg-slate-500/5 border-white/5 text-slate-500'}`}>
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">{emp.role}</span>
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border ${count > 0 ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' : 'bg-muted border-border text-muted-foreground'}`}>
                             {count} DAYS
                           </span>
                         </div>

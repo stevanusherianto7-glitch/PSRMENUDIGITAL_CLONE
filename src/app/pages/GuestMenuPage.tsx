@@ -14,6 +14,7 @@ import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 type View = "menu" | "cart" | "status";
 
@@ -88,9 +89,18 @@ export default function GuestMenuPage() {
     }
     try {
       const orders = await fetchOrders(undefined, tableId);
-      const active = orders.filter(o =>
-        o.status !== "served" && o.status !== "cancelled"
-      );
+      // Filter: hanya order hari ini & belum lewat 4 jam.
+      // Tamu tidak perlu melihat order basi dari sesi sebelumnya.
+      const now = Date.now();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
+
+      const active = orders.filter(o => {
+        if (o.status === "cancelled") return false;
+        const createdAt = new Date(o.created_at).getTime();
+        return createdAt >= todayStart.getTime() && (now - createdAt) < MAX_AGE_MS;
+      });
       setMyOrders(active);
     } catch (e) {
       console.log("Error loading orders:", e);
@@ -183,6 +193,7 @@ export default function GuestMenuPage() {
   }
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen bg-background max-w-md mx-auto relative pb-24">
 
       {/* ── Welcome Modal ───────────────────────────────────────────── */}
@@ -636,9 +647,13 @@ export default function GuestMenuPage() {
                         const active = cfg.step === i + 1;
                         return (
                           <div key={s} className="flex items-center flex-1">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                              done ? "bg-green-500 text-white" : active ? "bg-primary text-white" : "bg-secondary border border-border text-muted-foreground"
-                            }`}>{i + 1}</div>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 relative ${
+                              done ? "bg-green-500 text-white" : active ? "bg-primary text-white shadow-lg shadow-primary/40" : "bg-secondary border border-border text-muted-foreground"
+                            }`}>
+                              {/* Efek Kedip-kedip (Ping/Pulse) untuk step yang aktif */}
+                              {active && <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60"></span>}
+                              <span className="relative z-10">{i + 1}</span>
+                            </div>
                             {i < 3 && (
                               <div className={`flex-1 h-0.5 ${done ? "bg-green-500" : "bg-border"}`} />
                             )}
@@ -732,5 +747,6 @@ export default function GuestMenuPage() {
         </div>
       )}
     </div>
+    </ErrorBoundary>
   );
 }
