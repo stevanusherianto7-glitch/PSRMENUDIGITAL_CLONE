@@ -380,8 +380,8 @@ class PrintService {
   }
 
   /**
-   * Fungsi antrean untuk mencetak semua struk secara berurutan
-   * agar tidak terjadi bentrokan data pada printer Bluetooth.
+   * Auto-print saat pembayaran — HANYA struk customer.
+   * Struk dapur dicetak terpisah via tombol "Kitchen" di UI.
    */
   async printAll(tx: Transaction): Promise<void> {
     const toastId = toast.loading("Menyiapkan printer...");
@@ -395,21 +395,9 @@ class PrintService {
       
       toast.loading("Mencetak Struk Konsumen...", { id: toastId });
       await this.printTransaction(tx);
-      
-      await new Promise(r => setTimeout(r, 1000));
-      
-      toast.loading("Mencetak Struk Dapur...", { id: toastId });
-      const kitchenOrder = {
-        id: tx.id,
-        items: tx.items,
-        tableId: tx.table_id || 'Take Away',
-        created_at: tx.created_at
-      } as any;
-      
-      await this.printKitchen(kitchenOrder);
-      toast.success("Semua struk berhasil dicetak", { id: toastId });
+      toast.success("Struk konsumen berhasil dicetak", { id: toastId });
     } catch (err) {
-      console.error("Print sequence error:", err);
+      console.error("Print error:", err);
       toast.error("Gagal cetak otomatis. Gunakan tombol Cetak Ulang.", { id: toastId });
     }
   }
