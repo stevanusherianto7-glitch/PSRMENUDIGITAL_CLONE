@@ -55,7 +55,7 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
         {/* Halal ID + Table Number — compact section */}
         <div className="z-10 flex flex-col items-center gap-1">
           <img 
-            src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
+            src="https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
             alt="Halal Indonesia" 
             className="h-5 w-auto object-contain drop-shadow-[0_2px_6px_rgba(200,169,110,0.25)]"
             crossOrigin="anonymous"
@@ -305,3 +305,4 @@ export default function QRStickerPage() {
     </>
   );
 }
+

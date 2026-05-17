@@ -77,10 +77,10 @@ import { createClient } from '@supabase/supabase-js';
  */
 
 // Using credentials from auto-generated config file
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || `https://${projectId}.supabase.co`;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || publicAnonKey;
+const supabaseKey = 'sb_publishable_goaDeAnsgkAQ1ZQM_lArBQ_LhC6vN-7';
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
@@ -88,3 +88,4 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: false,
   },
 });
+

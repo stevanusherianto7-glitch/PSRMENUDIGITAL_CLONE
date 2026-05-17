@@ -6,8 +6,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 
 // Buat client sementara agar tidak mengganggu session manager yang sedang login
-const SUPABASE_URL = 'https://pbitlwrgainrcippjuwd.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
+const SUPABASE_URL = 'https://ugfpbkjuxrdgveyfbfks.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_goaDeAnsgkAQ1ZQM_lArBQ_LhC6vN-7';
 const tempSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false }
 });
@@ -299,3 +299,4 @@ export const KaryawanModule = () => {
     </div>
   );
 };
+

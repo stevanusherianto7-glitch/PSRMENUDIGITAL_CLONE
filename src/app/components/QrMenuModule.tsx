@@ -44,7 +44,7 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
         <div style="background:#fff; padding:16px; border:1px solid #E5E7EB; border-radius:16px; box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);">
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="220" height="220" />
         </div>
-        <img src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" style="height:56px; margin:20px 0 4px; object-fit:contain;" crossorigin="anonymous" />
+        <img src="https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/ID_halal.png" style="height:56px; margin:20px 0 4px; object-fit:contain;" crossorigin="anonymous" />
         <p style="font-family:Poppins,sans-serif; font-size:11px; font-weight:600; color:#9CA3AF; margin:0; text-transform:uppercase; letter-spacing:3px;">Nomor Meja</p>
         <p style="font-family:Poppins,sans-serif; font-size:36px; font-weight:900; margin:4px 0 0; color:#1F2937; letter-spacing:1px;">MEJA ${t.id}</p>
         <p style="font-family:Poppins,sans-serif; font-size:10px; color:#9CA3AF; margin-top:12px;">Scan QR untuk pesan menu favorit Anda</p>
@@ -140,3 +140,4 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     </div>
   );
 }
+
