@@ -155,14 +155,15 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
 
   // Detect pesanan baru ketika orders berubah
   useEffect(() => {
-    if (orders.length === 0) return;
-
     if (isFirstLoad.current) {
       // Saat pertama load, tandai semua order yang sudah ada — jangan diumumkan
+      // PENTING: harus selalu set false, bahkan jika orders kosong
       orders.forEach(o => knownIds.current.add(o.id));
       isFirstLoad.current = false;
       return;
     }
+
+    if (orders.length === 0) return;
 
     const newOrders = orders.filter(o => !knownIds.current.has(o.id));
     if (newOrders.length === 0) return;
