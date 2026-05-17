@@ -87,47 +87,24 @@ export default function GuestMenuPage() {
       setTableError(true);
       return;
     }
-
-    // Helper: filter order aktif
-    const filterActive = (orders: Order[]) =>
-      orders.filter(o => o.status !== "served" && o.status !== "cancelled");
-
     try {
-      // Strategi 1: Via Edge Function
       const orders = await fetchOrders(undefined, tableId);
-      const active = filterActive(orders);
+      const active = orders.filter(o =>
+        o.status !== "served" && o.status !== "cancelled"
+      );
       setMyOrders(active);
+      // Cache ke localStorage untuk offline fallback
       if (active.length > 0) {
         localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify(active));
       }
     } catch (e) {
-      console.warn("fetchOrders via Edge Function gagal, fallback ke Supabase:", e);
-      // Strategi 2: Langsung query Supabase DB
+      console.warn("loadMyOrders error, showing cache:", e);
       try {
-        const { data, error } = await supabase
-          .from("orders")
-          .select("*")
-          .eq("tableId", tableId)
-          .not("status", "in", '("served","cancelled")')
-          .order("created_at", { ascending: false });
-
-        if (!error && data) {
-          setMyOrders(data as Order[]);
-          if (data.length > 0) {
-            localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify(data));
-          }
-        } else {
-          throw error;
+        const cached = localStorage.getItem(`guest_orders_${tableId}`);
+        if (cached && myOrders.length === 0) {
+          setMyOrders(JSON.parse(cached));
         }
-      } catch (_) {
-        // Strategi 3: Tampilkan cache terakhir
-        try {
-          const cached = localStorage.getItem(`guest_orders_${tableId}`);
-          if (cached && myOrders.length === 0) {
-            setMyOrders(JSON.parse(cached));
-          }
-        } catch (__) { /* ignore */ }
-      }
+      } catch (_) { /* ignore */ }
     }
   }, [tableId]);
 
@@ -163,7 +140,6 @@ export default function GuestMenuPage() {
     if (cart.length === 0) return;
     setPlacing(true);
     try {
-      // Strategi 1: Coba via Edge Function
       const order = await createOrder({
         tableId,
         items: cart,
@@ -179,40 +155,8 @@ export default function GuestMenuPage() {
       setOrderMode("dine-in");
       setView("status");
     } catch (e) {
-      console.warn("Edge Function createOrder gagal, fallback ke Supabase langsung:", e);
-      // Strategi 2: Langsung insert ke Supabase DB
-      try {
-        const orderId = `PSR-${Date.now().toString(36).toUpperCase().slice(-4)}`;
-        const orderData = {
-          id: orderId,
-          tableId: tableId,
-          items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category })),
-          subtotal,
-          total,
-          notes: notes || "",
-          orderMode,
-          type: "guest" as const,
-          status: "pending" as const,
-          created_at: new Date().toISOString(),
-        };
-        const { data, error } = await supabase
-          .from("orders")
-          .insert(orderData)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        
-        const savedOrder: Order = data || orderData;
-        setMyOrders(prev => [savedOrder, ...prev]);
-        setCart([]);
-        setNotes("");
-        setOrderMode("dine-in");
-        setView("status");
-      } catch (e2) {
-        console.error("Supabase fallback juga gagal:", e2);
-        alert("Gagal mengirim pesanan. Periksa koneksi internet dan coba lagi.");
-      }
+      console.error("createOrder error:", e);
+      alert("Gagal mengirim pesanan. Periksa koneksi internet dan coba lagi.");
     }
     setPlacing(false);
   }
