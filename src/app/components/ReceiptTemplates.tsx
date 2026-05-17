@@ -57,7 +57,7 @@ export function KitchenReceipt({ order }: KitchenReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
-        DAAPUR (KITCHEN)
+        DAPUR (KITCHEN)
       </div>
       <div className="text-xs mb-1">
         <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>

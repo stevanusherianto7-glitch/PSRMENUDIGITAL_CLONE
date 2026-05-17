@@ -9,7 +9,7 @@ import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
   ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
-  Printer, ShoppingBag, X, Clock, Flame, XCircle
+  Printer, ShoppingBag, X, Clock, Flame, XCircle, AlertTriangle
 } from "lucide-react";
 import { rp, menuCategories } from "../data";
 
@@ -89,6 +89,16 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
   const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
   const [currentPayingOrderId, setCurrentPayingOrderId] = useState<string | null>(null);
+  const [printerConnected, setPrinterConnected] = useState(printService.getIsConnected());
+  const [showPayConfirm, setShowPayConfirm] = useState(false);
+
+  // Listen to printer connection status changes
+  useEffect(() => {
+    const unsub = printService.onConnectionChange((connected) => {
+      setPrinterConnected(connected);
+    });
+    return unsub;
+  }, []);
 
   const mockOrders: Order[] = [
     {
@@ -155,6 +165,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
   async function processPayment() {
     if (!payMethod || cart.length === 0) return;
+    setShowPayConfirm(false);
     
     setSaving(true);
     try {
@@ -294,9 +305,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           <button
             onClick={() => setIsPrinterModalOpen(true)}
             title="Pengaturan Printer Bluetooth"
-            className="ml-auto px-4 py-2 rounded-xl bg-card border border-border/60 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all flex items-center justify-center"
+            className={`ml-auto px-4 py-2 rounded-xl border transition-all flex items-center justify-center gap-2 ${
+              printerConnected
+                ? "bg-green-500/10 border-green-500/30 text-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)] hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
+                : "bg-card border-border/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
           >
-            <Printer size={16} />
+            <span className="relative">
+              <Printer size={16} />
+              {printerConnected && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
+              )}
+            </span>
+            {printerConnected && <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline">Online</span>}
           </button>
         </div>
 
@@ -575,7 +596,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   </div>
                 </div>
 
-                <button onClick={processPayment} disabled={!payMethod || cart.length === 0 || saving || (orderMode === 'dine-in' && !selectedTable)}
+                <button onClick={() => {
+                    if (!payMethod || cart.length === 0 || saving || (orderMode === 'dine-in' && !selectedTable)) return;
+                    setShowPayConfirm(true);
+                  }} disabled={!payMethod || cart.length === 0 || saving || (orderMode === 'dine-in' && !selectedTable)}
                   className="w-full py-4.5 rounded-2xl bg-primary text-white text-[11px] font-black hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/40 uppercase tracking-[0.2em] relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
@@ -587,6 +611,53 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         </div>
       </div>
     )}
+
+      {/* Payment Confirmation Dialog */}
+      {showPayConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowPayConfirm(false)}>
+          <div className="bg-card border border-border rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-border text-center">
+              <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <AlertTriangle size={28} className="text-primary" />
+              </div>
+              <h3 className="font-black text-base text-foreground">Konfirmasi Pembayaran</h3>
+              <p className="text-xs text-muted-foreground mt-1">Pastikan data sudah benar sebelum memproses</p>
+            </div>
+            <div className="px-6 py-4 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground font-semibold">Total</span>
+                <span className="font-black text-lg text-primary">{rp(total)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground font-semibold">Metode</span>
+                <span className="font-black text-foreground uppercase">{payMethod}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground font-semibold">Meja</span>
+                <span className="font-black text-foreground">{orderMode === "take-away" ? "Take Away" : selectedTable || "-"}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground font-semibold">Item</span>
+                <span className="font-black text-foreground">{cart.reduce((s, c) => s + c.qty, 0)} pcs</span>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-border flex gap-3">
+              <button
+                onClick={() => setShowPayConfirm(false)}
+                className="flex-1 py-3 rounded-xl border border-border text-xs font-black text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={processPayment}
+                className="flex-1 py-3 rounded-xl bg-green-500 text-white text-xs font-black shadow-lg shadow-green-500/20 hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 size={16} /> Ya, Proses
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PromoModal
         isOpen={isPromoModalOpen}

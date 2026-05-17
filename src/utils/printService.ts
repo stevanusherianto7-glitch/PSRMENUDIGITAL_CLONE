@@ -29,6 +29,7 @@ class PrintService {
   private isConnected: boolean = false;
   private serialPort: any = null;
   private serialWriter: any = null;
+  private connectionListeners: Set<(connected: boolean) => void> = new Set();
   
   // HARDCODE MAC PRINTER ANDA
   private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
@@ -36,6 +37,17 @@ class PrintService {
 
   public getIsConnected() { return this.isConnected; }
   public getDefaultMac() { return this.DEFAULT_MAC; }
+
+  /** Subscribe untuk perubahan status koneksi printer */
+  public onConnectionChange(listener: (connected: boolean) => void) {
+    this.connectionListeners.add(listener);
+    return () => { this.connectionListeners.delete(listener); };
+  }
+
+  private setConnected(value: boolean) {
+    this.isConnected = value;
+    this.connectionListeners.forEach(fn => fn(value));
+  }
 
   /**
    * Cek ketersediaan fitur Bluetooth/Serial di perangkat
@@ -85,7 +97,7 @@ class PrintService {
         await port.open({ baudRate: 9600 });
         this.serialPort = port;
         this.serialWriter = port.writable.getWriter();
-        this.isConnected = true;
+        this.setConnected(true);
         toast.success("Printer Serial terhubung.");
         return true;
       }
@@ -101,7 +113,7 @@ class PrintService {
       return new Promise((resolve) => {
         // Set timeout manual untuk koneksi agar tidak hang selamanya
         const connectionTimeout = setTimeout(() => {
-          this.isConnected = false;
+          this.setConnected(false);
           toast.error("Koneksi timeout. Pastikan printer nyala.");
           resolve(false);
         }, 15000);
@@ -109,13 +121,13 @@ class PrintService {
         bluetoothSerial.connectInsecure(address,
           () => {
             clearTimeout(connectionTimeout);
-            this.isConnected = true;
+            this.setConnected(true);
             toast.success("Printer Bluetooth terhubung.");
             resolve(true);
           }, 
           (err) => {
             clearTimeout(connectionTimeout);
-            this.isConnected = false;
+            this.setConnected(false);
             toast.error("Gagal koneksi: " + err);
             resolve(false);
           }
@@ -153,7 +165,7 @@ class PrintService {
               (err) => reject(new Error("Gagal membuka soket: " + err))
             );
           });
-          this.isConnected = true;
+          this.setConnected(true);
         } else if (typeof navigator !== 'undefined' && 'serial' in navigator) {
           // Web Serial fallback
           if (!this.serialPort) {
@@ -162,7 +174,7 @@ class PrintService {
             this.serialPort = port;
             this.serialWriter = port.writable.getWriter();
           }
-          this.isConnected = true;
+          this.setConnected(true);
         }
 
         // 2. KIRIM DATA (Write)
@@ -201,7 +213,7 @@ class PrintService {
         // Eksekusi setiap selesai mencoba (baik sukses maupun gagal) agar port tidak terkunci (zombie state).
         if (isBluetooth) {
           bluetoothSerial.disconnect(() => {}, () => {});
-          this.isConnected = false;
+          this.setConnected(false);
         }
       }
     }
@@ -337,54 +349,34 @@ class PrintService {
   }
 
   /**
-   * Mencetak laporan closing shift (Data Mock Sesuai Foto User)
+   * Mencetak laporan closing shift.
+   * Menerima data real dari LaporanModule. Jika tidak ada parameter, gunakan data dummy untuk testing.
    */
-  async printClosingReport(): Promise<void> {
-    const dummyData = {
-      bulan: "2026-05",
+  async printClosingReport(realData?: {
+    bulan: string;
+    kasir: string;
+    startTime: string;
+    endTime: string;
+    terjual: number;
+    items: { name: string; qty: number }[];
+    totalVoid: number;
+    pemasukan: { qris: number; debit: number; tunai: number; total: number };
+    kasKecil: { awal: number; saldo: number; total: number };
+  }): Promise<void> {
+    const data = realData || {
+      bulan: new Date().toISOString().slice(0, 7),
       kasir: "Admin",
-      startTime: "10/05/2026, 12:48:44",
-      endTime: "10/05/2026, 12:48:44",
-      terjual: 74,
-      items: [
-        { name: "NASI PUTIH", qty: 30 },
-        { name: "ES TEH MANIS", qty: 23 },
-        { name: "AYAM GORENG", qty: 20 },
-        { name: "SOTO AYAM CAMPUR", qty: 15 },
-        { name: "MANGUT", qty: 13 },
-        { name: "RAWON", qty: 11 },
-        { name: "AIR MINERAL", qty: 10 },
-        { name: "SOTO AYAM PISAH", qty: 9 },
-        { name: "AYAM GORENG TNP NASI", qty: 9 },
-        { name: "TAHU GIMBAL", qty: 8 },
-        { name: "BAKMIE GODOG ELVERA", qty: 5 },
-        { name: "BAKMIE GORENG ELVERA", qty: 5 },
-        { name: "AYAM GORENG ELVERA+NASI", qty: 3 },
-        { name: "BAKMIE GORENG", qty: 3 },
-        { name: "NASI GORENG SPECIAL", qty: 2 },
-        { name: "KOPI", qty: 1 },
-        { name: "NASI AYAM GORENG", qty: 1 },
-        { name: "NASI GORENG", qty: 1 },
-        { name: "NASI RAWON", qty: 1 },
-        { name: "SOTO AYAM TNP NASI", qty: 1 },
-        { name: "SOTO SEMARANG CAMPUR", qty: 1 },
-      ],
+      startTime: new Date().toLocaleString("id-ID"),
+      endTime: new Date().toLocaleString("id-ID"),
+      terjual: 0,
+      items: [],
       totalVoid: 0,
-      pemasukan: {
-        qris: 1198000,
-        debit: 402000,
-        tunai: 658000,
-        total: 2258000
-      },
-      kasKecil: {
-        awal: 0,
-        saldo: 2258000,
-        total: 2258000
-      }
+      pemasukan: { qris: 0, debit: 0, tunai: 0, total: 0 },
+      kasKecil: { awal: 0, saldo: 0, total: 0 }
     };
 
-    const data = ReceiptTemplate.generateClosingReport(dummyData);
-    await this.printRaw(data.buffer);
+    const printData = ReceiptTemplate.generateClosingReport(data);
+    await this.printRaw(printData.buffer);
   }
 
   /**
@@ -423,14 +415,26 @@ class PrintService {
   }
 
   async disconnect() {
-    if (this.serialWriter) {
-      await this.serialWriter.releaseLock();
-      await this.serialPort.close();
-      this.serialWriter = null;
-    } else if (typeof bluetoothSerial !== 'undefined') {
-      this.isConnected = false;
+    try {
+      if (this.serialWriter) {
+        await this.serialWriter.releaseLock();
+        await this.serialPort.close();
+        this.serialWriter = null;
+        this.serialPort = null;
+      } else if (typeof bluetoothSerial !== 'undefined') {
+        await new Promise<void>((resolve) => {
+          bluetoothSerial.disconnect(
+            () => resolve(),
+            () => resolve() // resolve even on error to avoid hanging
+          );
+        });
+      }
+    } catch (err) {
+      console.error('Disconnect error:', err);
+    } finally {
+      this.setConnected(false);
+    }
   }
-}
 }
 
 export const printService = new PrintService();

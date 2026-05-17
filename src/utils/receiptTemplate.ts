@@ -148,6 +148,17 @@ export const ReceiptTemplate = {
       }
     });
 
+    // Catatan global order (jika ada)
+    if ((order as any).notes) {
+      builder = builder
+        .text('--------------------------------')
+        .newline()
+        .text('CATATAN CHEF:')
+        .newline()
+        .text((order as any).notes)
+        .newline();
+    }
+
     builder = builder
       .text('--------------------------------')
       .newline()
