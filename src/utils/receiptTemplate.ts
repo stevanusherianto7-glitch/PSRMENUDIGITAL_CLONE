@@ -115,15 +115,15 @@ export const ReceiptTemplate = {
   },
 
   /**
-   * Struk Dapur (Kitchen)
+   * Struk untuk satu station (DAPUR atau BAR)
    */
-  generateKitchen: (order: Order) => {
+  generateKitchenStation: (order: Order, station: 'DAPUR' | 'BAR', items: any[]) => {
     const encoder = new EscPosEncoder();
     let builder = encoder
       .initialize()
       .codepage('windows1252')
       .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
-      .text('*** STRUK DAPUR ***')
+      .text(`*** STRUK ${station} ***`)
       .newline()
       .text('--------------------------------')
       .newline()
@@ -139,7 +139,7 @@ export const ReceiptTemplate = {
       .text('--------------------------------')
       .newline();
 
-    order.items.forEach((item) => {
+    items.forEach((item) => {
       builder = builder
         .text(`${item.qty}x ${item.name.toUpperCase()}`)
         .newline();
@@ -153,7 +153,7 @@ export const ReceiptTemplate = {
       builder = builder
         .text('--------------------------------')
         .newline()
-        .text('CATATAN CHEF:')
+        .text(station === 'BAR' ? 'CATATAN:' : 'CATATAN CHEF:')
         .newline()
         .text((order as any).notes)
         .newline();
@@ -169,6 +169,42 @@ export const ReceiptTemplate = {
       .newline();
 
     return builder.encode();
+  },
+
+  /**
+   * Backward-compatible: cetak semua item dalam satu struk DAPUR
+   */
+  generateKitchen: (order: Order) => {
+    return ReceiptTemplate.generateKitchenStation(order, 'DAPUR', order.items);
+  },
+
+  /**
+   * Split otomatis: Minuman → BAR, sisanya → DAPUR
+   * Return array of Uint8Array untuk dicetak berurutan
+   */
+  generateKitchenSplit: (order: Order): Uint8Array[] => {
+    const dapurItems = order.items.filter(item => 
+      (item.category || '').toLowerCase() !== 'minuman'
+    );
+    const barItems = order.items.filter(item => 
+      (item.category || '').toLowerCase() === 'minuman'
+    );
+
+    const receipts: Uint8Array[] = [];
+
+    if (dapurItems.length > 0) {
+      receipts.push(ReceiptTemplate.generateKitchenStation(order, 'DAPUR', dapurItems));
+    }
+    if (barItems.length > 0) {
+      receipts.push(ReceiptTemplate.generateKitchenStation(order, 'BAR', barItems));
+    }
+
+    // Jika entah kenapa keduanya kosong, fallback cetak semua ke DAPUR
+    if (receipts.length === 0) {
+      receipts.push(ReceiptTemplate.generateKitchenStation(order, 'DAPUR', order.items));
+    }
+
+    return receipts;
   },
 
   /**

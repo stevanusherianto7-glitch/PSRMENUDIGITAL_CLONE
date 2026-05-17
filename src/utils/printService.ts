@@ -344,8 +344,15 @@ class PrintService {
   }
 
   async printKitchen(order: Order) {
-    const data = ReceiptTemplate.generateKitchen(order);
-    await this.printRaw(data.buffer);
+    const receipts = ReceiptTemplate.generateKitchenSplit(order);
+    
+    for (let i = 0; i < receipts.length; i++) {
+      if (i > 0) {
+        // Jeda 1 detik antar struk agar printer tidak bentrok
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      await this.printRaw(receipts[i].buffer);
+    }
   }
 
   /**

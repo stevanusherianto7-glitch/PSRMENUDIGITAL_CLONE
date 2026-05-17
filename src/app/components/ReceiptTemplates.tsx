@@ -53,27 +53,64 @@ interface KitchenReceiptProps {
 }
 
 export function KitchenReceipt({ order }: KitchenReceiptProps) {
+  const dapurItems = order.items.filter(item => (item.category || '').toLowerCase() !== 'minuman');
+  const barItems = order.items.filter(item => (item.category || '').toLowerCase() === 'minuman');
+
   return (
     <div className="receipt-container">
       <style>{receiptStyles}</style>
-      <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
-        DAPUR (KITCHEN)
-      </div>
-      <div className="text-xs mb-1">
-        <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
-        <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
-        <div>No: {order.id.slice(-5).toUpperCase()}</div>
-        <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
-      </div>
-      <div className="border-b border-dashed mb-1"></div>
-      <div className="text-xs font-bold">
-        {order.items.map((item, i) => (
-          <div key={i} className="flex justify-between py-0.5">
-            <span>{item.name}</span>
-            <span>x{item.qty}</span>
+      
+      {/* DAPUR Section */}
+      {dapurItems.length > 0 && (
+        <>
+          <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
+            DAPUR (KITCHEN)
           </div>
-        ))}
-      </div>
+          <div className="text-xs mb-1">
+            <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
+            <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
+            <div>No: {order.id.slice(-5).toUpperCase()}</div>
+            <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
+          </div>
+          <div className="border-b border-dashed mb-1"></div>
+          <div className="text-xs font-bold">
+            {dapurItems.map((item, i) => (
+              <div key={i} className="flex justify-between py-0.5">
+                <span>{item.name}</span>
+                <span>x{item.qty}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* BAR Section */}
+      {barItems.length > 0 && (
+        <>
+          {dapurItems.length > 0 && <div className="border-b-2 border-double my-2"></div>}
+          <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
+            BAR (MINUMAN)
+          </div>
+          {dapurItems.length === 0 && (
+            <div className="text-xs mb-1">
+              <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
+              <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
+              <div>No: {order.id.slice(-5).toUpperCase()}</div>
+              <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
+            </div>
+          )}
+          <div className="border-b border-dashed mb-1"></div>
+          <div className="text-xs font-bold">
+            {barItems.map((item, i) => (
+              <div key={i} className="flex justify-between py-0.5">
+                <span>{item.name}</span>
+                <span>x{item.qty}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       <div className="border-b border-dashed my-1"></div>
       {order.notes && (
         <div className="text-xs">
