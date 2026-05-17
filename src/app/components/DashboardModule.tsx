@@ -27,20 +27,36 @@ function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] })
         >
           <defs>
             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4}/>
-              <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1}/>
             </linearGradient>
+            <filter id="shadow" height="200%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+              <feOffset in="blur" dx="2" dy="4" result="offsetBlur" />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
-          <XAxis dataKey="hour" stroke="#6B7080" fontSize={10} tickLine={false} axisLine={false} />
-          <YAxis stroke="#6B7080" fontSize={10} tickFormatter={(v) => `Rp${v/1000}k`} tickLine={false} axisLine={false} width={40} />
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#4B5563" fontSize={10} tickFormatter={(v) => `Rp${v/1000}k`} tickLine={false} axisLine={false} width={40} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
           <Tooltip 
-            contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '10px' }}
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
             labelStyle={{ color: '#fff', fontWeight: 'bold' }}
             itemStyle={{ color: '#6366F1' }}
             formatter={(value: any) => [rp(value), "Penjualan"]}
           />
-          <Area type="monotone" dataKey="sales" stroke="#6366F1" strokeWidth={2} fillOpacity={1} fill="url(#colorSales)" />
+          <Area
+            type="monotone"
+            dataKey="sales"
+            stroke="#6366F1"
+            strokeWidth={4}
+            fillOpacity={1}
+            fill="url(#colorSales)"
+            filter="url(#shadow)"
+          />
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -52,6 +68,19 @@ function CategoryPieChart({ data }: { data: { name: string; value: number }[] })
     <div className="w-full h-[180px]">
       <ResponsiveContainer>
         <PieChart>
+          <defs>
+            <filter id="pieShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+              <feOffset dx="2" dy="4" result="offsetblur" />
+              <feComponentTransfer>
+                <feFuncA type="linear" slope="0.5" />
+              </feComponentTransfer>
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
           <Pie
             data={data}
             cx="50%"
@@ -60,13 +89,15 @@ function CategoryPieChart({ data }: { data: { name: string; value: number }[] })
             outerRadius={70}
             paddingAngle={5}
             dataKey="value"
+            stroke="none"
+            filter="url(#pieShadow)"
           >
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip 
-            contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '10px' }}
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
             itemStyle={{ fontSize: '10px' }}
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
@@ -81,13 +112,19 @@ function PeakHoursBarChart({ data }: { data: { hour: string; count: number }[] }
     <div className="w-full h-[180px]">
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-          <XAxis dataKey="hour" stroke="#6B7080" fontSize={10} tickLine={false} axisLine={false} />
-          <YAxis stroke="#6B7080" fontSize={10} tickLine={false} axisLine={false} width={40} />
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#D97706" />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} width={40} />
           <Tooltip 
-            contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '10px' }}
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
           />
-          <Bar dataKey="count" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} barSize={20} />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -25,7 +25,7 @@ import { supabase } from "../../lib/supabase";
 import { format } from "date-fns";
 import {
   SEED_MENU, SEED_TABLES, SEED_INVENTORY, SEED_PROMOS,
-  menuCategories, rp, PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
+  menuCategories, rp,  PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
   BRAND_NAME, APP_LOGO as logoImg
 } from "../data";
 import { fetchOrders, updateOrder, createOrder } from "../api";
@@ -690,21 +690,21 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-scroll p-4 lg:p-6 scroll-smooth custom-scrollbar">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 overflow-y-scroll px-0 lg:px-10 pb-40 pb-safe scroll-smooth custom-scrollbar relative">
+          <div className="max-w-full mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 px-0">
             {activeModule === "transaksi" && (
               <div className="space-y-5">
-                <div className="flex items-center justify-between border-b border-border">
-                  <div className="flex">
+                <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center justify-between">
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
                     <button
                       onClick={() => setTransaksiSubModule("summary")}
-                      className={`px-4 py-2 text-sm font-semibold transition-colors ${transaksiSubModule === "summary" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${transaksiSubModule === "summary" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
                     >
                       Summary
                     </button>
                     <button
                       onClick={() => setTransaksiSubModule("laporan")}
-                      className={`px-4 py-2 text-sm font-semibold transition-colors ${transaksiSubModule === "laporan" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${transaksiSubModule === "laporan" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
                     >
                       Laporan
                     </button>
@@ -713,137 +713,163 @@ export default function AdminPage() {
                   {/* Filter Button */}
                   <button
                     onClick={() => setShowDatePicker(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary border border-border rounded-lg transition-all"
+                    className="flex items-center gap-2 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                   >
-                    <Calendar size={12} />
+                    <Calendar size={12} className="text-primary" />
                     {dateRange?.from && dateRange?.to ? (
                       <span>{format(dateRange.from, "dd MMM")} - {format(dateRange.to, "dd MMM")}</span>
                     ) : (
-                      <span>Filter Tanggal</span>
+                      <span>Filter Date</span>
                     )}
                   </button>
                 </div>
 
-                {/* Date Picker Modal */}
-                {showDatePicker && (
-                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="relative max-w-4xl w-full">
-                      <button
-                        onClick={() => setShowDatePicker(false)}
-                        title="Tutup"
-                        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10"
-                      >
-                        <XCircle size={20} />
-                      </button>
-                      <DateRangePicker
-                        onSelect={(range) => setDateRange(range)}
-                        onClose={() => setShowDatePicker(false)}
-                      />
+                <div className="px-4 lg:px-0">
+                  {/* Date Picker Modal */}
+                  {showDatePicker && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                      <div className="relative max-w-4xl w-full">
+                        <button
+                          onClick={() => setShowDatePicker(false)}
+                          title="Tutup"
+                          className="absolute -top-12 right-0 text-white/60 hover:text-white p-2"
+                        >
+                          <XCircle size={24} />
+                        </button>
+                        <div className="bg-[#141418] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                          <DateRangePicker
+                            onSelect={(range) => setDateRange(range)}
+                            onClose={() => setShowDatePicker(false)}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {transaksiSubModule === "summary" && <DashboardModule transactions={filteredTransactions} liveOrders={liveOrders} connected={connected} />}
-                {transaksiSubModule === "laporan" && <LaporanModule transactions={filteredTransactions} />}
+                  {transaksiSubModule === "summary" && <DashboardModule transactions={filteredTransactions} liveOrders={liveOrders} connected={connected} />}
+                  {transaksiSubModule === "laporan" && <LaporanModule transactions={filteredTransactions} />}
+                </div>
               </div>
             )}
-            {activeModule === "orders" && <OrdersModule orders={liveOrders} onRefresh={loadOrders} connected={connected} onNavigateToKasir={(orderId) => { setAutoSelectOrderId(orderId); setActiveModule("kasir"); }} />}
+
+            {activeModule === "orders" && <div className="px-4 lg:px-0"><OrdersModule orders={liveOrders} onRefresh={loadOrders} connected={connected} onNavigateToKasir={(orderId) => { setAutoSelectOrderId(orderId); setActiveModule("kasir"); }} /></div>}
+
             {activeModule === "stok" && (
               <div className="space-y-5">
-                <div className="flex border-b border-border">
-                  <button
-                    onClick={() => setStokSubModule("bahan")}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${stokSubModule === "bahan" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Bahan Baku
-                  </button>
-                  <button
-                    onClick={() => setStokSubModule("asset")}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${stokSubModule === "asset" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Asset Restoran
-                  </button>
+                <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center gap-2">
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                    <button
+                      onClick={() => setStokSubModule("bahan")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${stokSubModule === "bahan" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Bahan Baku
+                    </button>
+                    <button
+                      onClick={() => setStokSubModule("asset")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${stokSubModule === "asset" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Asset Restoran
+                    </button>
+                  </div>
                 </div>
-                {stokSubModule === "bahan" && <InventarisModule inventory={inventory} logs={inventoryLogs} onAdd={addInventory} onUpdate={updateInventory} onDelete={deleteInventory} />}
-                {stokSubModule === "asset" && <AssetModule />}
+
+                <div className="px-4 lg:px-0">
+                  {stokSubModule === "bahan" && <InventarisModule inventory={inventory} logs={inventoryLogs} onAdd={addInventory} onUpdate={updateInventory} onDelete={deleteInventory} />}
+                  {stokSubModule === "asset" && <AssetModule />}
+                </div>
               </div>
             )}
+
             {activeModule === "sdm" && (
               <div className="space-y-5">
-                <div className="flex items-center justify-between border-b border-border">
-                  <div className="flex">
+                <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center justify-between">
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
                     <button
                       onClick={() => setSdmSubModule("karyawan")}
-                      className={`px-4 py-2 text-sm font-semibold transition-colors ${sdmSubModule === "karyawan" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${sdmSubModule === "karyawan" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
                     >
                       Daftar Karyawan
                     </button>
                     <button
                       onClick={() => setSdmSubModule("shift")}
-                      className={`px-4 py-2 text-sm font-semibold transition-colors ${sdmSubModule === "shift" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${sdmSubModule === "shift" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
                     >
                       Jadwal Shift
                     </button>
                   </div>
 
-                  {/* Filter Button */}
                   <button
                     onClick={() => setShowDatePicker(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 mb-1 text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary border border-border rounded-lg transition-all"
+                    className="flex items-center gap-2 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
                   >
-                    <Calendar size={12} />
+                    <Calendar size={12} className="text-primary" />
                     {dateRange?.from && dateRange?.to ? (
                       <span>{format(dateRange.from, "dd MMM")} - {format(dateRange.to, "dd MMM")}</span>
                     ) : (
-                      <span>Filter Tanggal</span>
+                      <span>Filter Date</span>
                     )}
                   </button>
                 </div>
-                {sdmSubModule === "karyawan" && <KaryawanModule />}
-                {sdmSubModule === "shift" && <JadwalShift dateRange={dateRange} />}
+
+                <div className="px-4 lg:px-0">
+                  {sdmSubModule === "karyawan" && <KaryawanModule />}
+                  {sdmSubModule === "shift" && <JadwalShift dateRange={dateRange} />}
+                </div>
               </div>
             )}
-            {activeModule === "hpp" && <KalkulatorHPP />}
+
+            {activeModule === "hpp" && <div className="px-0"><KalkulatorHPP /></div>}
+
             {activeModule === "kasir" && (
               <div className="space-y-5">
-                <div className="flex border-b border-border">
-                  <button
-                    onClick={() => setKasirSubModule("pos")}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${kasirSubModule === "pos" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Kasir
-                  </button>
-                  <button
-                    onClick={() => setKasirSubModule("promo")}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${kasirSubModule === "promo" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Promo
-                  </button>
-                  <button
-                    onClick={() => setKasirSubModule("petty")}
-                    className={`px-4 py-2 text-sm font-semibold transition-colors ${kasirSubModule === "petty" ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                  >
-                    Petty Cash
-                  </button>
+                <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center gap-2">
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                    <button
+                      onClick={() => setKasirSubModule("pos")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${kasirSubModule === "pos" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Kasir
+                    </button>
+                    <button
+                      onClick={() => setKasirSubModule("promo")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${kasirSubModule === "promo" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Promo
+                    </button>
+                    <button
+                      onClick={() => setKasirSubModule("petty")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${kasirSubModule === "petty" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Petty Cash
+                    </button>
+                  </div>
                 </div>
-                {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
-                {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
-                {kasirSubModule === "petty" && <PettyCashModule />}
+
+                <div className="px-4 lg:px-0">
+                  {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
+                  {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
+                  {kasirSubModule === "petty" && <PettyCashModule />}
+                </div>
               </div>
             )}
-            {activeModule === "meja" && <MejaModule tables={tables} onUpdateStatus={handleUpdateTableStatus} />}
+
+            {activeModule === "meja" && <div className="px-4 lg:px-0"><MejaModule tables={tables} onUpdateStatus={handleUpdateTableStatus} /></div>}
+
             {activeModule === "menu" && (
-              <MenuManagement
-                menuItems={menuItems}
-                connected={connected}
-                loading={seeding}
-                onSaveItem={handleSaveMenuItem}
-                onDeleteItem={handleDeleteMenuItem}
-                onToggleAvailability={handleToggleAvailability}
-                onReorder={handleReorderMenuItems}
-              />
+              <div className="px-4 lg:px-0">
+                <MenuManagement
+                  menuItems={menuItems}
+                  connected={connected}
+                  loading={seeding}
+                  onSaveItem={handleSaveMenuItem}
+                  onDeleteItem={handleDeleteMenuItem}
+                  onToggleAvailability={handleToggleAvailability}
+                  onReorder={handleReorderMenuItems}
+                />
+              </div>
             )}
-            {activeModule === "qr-menu" && <QrMenuModule tables={tables} />}
+
+            {activeModule === "qr-menu" && <div className="px-4 lg:px-0"><QrMenuModule tables={tables} /></div>}
 
             {activeModule === "metrics" && (
               <div className="space-y-5">

@@ -1,5 +1,38 @@
 import { ShiftType, Employee } from '../app/types';
 
+/**
+ * Helper untuk melakukan print menggunakan Hidden Iframe.
+ * Lebih stabil di Android WebView/Capacitor daripada window.open.
+ */
+function printContent(html: string) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (doc) {
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    // Beri waktu browser memuat font/style sebelum print dialog muncul
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+
+      // Hapus iframe setelah dialog print tertutup (atau dibatalkan)
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 800);
+  }
+}
+
 export function exportMonthlyPDF(
   currentDate: Date,
   dates: string[],
@@ -79,11 +112,7 @@ export function exportMonthlyPDF(
     </html>
   `;
 
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  printContent(html);
 }
 
 export function exportCategorySalesReport(
@@ -180,12 +209,7 @@ export function exportCategorySalesReport(
     </html>
   `;
 
-  const printWindow = window.open("", "_blank");
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  printContent(html);
 }
 
 export function exportWeeklyPDF(
@@ -266,11 +290,7 @@ export function exportWeeklyPDF(
     </html>
   `;
 
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  printContent(html);
 }
 
 export function exportInventoryPDF(
@@ -380,10 +400,5 @@ export function exportInventoryPDF(
     </html>
   `;
 
-  const printWindow = window.open("", "_blank");
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 500);
-  }
+  printContent(html);
 }

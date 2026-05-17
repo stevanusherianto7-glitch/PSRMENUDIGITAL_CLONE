@@ -5,6 +5,8 @@
  */
 
 import { useRef, useEffect, useCallback } from "react";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
 
 /**
@@ -15,12 +17,28 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
   const knownIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback(async (text: string) => {
     if (!enabled) return;
-    if (!("speechSynthesis" in window)) return;
 
-    // Cancel dihapus agar tidak memutus suara sebelumnya (Opsi 2)
-    // window.speechSynthesis.cancel();
+    // 1. Jalankan di Native (Android/iOS)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await TextToSpeech.speak({
+          text: text,
+          lang: "id-ID",
+          rate: 0.95,
+          pitch: 1.15,
+          volume: 1.0,
+          category: "ambient",
+        });
+      } catch (e) {
+        console.error("Native TTS error:", e);
+      }
+      return;
+    }
+
+    // 2. Fallback untuk Browser/Windows
+    if (!("speechSynthesis" in window)) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
@@ -52,8 +70,12 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
 
   // Hentikan semua suara jika fitur dimatikan
   useEffect(() => {
-    if (!enabled && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+    if (!enabled) {
+      if (Capacitor.isNativePlatform()) {
+        TextToSpeech.stop().catch(() => {});
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
     }
   }, [enabled]);
 
@@ -91,7 +113,7 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
       `Mohon segera diproses.`
     ].filter(Boolean);
     
-    // Ucapkan tiap bagian dengan jeda 1.5 detik (Opsi 2)
+    // Ucapkan tiap bagian dengan jeda 1.5 detik
     parts.forEach((part, index) => {
       setTimeout(() => speak(part), index * 1500);
     });
@@ -111,8 +133,12 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     const newOrders = orders.filter(o => !knownIds.current.has(o.id));
     if (newOrders.length === 0) return;
 
-    // Bersihkan antrian lama di browser HANYA SEKALI saat ada pesanan baru masuk
-    window.speechSynthesis.cancel();
+    // Bersihkan antrian lama
+    if (Capacitor.isNativePlatform()) {
+      TextToSpeech.stop().catch(() => {});
+    } else if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
 
     // Tambahkan ke set agar tidak diumumkan dua kali
     newOrders.forEach(o => knownIds.current.add(o.id));
@@ -128,7 +154,7 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
 
 /** Panggil sekali untuk preload daftar suara browser */
 export function preloadVoices() {
-  if ("speechSynthesis" in window) {
+  if (!Capacitor.isNativePlatform() && "speechSynthesis" in window) {
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();

@@ -15,8 +15,9 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-export const APP_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/icon-maskable-192.png";
+export const APP_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png";
 export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
+export const PUBLIC_ICON_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png";
 
 // ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
 export const SEED_MENU: MenuItem[] = [

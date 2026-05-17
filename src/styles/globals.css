@@ -85,6 +85,26 @@ body {
   overflow: hidden;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Safe Area Utility Classes for Android/iOS
+   ───────────────────────────────────────────────────────────── */
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-safe {
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* Root app container — handle scroll inside, not body */
 #root {
   height: 100%;

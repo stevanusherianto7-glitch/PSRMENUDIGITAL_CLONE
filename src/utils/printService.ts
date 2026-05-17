@@ -90,15 +90,32 @@ class PrintService {
         return true;
       }
 
+      // Cek apakah Bluetooth Aktif sebelum koneksi
+      const enabled = await this.isBluetoothEnabled();
+      if (!enabled) {
+        toast.error("Bluetooth mati. Harap aktifkan Bluetooth terlebih dahulu.");
+        return false;
+      }
+
       // Capacitor Bluetooth (Android)
       return new Promise((resolve) => {
-        bluetoothSerial.connectInsecure(address, 
+        // Set timeout manual untuk koneksi agar tidak hang selamanya
+        const connectionTimeout = setTimeout(() => {
+          this.isConnected = false;
+          toast.error("Koneksi timeout. Pastikan printer nyala.");
+          resolve(false);
+        }, 15000);
+
+        bluetoothSerial.connectInsecure(address,
           () => {
+            clearTimeout(connectionTimeout);
             this.isConnected = true;
             toast.success("Printer Bluetooth terhubung.");
             resolve(true);
           }, 
           (err) => {
+            clearTimeout(connectionTimeout);
+            this.isConnected = false;
             toast.error("Gagal koneksi: " + err);
             resolve(false);
           }
@@ -106,64 +123,104 @@ class PrintService {
       });
     } catch (err) {
       console.error(err);
+      toast.error("Error sistem koneksi: " + (err as Error).message);
       return false;
     }
   }
 
   /**
-   * Kirim Data Mentah ke Printer
+   * Kirim Data ke Printer dengan alur: Connect -> Write -> Disconnect
+   * Dilengkapi sistem Auto-Retry (Maksimal 3x) agar tahan banting (Robust) terhadap koneksi tidak stabil.
    */
-  async printRaw(data: ArrayBuffer): Promise<void> {
-    if (!this.isConnected) {
-      // Auto-connect ke default MAC jika belum terhubung
-      const connected = await this.connect(this.DEFAULT_MAC);
-      if (!connected) {
-        toast.error("Printer belum terhubung. Pastikan printer nyala dan sudah di-pairing.");
-        return;
-      }
-    }
+  async printRaw(data: ArrayBuffer, address: string = this.DEFAULT_MAC): Promise<void> {
+    const isBluetooth = typeof bluetoothSerial !== 'undefined';
+    const MAX_RETRIES = 3;
+    let attempt = 0;
 
-    if (this.serialWriter) {
+    while (attempt < MAX_RETRIES) {
       try {
-        await this.serialWriter.write(new Uint8Array(data));
-        // Jeda singkat untuk memastikan buffer terkirim ke hardware
-        await new Promise(r => setTimeout(r, 100));
-        return;
-      } catch (err) {
-        console.error("Serial write error:", err);
-        this.isConnected = false;
-        toast.error("Koneksi printer terputus.");
-        return;
-      }
-    }
+        attempt++;
+        if (attempt > 1) {
+          console.warn(`[Printer] Mencoba menyambungkan ulang... (Percobaan ${attempt}/${MAX_RETRIES})`);
+          toast.loading(`Mencoba ulang koneksi printer (${attempt}/${MAX_RETRIES})...`);
+        }
 
-    // Bluetooth (Android)
-    if (typeof bluetoothSerial !== 'undefined') {
-      return new Promise((resolve, reject) => {
-        bluetoothSerial.write(data, 
-          () => resolve(), 
-          (err) => {
-            this.isConnected = false;
-            reject(err);
+        // 1. BUKA SOKET (Connect)
+        if (isBluetooth) {
+          await new Promise((resolve, reject) => {
+            bluetoothSerial.connectInsecure(address,
+              () => resolve(true),
+              (err) => reject(new Error("Gagal membuka soket: " + err))
+            );
+          });
+          this.isConnected = true;
+        } else if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+          // Web Serial fallback
+          if (!this.serialPort) {
+            const port = await (navigator as any).serial.requestPort();
+            await port.open({ baudRate: 9600 });
+            this.serialPort = port;
+            this.serialWriter = port.writable.getWriter();
           }
-        );
-      });
+          this.isConnected = true;
+        }
+
+        // 2. KIRIM DATA (Write)
+        if (isBluetooth) {
+          await new Promise((resolve, reject) => {
+            bluetoothSerial.write(data,
+              () => resolve(true),
+              (err) => reject(new Error("Gagal mengirim data: " + err))
+            );
+          });
+        } else if (this.serialWriter) {
+          await this.serialWriter.write(new Uint8Array(data));
+        }
+
+        // Beri jeda sangat singkat agar buffer terkirim ke hardware
+        await new Promise(r => setTimeout(r, 500));
+
+        // Jika berhasil sampai sini, KELUAR DARI LOOP (sukses)
+        if (attempt > 1) toast.success("Printer berhasil terhubung kembali!");
+        return;
+
+      } catch (err) {
+        console.error(`Print attempt ${attempt} failed:`, err);
+        
+        // Jika sudah mentok 3 kali, lemparkan error ke UI
+        if (attempt >= MAX_RETRIES) {
+          toast.error("Printer gagal merespon setelah 3x percobaan. Pastikan mesin menyala.");
+          throw err;
+        }
+
+        // Beri jeda 2 detik sebelum mencoba lagi (Recovery Time)
+        await new Promise(r => setTimeout(r, 2000));
+        
+      } finally {
+        // 3. TUTUP SOKET (Disconnect) - Sesuai Instruksi
+        // Eksekusi setiap selesai mencoba (baik sukses maupun gagal) agar port tidak terkunci (zombie state).
+        if (isBluetooth) {
+          bluetoothSerial.disconnect(() => {}, () => {});
+          this.isConnected = false;
+        }
+      }
     }
   }
 
   /**
    * Cek status Bluetooth (On/Off) dengan proteksi timeout
+   * Sekaligus memancing izin di Android 12+
    */
   async isBluetoothEnabled(): Promise<boolean> {
     if (typeof bluetoothSerial === 'undefined') {
-      // JIKA DI BROWSER: PAKSA HIJAU (Status Aktif)
-      return true;
+      return true; // Mock browser
     }
     
-    return new Promise((resolve) => {
-      // Set timeout 3 detik agar tidak hang selamanya
-      const timeout = setTimeout(() => resolve(false), 3000);
+    // Pancing izin dengan list (Opsional tapi sering membantu di Android 12+)
+    try { bluetoothSerial.list(() => {}, () => {}); } catch(e) {}
 
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => resolve(false), 3000);
       bluetoothSerial.isEnabled(
         () => {
           clearTimeout(timeout);
@@ -335,19 +392,21 @@ class PrintService {
    * agar tidak terjadi bentrokan data pada printer Bluetooth.
    */
   async printAll(tx: Transaction): Promise<void> {
+    const toastId = toast.loading("Menyiapkan printer...");
+
     try {
-      if (!this.isConnected) {
-        toast.error("Printer belum terhubung.");
+      const enabled = await this.isBluetoothEnabled();
+      if (!enabled) {
+        toast.error("Bluetooth non-aktif", { id: toastId });
         return;
       }
       
-      // 1. Cetak Struk Konsumen
+      toast.loading("Mencetak Struk Konsumen...", { id: toastId });
       await this.printTransaction(tx);
       
-      // 2. Jeda agar printer siap untuk slip berikutnya
-      await new Promise(r => setTimeout(r, 800)); 
+      await new Promise(r => setTimeout(r, 1000));
       
-      // 3. Cetak Struk Dapur
+      toast.loading("Mencetak Struk Dapur...", { id: toastId });
       const kitchenOrder = {
         id: tx.id,
         items: tx.items,
@@ -356,9 +415,10 @@ class PrintService {
       } as any;
       
       await this.printKitchen(kitchenOrder);
+      toast.success("Semua struk berhasil dicetak", { id: toastId });
     } catch (err) {
       console.error("Print sequence error:", err);
-      toast.error("Gagal mencetak otomatis. Silahkan gunakan tombol Cetak Ulang.");
+      toast.error("Gagal cetak otomatis. Gunakan tombol Cetak Ulang.", { id: toastId });
     }
   }
 

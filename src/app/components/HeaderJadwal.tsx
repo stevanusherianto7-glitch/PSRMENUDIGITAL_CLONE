@@ -34,18 +34,18 @@ const HeaderJadwal: React.FC<HeaderJadwalProps> = ({
 
   return (
     <div className={cn(
-      "relative pt-10 pb-6 px-0 backdrop-blur-xl border-b rounded-b-[3.5rem] shadow-2xl transition-all duration-500",
-      theme === 'dark' ? "bg-sidebar border-white/10" : "bg-white/90 border-slate-200"
+      "relative pt-10 pb-10 px-0 backdrop-blur-2xl border-b rounded-b-[4.5rem] shadow-2xl transition-all duration-500",
+      theme === 'dark' ? "bg-sidebar/80 border-white/5" : "bg-white/90 border-slate-200"
     )}>
       {/* Subtle Background Decor */}
       <div className={cn(
-        "absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] -mr-32 -mt-32 opacity-20",
-        theme === 'dark' ? "bg-orange-500" : "bg-blue-500"
+        "absolute top-0 right-0 w-80 h-80 rounded-full blur-[120px] -mr-40 -mt-40 opacity-30",
+        theme === 'dark' ? "bg-primary/20" : "bg-blue-500/10"
       )} />
 
-      <div className="relative z-10 space-y-4 px-6">
+      <div className="relative z-10 space-y-6 px-4 sm:px-8">
         {/* Top Header: Back + Title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           <button
             onClick={onBack}
             aria-label="Kembali"

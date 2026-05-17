@@ -102,7 +102,7 @@ export function MenuManagement({
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="space-y-4">
+      <div className="space-y-4 px-2">
         <div className="flex items-center justify-between gap-3">
           {/* View switcher */}
           <div className="flex items-center gap-1.5 bg-secondary/50 border border-border/60 rounded-xl p-1.5 shadow-inner">
@@ -162,34 +162,40 @@ export function MenuManagement({
       {/* Grid View */}
       {viewMode === "grid" && (
         <>
-          {/* Filter bar */}
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1.5 flex-wrap">
-              {menuCategories.map((c) => (
+          {/* Filter bar - Modern Centered Layout */}
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2 flex-wrap justify-center">
+              {["Semua", ...menuCategories].map((c) => (
                 <button
                   key={c}
                   onClick={() => setActiveCat(c)}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${
                     activeCat === c
-                      ? "bg-primary border-primary text-white"
-                      : "bg-card border-border text-muted-foreground hover:text-foreground"
+                      ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                      : "bg-card border-border text-slate-500 hover:text-foreground hover:bg-secondary/50"
                   }`}
                 >
                   {c}
                 </button>
               ))}
             </div>
-            <div className="relative ml-auto">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+
+            <div className="relative max-w-md mx-auto w-full group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search size={16} className="text-slate-500 group-focus-within:text-primary transition-colors" />
+              </div>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari menu..."
-                className="bg-card border border-border rounded-lg pl-8 pr-4 py-2 text-xs focus:outline-none focus:border-primary/50 transition-colors w-44"
+                placeholder="Search catalog..."
+                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-inner"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Hapus pencarian">
-                  <X size={11} />
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                >
+                  <X size={16} />
                 </button>
               )}
             </div>

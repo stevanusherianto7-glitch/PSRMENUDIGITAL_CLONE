@@ -189,6 +189,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       setCurrentOrder({ ...tx, type: "kasir", orderMode, tableId: tx.table_id });
       setPaid(true);
 
+      // 5. AUTO PRINT (Sesuai Alur POS Profesional)
+      // Jalankan di background agar UI tidak freeze
+      printService.printAll(tx).catch(e => console.log("Auto print failed:", e));
+
     } catch (err) {
       toast.error("Gagal memproses transaksi. Silahkan coba lagi.");
       console.error("Payment error:", err);
@@ -367,16 +371,16 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       {/* Floating Action Button: Lanjut Bayar (Only visible on mobile) */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 flex md:hidden items-center gap-3 px-6 py-3 rounded-full bg-primary text-white shadow-xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-300 ${cart.length === 0 ? "scale-0" : "scale-100"
+        className={`fixed bottom-[calc(2rem+var(--safe-area-bottom))] right-6 left-6 md:left-auto z-40 flex md:hidden items-center justify-between px-8 py-4 rounded-3xl bg-primary text-white shadow-[0_20px_50px_rgba(232,119,34,0.4)] hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-500 ${cart.length === 0 ? "scale-0" : "scale-100"
           }`}
       >
-        <div className="flex flex-col items-start leading-tight border-r border-white/20 pr-3">
-          <span className="text-[8px] font-black uppercase tracking-widest opacity-80">Total</span>
-          <span className="text-sm font-black font-['Poppins']">{rp(total)}</span>
+        <div className="flex flex-col items-start leading-tight pr-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Total Payment</span>
+          <span className="text-xl font-black font-['Poppins']">{rp(total)}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black uppercase tracking-wider">Bayar</span>
-          <div className="bg-white text-primary text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-inner">
+        <div className="flex items-center gap-4 border-l border-white/20 pl-6 h-10">
+          <span className="text-sm font-black uppercase tracking-[0.2em]">Bayar</span>
+          <div className="bg-white text-primary text-[11px] font-black w-7 h-7 rounded-xl flex items-center justify-center shadow-lg">
             {cart.reduce((s, c) => s + c.qty, 0)}
           </div>
         </div>
@@ -392,54 +396,57 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
       {/* Checkout Drawer / Sidebar */}
       {cart.length > 0 && (
-        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[380px] lg:w-[400px] bg-card border-l border-border shadow-2xl z-[60] transform transition-transform duration-300 ease-in-out ${isCartOpen ? "translate-x-0" : "translate-x-full"
-          } md:relative md:translate-x-0 md:shadow-none md:border md:rounded-2xl md:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-300`}>
-        <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
+        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-black/60 backdrop-blur-3xl border-l border-white/5 shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
+          } md:relative md:translate-x-0 md:shadow-none md:border md:rounded-3xl md:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500`}>
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary/20 rounded-2xl shadow-lg shadow-primary/10">
               <ShoppingCart size={20} className="text-primary" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-foreground">Pesanan Baru</h3>
-              <p className="text-[10px] text-muted-foreground">Selesaikan pembayaran</p>
+              <h3 className="font-black text-sm text-white uppercase tracking-widest">Billing Hub</h3>
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-1">Ready for checkout</p>
             </div>
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-1.5 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-colors md:hidden"
-            title="Tutup keranjang"
+            className="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all md:hidden"
           >
             <X size={20} />
           </button>
         </div>
 
         <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="p-4 border-b border-border bg-card space-y-3">
+          <div className="p-6 border-b border-white/5 bg-transparent space-y-4">
             {orderMode === "dine-in" && (
               <div>
-                <label htmlFor="table-select" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 block">Meja Pelanggan</label>
-                <select
-                  id="table-select"
-                  value={selectedTable}
-                  onChange={(e) => setSelectedTable(e.target.value)}
-                  className="w-full bg-secondary border border-border rounded-xl px-4 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all appearance-none"
-                >
-                  <option value="">-- Pilih Meja --</option>
-                  {tables.map(t => (
-                    <option key={t.id} value={t.id}>Meja {t.id}</option>
-                  ))}
-                </select>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 block ml-1">Service Table</label>
+                <div className="relative group">
+                  <select
+                    value={selectedTable}
+                    onChange={(e) => setSelectedTable(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs font-black text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled className="bg-[#0a0a0c]">-- SELECT TABLE --</option>
+                    {tables.map(t => (
+                      <option key={t.id} value={t.id} className="bg-[#0a0a0c]">TABLE {t.id}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                    <Clock size={14} />
+                  </div>
+                </div>
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               {(["dine-in", "take-away"] as const).map(m => {
-                const mcfg = orderModeConfig[m];
+                const isActive = orderMode === m;
                 return (
                   <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black border transition-all ${orderMode === m ? `${mcfg.bg} ${mcfg.border} ${mcfg.color} shadow-sm` : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
+                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
                       }`}>
-                    {m === "dine-in" ? "🍽️ Dine In" : "📦 Take Away"}
+                    {m === "dine-in" ? "Dine In" : "Take Away"}
                   </button>
                 );
               })}
@@ -447,46 +454,49 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           </div>
 
           {paid ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 gap-5 text-center">
-              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center animate-bounce">
-                <CheckCircle2 size={32} className="text-green-500" />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6 text-center animate-in zoom-in duration-500">
+              <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center animate-bounce border border-green-500/20">
+                <CheckCircle2 size={40} className="text-green-500" />
               </div>
-              <div>
-                <h4 className="font-black text-xl text-foreground">Sukses!</h4>
-                <p className="text-xs text-muted-foreground mt-1">Struk telah dikirim ke antrean cetak</p>
+              <div className="space-y-2">
+                <h4 className="font-black text-2xl text-white uppercase tracking-tighter">Transaction Success</h4>
+                <p className="text-xs text-slate-500 font-medium">Receipt has been added to the print queue</p>
               </div>
+
               {lastTxId && (
-                <div className="bg-secondary px-4 py-2 rounded-xl border border-border">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">ID</p>
-                  <p className="text-xs font-mono font-black text-primary">{lastTxId}</p>
+                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">TX Ref ID</p>
+                  <p className="text-xs font-mono font-black text-primary tracking-widest">{lastTxId}</p>
                 </div>
               )}
 
-              <div className="w-full flex flex-col gap-4">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-left ml-1">Cetak Ulang Struk</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-white text-[8px] font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-                      <Printer size={14} /> <span>STRUK BELANJA</span>
+              <div className="w-full flex flex-col gap-5 pt-4">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-left ml-1">Reprint Service</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-primary text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                      <Printer size={18} /> Customer Receipt
                     </button>
-                    <button type="button" onClick={(e) => handlePrintKitchenReceipt(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-orange-500 text-white text-[8px] font-black shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all">
-                      <ChefHat size={14} /> <span>STRUK DAPUR</span>
-                    </button>
-                    <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl bg-indigo-600 text-white text-[8px] font-black shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-all">
-                      <Save size={14} /> <span>LAPORAN CLOSING</span>
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={(e) => handlePrintKitchenReceipt(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-orange-700 transition-all">
+                        <ChefHat size={16} /> Kitchen
+                      </button>
+                      <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
+                        <Save size={16} /> Closing
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
-                  <div className="h-[1px] flex-1 bg-border/50"></div>
-                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tighter">Opsi Lain</span>
-                  <div className="h-[1px] flex-1 bg-border/50"></div>
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="h-[1px] flex-1 bg-white/5"></div>
+                  <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Digital Export</span>
+                  <div className="h-[1px] flex-1 bg-white/5"></div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 opacity-60">
-                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-[9px] font-black hover:bg-secondary transition-all"><ExternalLink size={12} /> PDF Customer</button>
-                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-[9px] font-black hover:bg-secondary transition-all"><ExternalLink size={12} /> PDF Dapur</button>
+                <div className="grid grid-cols-2 gap-3 opacity-60">
+                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">PDF Client</button>
+                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">PDF Master</button>
                 </div>
               </div>
 
@@ -497,66 +507,68 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   setCurrentPayingOrderId(null);
                   setIsCartOpen(false);
                 }}
-                className="mt-2 text-xs font-black text-primary hover:scale-105 transition-transform"
+                className="mt-6 text-xs font-black text-primary uppercase tracking-[0.2em] hover:scale-110 transition-transform"
               >
-                ← Kembali ke Menu
+                ← Terminal Home
               </button>
             </div>
           ) : (
             <>
-              <div className="flex-shrink-0 p-4 space-y-3">
+              <div className="flex-1 p-6 space-y-4">
                 {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4 opacity-30">
-                    <div className="p-6 bg-secondary rounded-full border-2 border-dashed border-border"><ShoppingCart size={32} /></div>
-                    <div className="text-center">
-                      <p className="font-black text-xs uppercase tracking-widest">Keranjang Kosong</p>
+                  <div className="flex flex-col items-center justify-center h-full text-slate-700 gap-6">
+                    <div className="w-20 h-20 bg-white/2 rounded-full border-2 border-dashed border-white/5 flex items-center justify-center">
+                      <ShoppingCart size={32} className="opacity-20" />
                     </div>
+                    <p className="font-black text-xs uppercase tracking-[0.3em] opacity-30">Cart Empty</p>
                   </div>
                 ) : cart.map(c => (
-                  <div key={c.id} className="flex items-center gap-3 bg-secondary/30 border border-border/40 rounded-2xl p-2.5 group hover:border-primary/20 transition-all">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 bg-card border border-border shadow-sm">
-                      <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div key={c.id} className="flex items-center gap-4 bg-white/2 border border-white/5 rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
+                      <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-black text-foreground leading-snug line-clamp-1">{c.name}</p>
-                      <p className="text-xs text-primary font-black mt-0.5 font-['Poppins']">{rp(c.price)}</p>
+                      <p className="text-xs font-black text-white leading-tight uppercase tracking-tight line-clamp-1">{c.name}</p>
+                      <p className="text-[10px] text-primary font-black mt-1 font-mono tracking-tighter">{rp(c.price)}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-2 py-1 shadow-sm">
-                      <button onClick={() => updateQty(c.id, -1)} className="p-0.5 hover:text-red-500 transition-colors" title="Kurangi jumlah"><Minus size={12} /></button>
-                      <span className="text-xs font-black w-3 text-center">{c.qty}</span>
-                      <button onClick={() => updateQty(c.id, 1)} className="p-0.5 hover:text-primary transition-colors" title="Tambah jumlah"><Plus size={12} /></button>
+                    <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-3 py-1.5">
+                      <button onClick={() => updateQty(c.id, -1)} className="text-slate-500 hover:text-red-500 transition-colors"><Minus size={14} /></button>
+                      <span className="text-xs font-black w-4 text-center text-white">{c.qty}</span>
+                      <button onClick={() => updateQty(c.id, 1)} className="text-slate-500 hover:text-primary transition-colors"><Plus size={14} /></button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-4 border-t border-border bg-card space-y-3">
-                <div className="space-y-2">
-
-
-                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-secondary border border-border text-[10px] font-black text-muted-foreground hover:text-foreground transition-all">
-                    <Tag size={12} className="text-primary" /> {selectedPromo ? selectedPromo.name : "Pilih Promo"}
+              <div className="p-6 border-t border-white/5 bg-white/2 space-y-5 rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+                <div className="space-y-4">
+                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full h-12 flex items-center justify-between px-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 hover:text-white transition-all group">
+                    <div className="flex items-center gap-3">
+                      <Tag size={14} className="text-primary group-hover:scale-110 transition-transform" />
+                      <span className="uppercase tracking-widest">{selectedPromo ? selectedPromo.name : "Apply Voucher"}</span>
+                    </div>
+                    <Plus size={14} />
                   </button>
+
+                  <div className="space-y-2 bg-black/40 p-5 rounded-3xl border border-white/5">
+                    <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest"><span>Gross Total</span><span>{rp(subtotal)}</span></div>
+                    {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-400 font-black italic uppercase tracking-widest"><span>Promo Discount</span><span>-{rp(discountAmount)}</span></div>}
+                    <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest"><span>Tax (10%)</span><span>{rp(tax)}</span></div>
+                    <div className="flex justify-between font-black text-xl border-t border-white/5 pt-4 mt-2 text-white font-['Poppins'] tracking-tighter"><span>TOTAL</span><span className="text-primary">{rp(total)}</span></div>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5 bg-secondary/20 p-3 rounded-2xl border border-border/50">
-                  <div className="flex justify-between text-[10px] text-muted-foreground font-bold"><span>Subtotal</span><span>{rp(subtotal)}</span></div>
-                  {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-500 font-bold italic"><span>Diskon</span><span>-{rp(discountAmount)}</span></div>}
-                  <div className="flex justify-between text-[10px] text-muted-foreground font-bold"><span>PPN (10%)</span><span>{rp(tax)}</span></div>
-                  <div className="flex justify-between font-black text-sm border-t border-border/50 pt-2 mt-1"><span>TOTAL</span><span className="text-primary font-['Poppins']">{rp(total)}</span></div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">Metode Pembayaran</p>
-                  <div className="grid grid-cols-4 gap-1.5">
+                <div className="space-y-3">
+                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] text-center">Settlement Method</p>
+                  <div className="grid grid-cols-4 gap-2">
                     {payMethods.map(m => (
                       <button
                         key={m.id}
                         onClick={() => setPayMethod(m.id)}
-                        className={`flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl border transition-all ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105" : "bg-secondary border-border text-muted-foreground hover:bg-border"
+                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all duration-300 ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105 glow-primary" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
                           }`}
                       >
-                        {m.icon}
+                        <div className={`${payMethod === m.id ? "text-white" : "text-slate-400"}`}>{m.icon}</div>
                         <span className="text-[8px] font-black uppercase tracking-tighter">{m.id}</span>
                       </button>
                     ))}
@@ -564,9 +576,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 </div>
 
                 <button onClick={processPayment} disabled={!payMethod || cart.length === 0 || saving || (orderMode === 'dine-in' && !selectedTable)}
-                  className="w-full py-3.5 rounded-2xl bg-primary text-white text-xs font-black hover:bg-primary/90 disabled:opacity-30 disabled:grayscale transition-all flex items-center justify-center gap-3 shadow-xl shadow-primary/20 uppercase tracking-widest">
-                  {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-                  {saving ? "Memproses..." : "Konfirmasi & Bayar"}
+                  className="w-full py-4.5 rounded-2xl bg-primary text-white text-[11px] font-black hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/40 uppercase tracking-[0.2em] relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                  {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
+                  {saving ? "Finalizing..." : "Execute Payment"}
                 </button>
               </div>
             </>
