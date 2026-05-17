@@ -89,21 +89,26 @@ export default function GuestMenuPage() {
     }
     try {
       const orders = await fetchOrders(undefined, tableId);
-      // Filter: hanya order hari ini & belum lewat 4 jam.
-      // Tamu tidak perlu melihat order basi dari sesi sebelumnya.
-      const now = Date.now();
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
-
-      const active = orders.filter(o => {
-        if (o.status === "cancelled") return false;
-        const createdAt = new Date(o.created_at).getTime();
-        return createdAt >= todayStart.getTime() && (now - createdAt) < MAX_AGE_MS;
-      });
+      // Filter: hanya tampilkan order yang BELUM selesai dan BELUM dibatalkan.
+      // Order "served" sudah dihapus dari DB oleh kasir saat pembayaran,
+      // jadi tidak perlu ditampilkan lagi ke tamu.
+      const active = orders.filter(o =>
+        o.status !== "served" && o.status !== "cancelled"
+      );
       setMyOrders(active);
+      // Cache ke localStorage agar tetap terlihat saat koneksi putus
+      if (active.length > 0) {
+        localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify(active));
+      }
     } catch (e) {
       console.log("Error loading orders:", e);
+      // Fallback: tampilkan cache terakhir jika ada
+      try {
+        const cached = localStorage.getItem(`guest_orders_${tableId}`);
+        if (cached && myOrders.length === 0) {
+          setMyOrders(JSON.parse(cached));
+        }
+      } catch (_) { /* ignore */ }
     }
   }, [tableId]);
 
@@ -160,11 +165,11 @@ export default function GuestMenuPage() {
     setPlacing(false);
   }
 
-  const statusConfig: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode; step: number }> = {
-    pending: { label: "Menunggu Konfirmasi", color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20", icon: <Clock size={16} />, step: 1 },
-    cooking: { label: "Sedang Dimasak", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20", icon: <ChefHat size={16} />, step: 2 },
-    ready: { label: "Siap Diantar", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", icon: <UtensilsCrossed size={16} />, step: 3 },
-    served: { label: "Sudah Disajikan", color: "text-green-400", bg: "bg-green-500/10 border-green-500/20", icon: <CheckCircle2 size={16} />, step: 4 },
+  const statusConfig: Record<string, { label: string; color: string; bg: string; neonBorder: string; icon: React.ReactNode; step: number }> = {
+    pending: { label: "Menunggu Konfirmasi", color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", neonBorder: "shadow-[0_0_12px_rgba(234,179,8,0.3)]", icon: <Clock size={16} />, step: 1 },
+    cooking: { label: "Sedang Dimasak", color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/20", neonBorder: "shadow-[0_0_12px_rgba(249,115,22,0.3)]", icon: <ChefHat size={16} />, step: 2 },
+    ready: { label: "Siap Diantar", color: "text-blue-500", bg: "bg-blue-500/10 border-blue-500/20", neonBorder: "shadow-[0_0_12px_rgba(59,130,246,0.3)]", icon: <UtensilsCrossed size={16} />, step: 3 },
+    served: { label: "Sudah Disajikan", color: "text-green-500", bg: "bg-green-500/10 border-green-500/20", neonBorder: "shadow-[0_0_12px_rgba(34,197,94,0.3)]", icon: <CheckCircle2 size={16} />, step: 4 },
   };
 
   function handleStartOrder() {
@@ -634,28 +639,42 @@ export default function GuestMenuPage() {
               {myOrders.map(order => {
                 const cfg = statusConfig[order.status] || statusConfig.pending;
                 return (
-                  <div key={order.id} className="bg-card border border-border rounded-xl overflow-hidden">
-                    <div className={`flex items-center gap-2 px-4 py-3 border-b border-border ${cfg.bg}`}>
-                      <span className={cfg.color}>{cfg.icon}</span>
-                      <span className={`text-sm font-semibold ${cfg.color}`}>{cfg.label}</span>
+                  <div key={order.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                    {/* Status Header dengan Neon Glow */}
+                    <div className={`flex items-center gap-2 px-4 py-3 border-b ${cfg.bg} ${cfg.neonBorder}`}>
+                      <span className={`${cfg.color} animate-pulse`}>{cfg.icon}</span>
+                      <span className={`text-sm font-bold ${cfg.color} animate-pulse`}>{cfg.label}</span>
                       <span className="ml-auto text-xs text-muted-foreground font-mono">{order.id}</span>
                     </div>
 
-                    <div className="flex items-center px-4 py-3 gap-1">
-                      {["pending", "cooking", "ready", "served"].map((s, i) => {
+                    {/* Progress Stepper dengan Neon */}
+                    <div className="flex items-center px-4 py-4 gap-1">
+                      {(["pending", "cooking", "ready", "served"] as const).map((s, i) => {
                         const done = cfg.step > i + 1;
                         const active = cfg.step === i + 1;
+                        const stepLabels = ["Konfirmasi", "Dimasak", "Siap", "Disajikan"];
                         return (
                           <div key={s} className="flex items-center flex-1">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 relative ${
-                              done ? "bg-green-500 text-white" : active ? "bg-primary text-white shadow-lg shadow-primary/40" : "bg-secondary border border-border text-muted-foreground"
-                            }`}>
-                              {/* Efek Kedip-kedip (Ping/Pulse) untuk step yang aktif */}
-                              {active && <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-60"></span>}
-                              <span className="relative z-10">{i + 1}</span>
+                            <div className="flex flex-col items-center gap-1">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 relative transition-all duration-500 ${
+                                done 
+                                  ? "bg-green-500 text-white shadow-[0_0_8px_rgba(34,197,94,0.5)]" 
+                                  : active 
+                                    ? `bg-primary text-white shadow-[0_0_16px_rgba(232,119,34,0.6)]` 
+                                    : "bg-secondary border border-border text-muted-foreground"
+                              }`}>
+                                {/* Efek Neon Kedip untuk step aktif */}
+                                {active && <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-50"></span>}
+                                {active && <span className="absolute -inset-1 rounded-full border-2 border-primary/40 animate-pulse"></span>}
+                                <span className="relative z-10">{i + 1}</span>
+                              </div>
+                              {/* Label step */}
+                              <span className={`text-[8px] font-semibold leading-tight text-center ${
+                                done ? "text-green-500" : active ? "text-primary font-bold animate-pulse" : "text-muted-foreground/50"
+                              }`}>{stepLabels[i]}</span>
                             </div>
                             {i < 3 && (
-                              <div className={`flex-1 h-0.5 ${done ? "bg-green-500" : "bg-border"}`} />
+                              <div className={`flex-1 h-0.5 mb-4 mx-0.5 transition-all duration-500 ${done ? "bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.4)]" : "bg-border"}`} />
                             )}
                           </div>
                         );
