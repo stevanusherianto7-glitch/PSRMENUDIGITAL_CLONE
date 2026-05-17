@@ -417,43 +417,43 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
       {/* Checkout Drawer / Sidebar */}
       {cart.length > 0 && (
-        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-black/60 backdrop-blur-3xl border-l border-white/5 shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
+        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-card/95 backdrop-blur-3xl border-l border-border shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
           } md:relative md:translate-x-0 md:shadow-none md:border md:rounded-3xl md:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500`}>
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+        <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/50">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/20 rounded-2xl shadow-lg shadow-primary/10">
               <ShoppingCart size={20} className="text-primary" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-white uppercase tracking-widest">Billing Hub</h3>
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter mt-1">Ready for checkout</p>
+              <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Billing Manager</h3>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Ready for checkout</p>
             </div>
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all md:hidden"
+            className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all md:hidden"
           >
             <X size={20} />
           </button>
         </div>
 
         <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="p-6 border-b border-white/5 bg-transparent space-y-4">
+          <div className="p-6 border-b border-border bg-transparent space-y-4">
             {orderMode === "dine-in" && (
               <div>
-                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 block ml-1">Service Table</label>
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block ml-1">Service Table</label>
                 <div className="relative group">
                   <select
                     value={selectedTable}
                     onChange={(e) => setSelectedTable(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs font-black text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+                    className="w-full bg-secondary border border-border rounded-2xl px-5 py-3 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
                   >
-                    <option value="" disabled className="bg-[#0a0a0c]">-- SELECT TABLE --</option>
+                    <option value="" disabled className="bg-card">-- SELECT TABLE --</option>
                     {tables.map(t => (
-                      <option key={t.id} value={t.id} className="bg-[#0a0a0c]">TABLE {t.id}</option>
+                      <option key={t.id} value={t.id} className="bg-card">TABLE {t.id}</option>
                     ))}
                   </select>
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
                     <Clock size={14} />
                   </div>
                 </div>
@@ -465,7 +465,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 const isActive = orderMode === m;
                 return (
                   <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
                       }`}>
                     {m === "dine-in" ? "Dine In" : "Take Away"}
                   </button>
@@ -480,20 +480,20 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 <CheckCircle2 size={40} className="text-green-500" />
               </div>
               <div className="space-y-2">
-                <h4 className="font-black text-2xl text-white uppercase tracking-tighter">Transaction Success</h4>
-                <p className="text-xs text-slate-500 font-medium">Receipt has been added to the print queue</p>
+                <h4 className="font-black text-2xl text-foreground uppercase tracking-tighter">Transaction Success</h4>
+                <p className="text-xs text-muted-foreground font-medium">Receipt has been added to the print queue</p>
               </div>
 
               {lastTxId && (
-                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">TX Ref ID</p>
+                <div className="bg-secondary px-6 py-3 rounded-2xl border border-border">
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">TX Ref ID</p>
                   <p className="text-xs font-mono font-black text-primary tracking-widest">{lastTxId}</p>
                 </div>
               )}
 
               <div className="w-full flex flex-col gap-5 pt-4">
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-left ml-1">Reprint Service</p>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-left ml-1">Reprint Service</p>
                   <div className="grid grid-cols-1 gap-2">
                     <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-primary text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
                       <Printer size={18} /> Customer Receipt
@@ -511,13 +511,13 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
                 <div className="flex items-center gap-4 pt-2">
                   <div className="h-[1px] flex-1 bg-white/5"></div>
-                  <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Digital Export</span>
+                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Digital Export</span>
                   <div className="h-[1px] flex-1 bg-white/5"></div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 opacity-60">
-                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">PDF Client</button>
-                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">PDF Master</button>
+                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:bg-secondary transition-all">PDF Client</button>
+                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:bg-secondary transition-all">PDF Master</button>
                 </div>
               </div>
 
@@ -537,33 +537,33 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             <>
               <div className="flex-1 p-6 space-y-4">
                 {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-slate-700 gap-6">
-                    <div className="w-20 h-20 bg-white/2 rounded-full border-2 border-dashed border-white/5 flex items-center justify-center">
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-6">
+                    <div className="w-20 h-20 bg-secondary rounded-full border-2 border-dashed border-border flex items-center justify-center">
                       <ShoppingCart size={32} className="opacity-20" />
                     </div>
                     <p className="font-black text-xs uppercase tracking-[0.3em] opacity-30">Cart Empty</p>
                   </div>
                 ) : cart.map(c => (
-                  <div key={c.id} className="flex items-center gap-4 bg-white/2 border border-white/5 rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
+                  <div key={c.id} className="flex items-center gap-4 bg-secondary/50 border border-border rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-border">
                       <img src={c.image} alt={c.name} className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black text-white leading-tight uppercase tracking-tight line-clamp-1">{c.name}</p>
+                      <p className="text-xs font-black text-foreground leading-tight uppercase tracking-tight line-clamp-1">{c.name}</p>
                       <p className="text-[10px] text-primary font-black mt-1 font-mono tracking-tighter">{rp(c.price)}</p>
                     </div>
-                    <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-3 py-1.5">
-                      <button onClick={() => updateQty(c.id, -1)} className="text-slate-500 hover:text-red-500 transition-colors"><Minus size={14} /></button>
-                      <span className="text-xs font-black w-4 text-center text-white">{c.qty}</span>
-                      <button onClick={() => updateQty(c.id, 1)} className="text-slate-500 hover:text-primary transition-colors"><Plus size={14} /></button>
+                    <div className="flex items-center gap-3 bg-secondary border border-border rounded-xl px-3 py-1.5">
+                      <button onClick={() => updateQty(c.id, -1)} title="Kurangi" className="text-muted-foreground hover:text-red-500 transition-colors"><Minus size={14} /></button>
+                      <span className="text-xs font-black w-4 text-center text-foreground">{c.qty}</span>
+                      <button onClick={() => updateQty(c.id, 1)} title="Tambah" className="text-muted-foreground hover:text-primary transition-colors"><Plus size={14} /></button>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-6 border-t border-white/5 bg-white/2 space-y-5 rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+              <div className="p-6 border-t border-border bg-secondary/30 space-y-5 rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.1)]">
                 <div className="space-y-4">
-                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full h-12 flex items-center justify-between px-5 rounded-2xl bg-white/5 border border-white/10 text-[10px] font-black text-slate-400 hover:text-white transition-all group">
+                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full h-12 flex items-center justify-between px-5 rounded-2xl bg-secondary border border-border text-[10px] font-black text-muted-foreground hover:text-foreground transition-all group">
                     <div className="flex items-center gap-3">
                       <Tag size={14} className="text-primary group-hover:scale-110 transition-transform" />
                       <span className="uppercase tracking-widest">{selectedPromo ? selectedPromo.name : "Apply Voucher"}</span>
@@ -571,25 +571,25 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                     <Plus size={14} />
                   </button>
 
-                  <div className="space-y-2 bg-black/40 p-5 rounded-3xl border border-white/5">
-                    <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest"><span>Gross Total</span><span>{rp(subtotal)}</span></div>
+                  <div className="space-y-2 bg-secondary p-5 rounded-3xl border border-border">
+                    <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-widest"><span>Gross Total</span><span>{rp(subtotal)}</span></div>
                     {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-400 font-black italic uppercase tracking-widest"><span>Promo Discount</span><span>-{rp(discountAmount)}</span></div>}
-                    <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest"><span>Tax (10%)</span><span>{rp(tax)}</span></div>
-                    <div className="flex justify-between font-black text-xl border-t border-white/5 pt-4 mt-2 text-white font-['Poppins'] tracking-tighter"><span>TOTAL</span><span className="text-primary">{rp(total)}</span></div>
+                    <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-widest"><span>Tax (10%)</span><span>{rp(tax)}</span></div>
+                    <div className="flex justify-between font-black text-xl border-t border-border pt-4 mt-2 text-foreground font-['Poppins'] tracking-tighter"><span>TOTAL</span><span className="text-primary">{rp(total)}</span></div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] text-center">Settlement Method</p>
+                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Settlement Method</p>
                   <div className="grid grid-cols-4 gap-2">
                     {payMethods.map(m => (
                       <button
                         key={m.id}
                         onClick={() => setPayMethod(m.id)}
-                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all duration-300 ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105 glow-primary" : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all duration-300 ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105 glow-primary" : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
                           }`}
                       >
-                        <div className={`${payMethod === m.id ? "text-white" : "text-slate-400"}`}>{m.icon}</div>
+                        <div className={`${payMethod === m.id ? "text-white" : "text-muted-foreground"}`}>{m.icon}</div>
                         <span className="text-[8px] font-black uppercase tracking-tighter">{m.id}</span>
                       </button>
                     ))}
