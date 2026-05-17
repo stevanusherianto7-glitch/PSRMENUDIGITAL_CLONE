@@ -14,6 +14,7 @@ import {
 // Menggunakan string path untuk logo agar tidak error di Vite
 import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { fetchOrders, updateOrder, deleteOrder } from "../api";
+import { supabase } from "../../lib/supabase";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import type { Order, OrderStatus, UserSession } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
@@ -147,8 +148,20 @@ export default function WaiterPage() {
   async function handleResetAll() {
     setResetting(true);
     try {
-      const promises = orders.map(o => deleteOrder(o.id).catch(() => {}));
-      await Promise.all(promises);
+      // Hapus langsung dari Supabase DB agar tidak muncul lagi saat polling
+      const ids = orders.map(o => o.id);
+      const { error } = await supabase
+        .from("orders")
+        .delete()
+        .in("id", ids);
+      
+      if (error) {
+        console.error("Supabase delete error:", error);
+        // Fallback: coba satu per satu via API
+        for (const o of orders) {
+          await deleteOrder(o.id).catch(() => {});
+        }
+      }
       setOrders([]);
       setShowResetConfirm(false);
       if (ttsEnabled) speak("Semua pesanan telah direset.");
