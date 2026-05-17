@@ -10,6 +10,27 @@ import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
 
 /**
+ * playNotifBeep — Notifikasi suara beep menggunakan Web Audio API.
+ * Digunakan sebagai fallback jika TTS gagal atau tidak tersedia.
+ */
+function playNotifBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880; // Note A5
+    gain.gain.value = 0.3;
+    osc.start();
+    // Dua beep pendek
+    setTimeout(() => { gain.gain.value = 0; }, 150);
+    setTimeout(() => { gain.gain.value = 0.3; }, 250);
+    setTimeout(() => { gain.gain.value = 0; osc.stop(); ctx.close(); }, 400);
+  } catch (_) { /* ignore */ }
+}
+
+/**
  * useTTS — Text-to-Speech untuk notifikasi pesanan masuk.
  * Otomatis membacakan pesanan baru yang belum pernah diumumkan.
  */
@@ -38,7 +59,14 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     }
 
     // 2. Fallback untuk Browser/Windows
-    if (!("speechSynthesis" in window)) return;
+    if (!("speechSynthesis" in window)) {
+      // Terakhir: play beep jika tidak ada TTS sama sekali
+      playNotifBeep();
+      return;
+    }
+
+    // Cancel antrian lama agar tidak tumpuk
+    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
@@ -64,6 +92,12 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     } else if (idVoices.length > 0) {
       utterance.voice = idVoices[0]; // Fallback ke suara Indo pertama
     }
+
+    // Error handler: jika TTS gagal, play beep sebagai fallback
+    utterance.onerror = () => {
+      console.warn("TTS utterance error, playing beep fallback");
+      playNotifBeep();
+    };
 
     window.speechSynthesis.speak(utterance);
   }, [enabled]);

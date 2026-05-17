@@ -603,7 +603,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   className="w-full py-4.5 rounded-2xl bg-primary text-white text-[11px] font-black hover:bg-primary/90 disabled:opacity-20 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/40 uppercase tracking-[0.2em] relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   {saving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-                  {saving ? "Finalizing..." : "Execute Payment"}
+                  {saving ? "Memproses..." : "Proses Bayar"}
                 </button>
               </div>
             </>

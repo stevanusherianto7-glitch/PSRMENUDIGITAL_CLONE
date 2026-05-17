@@ -163,7 +163,10 @@ export default function AdminPage() {
   //   }
   // }, [activeModule, navigate, location.pathname]);
   const [time, setTime] = useState(new Date());
-  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(() => {
+    const saved = localStorage.getItem('pawon_tts_enabled');
+    return saved !== null ? saved === 'true' : true; // Default ON
+  });
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
   const [stokSubModule, setStokSubModule] = useState<"bahan" | "asset">("bahan");
   const [transaksiSubModule, setTransaksiSubModule] = useState<"summary" | "laporan">("summary");
@@ -244,6 +247,14 @@ export default function AdminPage() {
   // TTS — hanya untuk pesanan pending (pesanan masuk baru)
   const pendingOrders = liveOrders.filter(o => o.status === "pending");
   const { speak } = useTTS(pendingOrders, ttsEnabled);
+
+  // Preload voices + persist TTS preference
+  useEffect(() => {
+    preloadVoices();
+  }, []);
+  useEffect(() => {
+    localStorage.setItem('pawon_tts_enabled', String(ttsEnabled));
+  }, [ttsEnabled]);
 
   // Auth check
   useEffect(() => {
