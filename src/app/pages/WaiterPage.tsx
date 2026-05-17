@@ -8,12 +8,12 @@ import { useNavigate } from "react-router-dom";
 import {
   ChefHat, Clock, CheckCircle2, XCircle,
   RefreshCw, LogOut, Bell, Flame, Bike, ShoppingBag,
-  AlertTriangle, Volume2, VolumeX, Utensils, Package
+  AlertTriangle, Volume2, VolumeX, Utensils, Package, Trash2
 } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
 import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
-import { fetchOrders, updateOrder } from "../api";
+import { fetchOrders, updateOrder, deleteOrder } from "../api";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import type { Order, OrderStatus, UserSession } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
@@ -41,6 +41,8 @@ export default function WaiterPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [session, setSession] = useState<UserSession | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   // ─── TTS — panggil setiap kali 'orders' berubah ───────────────────────────
   const { speak } = useTTS(orders, ttsEnabled);
@@ -142,6 +144,20 @@ export default function WaiterPage() {
     navigate("/");
   }
 
+  async function handleResetAll() {
+    setResetting(true);
+    try {
+      const promises = orders.map(o => deleteOrder(o.id).catch(() => {}));
+      await Promise.all(promises);
+      setOrders([]);
+      setShowResetConfirm(false);
+      if (ttsEnabled) speak("Semua pesanan telah direset.");
+    } catch (e) {
+      console.error("Reset error:", e);
+    }
+    setResetting(false);
+  }
+
   const kitchenOrders = orders.filter(o => (o.status === "pending" || o.status === "cooking") && o.items.some(i => i.category === "Makanan" || i.category === "Snack"));
   const barOrders = orders.filter(o => (o.status === "pending" || o.status === "cooking") && o.items.some(i => i.category === "Minuman"));
   const waiterOrders = orders.filter(o => o.status === "ready");
@@ -183,12 +199,21 @@ export default function WaiterPage() {
           <RefreshCw size={15} />
         </button>
         {orders.length > 0 && (
-          <div className="relative">
-            <Bell size={15} className="text-muted-foreground" />
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
-              {orders.length}
-            </span>
-          </div>
+          <>
+            <div className="relative">
+              <Bell size={15} className="text-muted-foreground" />
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+                {orders.length}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              title="Reset semua pesanan"
+              className="text-muted-foreground hover:text-red-400 transition-colors p-2"
+            >
+              <Trash2 size={15} />
+            </button>
+          </>
         )}
         <button onClick={logout} className="text-muted-foreground hover:text-red-400 transition-colors p-2" aria-label="Logout">
           <LogOut size={15} />
@@ -416,6 +441,44 @@ export default function WaiterPage() {
           {ttsEnabled ? "TTS aktif" : "TTS mati"}
         </span>
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowResetConfirm(false)}>
+          <div className="bg-card border border-border rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-border text-center">
+              <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <AlertTriangle size={28} className="text-red-500" />
+              </div>
+              <h3 className="font-bold text-base text-foreground">Reset Semua Pesanan?</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ini akan menghapus <span className="font-bold text-red-400">{orders.length} pesanan</span> aktif dari sistem.
+              </p>
+            </div>
+            <div className="px-6 py-3 bg-red-500/5 border-b border-border">
+              <p className="text-[11px] text-red-400 font-semibold text-center">
+                ⚠️ Tindakan ini tidak dapat dibatalkan. Gunakan hanya jika pesanan basi/nyangkut.
+              </p>
+            </div>
+            <div className="px-6 py-4 flex gap-3">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="flex-1 py-3 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleResetAll}
+                disabled={resetting}
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {resetting ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                {resetting ? "Mereset..." : "Ya, Reset Semua"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
