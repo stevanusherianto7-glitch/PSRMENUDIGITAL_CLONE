@@ -216,10 +216,10 @@ export default function GuestMenuPage() {
   const statusConfig: Record<string, { label: string; color: string; bg: string; neonBorder: string; icon: React.ReactNode; step: number }> = {
     pending: { 
       label: "Menunggu Konfirmasi", 
-      color: "text-amber-600 dark:text-amber-400 dark:drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]", 
-      bg: "bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/30", 
-      neonBorder: "dark:shadow-[0_0_20px_rgba(251,191,36,0.2)] border-b border-b-amber-500/30", 
-      icon: <Clock size={16} className="text-amber-600 dark:text-amber-400" />, 
+      color: "text-primary dark:drop-shadow-[0_0_8px_rgba(232,119,34,0.5)]", 
+      bg: "bg-primary/10 border-primary/30", 
+      neonBorder: "dark:shadow-[0_0_20px_rgba(232,119,34,0.2)] border-b border-b-primary/30", 
+      icon: <Clock size={16} className="text-primary" />, 
       step: 1 
     },
     cooking: { 
