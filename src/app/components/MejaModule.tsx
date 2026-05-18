@@ -27,7 +27,7 @@ export function MejaModule({ tables, onUpdateStatus }: MejaModuleProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-8">
       <div className="grid grid-cols-4 gap-4">
         {(["available", "occupied", "service", "reserved"] as const).map(s => {
           const cfg = tableStatusConfig[s];

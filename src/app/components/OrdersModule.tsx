@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, CheckCircle2, ChefHat, Clock, Flame, ShoppingBag, XCircle } from "lucide-react";
-import { subscribeToOrders } from "../api";
+import { supabase } from "../../lib/supabase";
 import { rp } from "../data";
 import type { Order, OrderStatus } from "../types";
+import { printService } from "../../utils/printService";
 
 const orderModeConfig = {
   "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
@@ -27,16 +28,28 @@ interface OrdersModuleProps {
 export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }: OrdersModuleProps) => {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
-  // Subscribe to real-time updates using robust centralized observer
+  // Subscribe to real-time updates
   useEffect(() => {
     if (connected) {
-      const unsubscribe = subscribeToOrders((event, record) => {
-        console.log(`[Realtime] Order ${event}: ${record.id}`);
-        onRefresh();
-      });
+      const channel = supabase
+        .channel('orders-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders'
+          },
+          (payload) => {
+            console.log('Real-time change:', payload);
+            // Refresh orders when any change occurs
+            onRefresh();
+          }
+        )
+        .subscribe();
 
       return () => {
-        unsubscribe();
+        supabase.removeChannel(channel);
       };
     }
   }, [connected, onRefresh]);
@@ -51,7 +64,7 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pt-8">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-sm">Monitor Pesanan Realtime</h3>
@@ -144,6 +157,19 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
                     <span className="text-[10px] text-muted-foreground font-black font-mono bg-secondary px-1.5 py-0.5 rounded-lg">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
                     <span className="text-green-500 font-black text-sm">{rp(order.total)}</span>
                   </div>
+                  {order.status !== "served" && order.status !== "cancelled" && (
+                    <div className="pt-3 flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          printService.printKitchen(order);
+                        }}
+                        className="flex-1 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[10px] font-black rounded-xl hover:bg-orange-500/20 flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                      >
+                         <ChefHat size={12} /> CETAK ULANG DAPUR
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );

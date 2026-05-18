@@ -78,15 +78,18 @@ export default function WaiterPage() {
   const loadOrders = useCallback(async () => {
     try {
       const all = await fetchOrders();
-      // Filter: hanya order 24 jam terakhir & belum selesai/dibatalkan.
-      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
+      // Filter: hanya order HARI INI & belum selesai/dibatalkan.
+      // Order lebih dari 4 jam dianggap basi dan dilewati.
+      const now = Date.now();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
 
       const active = all.filter(o => {
         if (o.status === "served" || o.status === "cancelled") return false;
-        const dateStr = o.created_at || "";
-        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
-        // Harus dalam 24 jam terakhir
-        return createdAt >= timeWindow;
+        const createdAt = new Date(o.created_at).getTime();
+        // Harus dari hari ini DAN belum lewat 4 jam
+        return createdAt >= todayStart.getTime() && (now - createdAt) < MAX_AGE_MS;
       });
       setOrders(active);
     } catch (e) {
@@ -154,9 +157,11 @@ export default function WaiterPage() {
         .in("id", ids);
       
       if (error) {
-        console.error("Supabase delete error, using parallel API fallback:", error);
-        // Fallback: hapus secara paralel via deleteOrder API
-        await Promise.all(orders.map(o => deleteOrder(o.id).catch(() => {})));
+        console.error("Supabase delete error:", error);
+        // Fallback: coba satu per satu via API
+        for (const o of orders) {
+          await deleteOrder(o.id).catch(() => {});
+        }
       }
       setOrders([]);
       setShowResetConfirm(false);

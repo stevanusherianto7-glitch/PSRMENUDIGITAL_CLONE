@@ -17,22 +17,9 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   );
   const [printing, setPrinting] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
-  const [printerConnected, setPrinterConnected] = useState(printService.getIsConnected());
 
   useEffect(() => {
     checkBluetooth();
-    
-    // Subscribe to real-time printer connection status
-    const unsub = printService.onConnectionChange((connected) => {
-      setPrinterConnected(connected);
-      if (connected) {
-        const savedAddr = localStorage.getItem("connectedPrinterAddress");
-        if (savedAddr) setConnectedAddress(savedAddr);
-      } else {
-        setConnectedAddress(null);
-      }
-    });
-    return unsub;
   }, []);
 
   useEffect(() => {
@@ -132,7 +119,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
     }
   }
 
-  const isPrinterConnected = printerConnected;
+  const isPrinterConnected = printService.getIsConnected();
 
   return (
     <div
@@ -140,23 +127,23 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-gradient-to-br from-zinc-900/95 via-slate-900/90 to-black/95 border border-white/20 rounded-[32px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_120px_rgba(249,115,22,0.1),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-3xl animate-in zoom-in-95 duration-300 relative"
+        className="bg-zinc-950/90 border border-white/10 rounded-[28px] w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-2xl animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-white/10 flex-shrink-0 bg-gradient-to-b from-white/[0.05] to-transparent backdrop-blur-xl">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 flex-shrink-0 bg-white/[0.02]">
           <div>
-            <h2 className="font-black text-sm text-white uppercase tracking-widest flex items-center gap-2 drop-shadow-lg">
-              <Printer size={16} className="text-primary drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" /> Pengaturan Printer
+            <h2 className="font-black text-sm text-foreground uppercase tracking-widest flex items-center gap-2">
+              <Printer size={16} className="text-primary" /> Pengaturan Printer
             </h2>
-            <p className="text-[10px] text-white/70 mt-1 font-bold uppercase tracking-tighter">
+            <p className="text-[10px] text-muted-foreground mt-1 font-bold uppercase tracking-tighter">
               Konektivitas Thermal Receipt 58mm
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2.5 rounded-2xl hover:bg-white/10 text-white/70 hover:text-white transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-white/10 backdrop-blur-sm border border-white/10"
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="p-2 rounded-xl hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-300" 
             aria-label="Tutup"
           >
             <X size={18} />
@@ -166,25 +153,23 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-6 space-y-6 custom-scrollbar">
           {/* Status Bluetooth */}
-          <div className={`flex items-center justify-between p-4 rounded-[20px] border transition-all duration-500 relative overflow-hidden backdrop-blur-xl ${
-            isEnabled
-              ? "border-green-500/30 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent shadow-[0_0_25px_rgba(34,197,94,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
-              : "border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent shadow-[0_0_25px_rgba(245,158,11,0.1),inset_0_1px_0_rgba(255,255,255,0.1)]"
+          <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-500 relative overflow-hidden ${
+            isEnabled 
+              ? "border-green-500/20 bg-green-500/5 shadow-[0_0_15px_rgba(34,197,94,0.05)]" 
+              : "border-amber-500/20 bg-amber-500/5 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
           }`}>
-            {/* Animated gradient mesh */}
-            {isEnabled && <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 animate-pulse" />}
             <div className="flex items-center gap-3 relative z-10">
               <div className="relative">
                 {isEnabled && (
-                  <span className="absolute -inset-1 rounded-full bg-green-500/30 blur-md animate-ping duration-1000" />
+                  <span className="absolute -inset-1 rounded-full bg-green-500/30 blur animate-ping duration-1000" />
                 )}
-                <div className={`p-2.5 rounded-xl backdrop-blur-sm ${isEnabled ? "bg-green-500/20 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]" : "bg-amber-500/20 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)]"}`}>
+                <div className={`p-2.5 rounded-xl ${isEnabled ? "bg-green-500/20 text-green-400" : "bg-amber-500/20 text-amber-400"}`}>
                   <Bluetooth size={16} />
                 </div>
               </div>
               <div>
-                <p className="text-xs font-black uppercase tracking-wider text-white">Bluetooth System</p>
-                <p className="text-[9px] text-white/60 font-black uppercase tracking-tighter mt-1">
+                <p className="text-xs font-black uppercase tracking-wider text-foreground">Bluetooth System</p>
+                <p className="text-[9px] text-muted-foreground font-black uppercase tracking-tighter mt-1">
                   {isEnabled ? "Hardware status: Armed & Ready" : "Hardware status: Offline / Perm. Denied"}
                 </p>
               </div>
@@ -193,7 +178,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
               <button
                 type="button"
                 onClick={checkBluetooth}
-                className="text-[9px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300 bg-amber-500/15 px-4 py-2 rounded-xl border border-amber-500/30 transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-amber-500/20 backdrop-blur-sm"
+                className="text-[9px] font-black uppercase tracking-widest text-amber-500 hover:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20 transition-all hover:scale-[1.02]"
               >
                 Cek Izin
               </button>
@@ -203,31 +188,31 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
           {/* List Devices */}
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[10px] font-black text-white/60 uppercase tracking-widest ml-1">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
                 Perangkat Tersedia (Paired)
               </label>
               <button
                 type="button"
                 onClick={loadDevices}
                 disabled={scanning || !isEnabled}
-                className="p-2 rounded-2xl hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-50 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-white/10 backdrop-blur-sm border border-white/10"
+                className="p-1.5 rounded-xl hover:bg-white/5 text-muted-foreground hover:text-foreground disabled:opacity-50 transition-all duration-300"
                 title="Refresh"
               >
-                <RefreshCw size={14} className={scanning ? "animate-spin text-primary" : ""} />
+                <RefreshCw size={14} className={scanning ? "animate-spin" : ""} />
               </button>
             </div>
 
             {!isEnabled ? (
-              <div className="text-center py-8 text-xs font-bold uppercase tracking-wider text-white/60 bg-gradient-to-br from-white/2 via-transparent to-white/1 backdrop-blur-xl rounded-2xl border border-dashed border-white/10">
+              <div className="text-center py-8 text-xs font-bold uppercase tracking-wider text-muted-foreground bg-white/[0.02] rounded-2xl border border-dashed border-white/5">
                 Aktifkan Bluetooth untuk mendeteksi printer
               </div>
             ) : scanning ? (
               <div className="space-y-3">
-                <div className="animate-pulse bg-gradient-to-br from-white/2 via-transparent to-white/1 border border-white/10 h-16 w-full rounded-2xl backdrop-blur-xl" />
-                <div className="animate-pulse bg-gradient-to-br from-white/2 via-transparent to-white/1 border border-white/10 h-16 w-full rounded-2xl backdrop-blur-xl" />
+                <div className="animate-pulse bg-white/[0.02] border border-white/5 h-16 w-full rounded-2xl" />
+                <div className="animate-pulse bg-white/[0.02] border border-white/5 h-16 w-full rounded-2xl" />
               </div>
             ) : devices.length === 0 ? (
-              <div className="text-center py-8 text-[11px] font-black uppercase tracking-widest text-white/60 bg-gradient-to-br from-white/2 via-transparent to-white/1 backdrop-blur-xl rounded-2xl border border-dashed border-white/10 px-4">
+              <div className="text-center py-8 text-[11px] font-black uppercase tracking-widest text-muted-foreground bg-white/[0.02] rounded-2xl border border-dashed border-white/5 px-4">
                 Tidak ada printer terdeteksi.<br />
                 <span className="text-[9px] font-bold text-amber-500 lowercase tracking-normal block mt-1">
                   Harap pairing printer thermal Anda di Settings Android / PC terlebih dahulu.
@@ -274,11 +259,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                           <Printer size={16} />
                         </div>
                         <div className="text-left">
-                          <p className="text-xs font-black uppercase tracking-wider">
-                            {device.name && device.name.toUpperCase().includes("RPP02N") 
-                              ? "RPP02N" 
-                              : (device.name || "Unknown Printer")}
-                          </p>
+                          <p className="text-xs font-black uppercase tracking-wider">{device.name || "Unknown Printer"}</p>
                           <p className="text-[9px] font-mono text-muted-foreground mt-0.5 tracking-widest">{device.address}</p>
                         </div>
                       </div>

@@ -28,7 +28,7 @@ import {
   menuCategories, rp,  PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
   BRAND_NAME, APP_LOGO as logoImg
 } from "../data";
-import { fetchOrders, updateOrder, createOrder, createTransaction, subscribeToOrders } from "../api";
+import { fetchOrders, updateOrder, createOrder } from "../api";
 import { DashboardModule } from "../components/DashboardModule";
 import { OrdersModule } from "../components/OrdersModule";
 import { KasirModule } from "../components/KasirModule";
@@ -55,7 +55,7 @@ import type {
 } from "../types";
 
 // ─── Vercel URL untuk QR Code tamu ────────────────────────────────────────────
-export const GUEST_BASE_URL = import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital.vercel.app";
+export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
 
 export const orderModeConfig = {
   "dine-in": { label: "Dine In", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
@@ -264,7 +264,7 @@ export default function AdminPage() {
       const s = localStorage.getItem("pawon_session");
       if (!s) { navigate("/"); return; }
       const parsed = JSON.parse(s) as UserSession;
-      if (parsed.role !== "admin" && parsed.role !== "manager" && parsed.role !== "owner") { navigate("/waiter"); return; }
+      if (parsed.role !== "admin") { navigate("/waiter"); return; }
       setSession(parsed);
       preloadVoices();
     } catch (e) {
@@ -281,15 +281,22 @@ export default function AdminPage() {
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
-      // Filter: hanya order 24 jam terakhir (kecuali yang dibatalkan).
-      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
+      // Filter: hanya order hari ini & belum lewat 4 jam (untuk active orders).
+      // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
+      const now = Date.now();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
 
       const active = orders.filter(o => {
         if (o.status === "cancelled") return false;
-        // Supabase Postgres timestamp without timezone defaults to UTC. Ensure we parse it correctly.
-        const dateStr = o.created_at || "";
-        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
-        return createdAt >= timeWindow;
+        const createdAt = new Date(o.created_at).getTime();
+        // Order hari ini saja
+        if (createdAt < todayStart.getTime()) return false;
+        // Served orders: tampilkan sepanjang hari ini (untuk kasir)
+        if (o.status === "served") return true;
+        // Active orders (pending/cooking/ready): maks 4 jam
+        return (now - createdAt) < MAX_AGE_MS;
       });
       setLiveOrders(active);
     } catch (e) { console.log("Error loading orders:", e); }
@@ -317,11 +324,21 @@ export default function AdminPage() {
     } catch (e) { console.log("Error loading transactions:", e); }
   }, []);
 
+  useEffect(() => {
+    loadOrders();
+    loadTransactions();
+    const interval = setInterval(() => {
+      loadOrders();
+      loadTransactions();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [loadOrders, loadTransactions]);
+
   // Supabase init
   useEffect(() => {
     let mejaChannel: ReturnType<typeof supabase.channel> | null = null;
     let txChannel: ReturnType<typeof supabase.channel> | null = null;
-    let unsubscribeOrders: (() => void) | null = null;
+    let ordersChannel: ReturnType<typeof supabase.channel> | null = null;
 
     async function initSupabase() {
       setSeeding(true);
@@ -397,7 +414,7 @@ export default function AdminPage() {
           .on("postgres_changes", { event: "*", schema: "public", table: "meja" }, payload => {
             if (payload.eventType === "UPDATE") {
               const r = payload.new as any;
-              setTables(prev => prev.map(t => t.id === r.id ? { id: r.id, seat: t.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders } : t));
+              setTables(prev => prev.map(t => t.id === r.id ? { id: r.id, seat: r.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders } : t));
             }
           }).subscribe();
 
@@ -417,9 +434,10 @@ export default function AdminPage() {
             }
           }).subscribe();
 
-        unsubscribeOrders = subscribeToOrders(() => {
-          loadOrders();
-        });
+        ordersChannel = supabase.channel("orders-admin-" + Date.now())
+          .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, payload => {
+            loadOrders();
+          }).subscribe();
 
       } catch (err) {
         console.warn("Supabase tidak terhubung:", err);
@@ -432,18 +450,41 @@ export default function AdminPage() {
     return () => {
       if (mejaChannel) supabase.removeChannel(mejaChannel);
       if (txChannel) supabase.removeChannel(txChannel);
-      if (unsubscribeOrders) unsubscribeOrders();
+      if (ordersChannel) supabase.removeChannel(ordersChannel);
     };
   }, []);
 
   const handleTransaction = useCallback(async (tx: Transaction) => {
     setTransactions(prev => [tx, ...prev]);
     if (connected) {
-      try {
-        await createTransaction(tx);
-      } catch (error) {
-        console.error("handleTransaction error in AdminPage:", error);
-      }
+      // 1. Simpan ke tabel transactions (utama)
+      const { error } = await supabase.from("transactions").insert({
+        id: tx.id,
+        table_id: tx.table_id,
+        items: tx.items,
+        subtotal: tx.subtotal,
+        discount: tx.discount,
+        discount_amount: tx.discount_amount,
+        tax: tx.tax,
+        total: tx.total,
+        method: tx.method,
+        created_at: tx.created_at
+      });
+      if (error) console.error("Error saving transaction:", error);
+
+      // 2. Simpan ke tabel transaction_items (Opsi 2 - Untuk Laporan Real-time)
+      const itemRows = tx.items.map(item => ({
+        transaction_id: tx.id,
+        menu_item_id: item.id,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        total: item.price * item.qty,
+        created_at: tx.created_at
+      }));
+
+      const { error: itemsError } = await supabase.from("transaction_items").insert(itemRows);
+      if (itemsError) console.error("Error saving transaction items:", itemsError);
     }
   }, [connected]);
 
@@ -534,19 +575,17 @@ export default function AdminPage() {
         fixed inset-y-0 left-0 z-[70] flex flex-col border-r border-border bg-sidebar transition-all duration-300 ease-in-out
         lg:static lg:z-auto
         ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        ${sidebarOpen || mobileSidebarOpen ? "w-64" : "w-20"}
+        ${sidebarOpen ? "w-64" : "w-20"}
       `}>
         <div className="h-16 flex items-center px-4 border-b border-sidebar-border overflow-hidden">
-          <div className="flex items-center w-full">
+          <div className="flex items-center gap-3">
             <img src={logoImg} alt="Logo" className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-sm" />
-            <div className={`transition-all duration-300 ease-in-out flex flex-col min-w-0 ${
-              sidebarOpen || mobileSidebarOpen 
-                ? "opacity-100 translate-x-0 w-auto ml-3 pointer-events-auto" 
-                : "opacity-0 -translate-x-10 w-0 ml-0 pointer-events-none overflow-hidden"
-            }`}>
-              <p className="font-black text-sm text-foreground leading-tight font-['Poppins'] truncate whitespace-nowrap">{BRAND_NAME}</p>
-              <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-black truncate">Admin Panel</p>
-            </div>
+            {(sidebarOpen || mobileSidebarOpen) && (
+              <div className="transition-all animate-in fade-in slide-in-from-left-2 duration-300">
+                <p className="font-black text-sm text-foreground leading-tight font-['Poppins'] truncate whitespace-nowrap">{BRAND_NAME}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight uppercase tracking-wider font-black">Admin Panel</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -573,15 +612,11 @@ export default function AdminPage() {
                         }`}>
                       <Icon size={22} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
 
-                      <span className={`inline-block whitespace-nowrap font-black text-xs uppercase tracking-wider transition-all duration-300 truncate ${
-                        active ? "opacity-100" : "opacity-70 group-hover:opacity-100"
-                      } ${
-                        sidebarOpen || mobileSidebarOpen 
-                          ? "opacity-100 translate-x-0 w-auto pointer-events-auto" 
-                          : "opacity-0 -translate-x-10 w-0 pointer-events-none overflow-hidden"
-                      }`}>
-                        {item.label}
-                      </span>
+                      {(sidebarOpen || mobileSidebarOpen) && (
+                        <span className={`font-black text-xs truncate animate-in fade-in slide-in-from-left-2 duration-300 uppercase tracking-wider ${active ? "opacity-100" : "opacity-70 group-hover:opacity-100"}`}>
+                          {item.label}
+                        </span>
+                      )}
 
                       {hasBadge && (
                         <span className={`absolute bg-red-500 text-white text-[9px] font-bold rounded-full ring-2 ring-sidebar flex items-center justify-center ${sidebarOpen || mobileSidebarOpen
@@ -687,7 +722,7 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-scroll px-0 lg:px-10 pt-6 pb-40 pb-safe scroll-smooth custom-scrollbar relative">
+        <main className="flex-1 overflow-y-scroll px-0 lg:px-10 pb-40 pb-safe scroll-smooth custom-scrollbar relative">
           <ErrorBoundary key={activeModule}>
           <div className="max-w-full mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000 px-0">
             {activeModule === "transaksi" && (
@@ -844,7 +879,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="px-4 lg:px-0">
-                  {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} transactions={transactions} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
+                  {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
                   {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
                   {kasirSubModule === "petty" && <PettyCashModule />}
                 </div>

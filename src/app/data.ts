@@ -1,6 +1,6 @@
 /** 
  * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
- * FILE INI BERISI CONFIG PRODUKSI, SEED DATA, DAN URL DOMAIN PAWON SALAM.
+ * FILE INI BERISI CONFIG PRODUKSI, SEED DATA, DAN URL DOMAIN KEDAI ELVERA 57.
  * PERUBAHAN TIDAK TERUKUR DAPAT MERUSAK TAMPILAN DAN QR CODE. ⚠️
  */
 
@@ -15,10 +15,9 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-// Local offline-ready logo with fallback reference: https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png
-export const APP_LOGO = "/logo-kedai-elvera-57.png";
+export const APP_LOGO = "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/logo_kedai_Elvera57.png";
 export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
-export const PUBLIC_ICON_LOGO = "/logo-kedai-elvera-57.png";
+export const PUBLIC_ICON_LOGO = "https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/logo_kedai_Elvera57.png";
 
 // ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
 export const SEED_MENU: MenuItem[] = [
