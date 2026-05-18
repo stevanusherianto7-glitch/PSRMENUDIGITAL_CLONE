@@ -165,19 +165,31 @@ export function MenuManagement({
           {/* Filter bar - Modern Centered Layout */}
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 flex-wrap justify-center">
-              {["Semua", ...menuCategories].map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setActiveCat(c)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${
-                    activeCat === c
-                      ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
-                      : "bg-card border-border text-slate-500 hover:text-foreground hover:bg-secondary/50"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
+              {["Semua", ...menuCategories].map((c) => {
+                if (activeCat === c) {
+                  return (
+                    <button key={c} onClick={() => setActiveCat(c)} className="space-btn px-6 py-2 scale-105">
+                      <div className="space-stars-container">
+                        <div className="space-stars"></div>
+                      </div>
+                      <div className="space-glow">
+                        <div className="space-circle"></div>
+                        <div className="space-circle"></div>
+                      </div>
+                      <strong>{c}</strong>
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    key={c}
+                    onClick={() => setActiveCat(c)}
+                    className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all bg-card border-border text-slate-500 hover:text-foreground hover:bg-secondary/50"
+                  >
+                    {c}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="relative max-w-md mx-auto w-full group">
