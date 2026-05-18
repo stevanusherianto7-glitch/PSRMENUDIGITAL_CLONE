@@ -216,34 +216,34 @@ export default function GuestMenuPage() {
   const statusConfig: Record<string, { label: string; color: string; bg: string; neonBorder: string; icon: React.ReactNode; step: number }> = {
     pending: { 
       label: "Menunggu Konfirmasi", 
-      color: "text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]", 
-      bg: "bg-yellow-950/20 border-yellow-500/30", 
-      neonBorder: "shadow-[0_0_20px_rgba(234,179,8,0.2)] border-b border-b-yellow-500/30", 
-      icon: <Clock size={16} className="text-yellow-400" />, 
+      color: "text-amber-600 dark:text-amber-400 dark:drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]", 
+      bg: "bg-amber-500/10 dark:bg-amber-950/20 border-amber-500/30", 
+      neonBorder: "dark:shadow-[0_0_20px_rgba(251,191,36,0.2)] border-b border-b-amber-500/30", 
+      icon: <Clock size={16} className="text-amber-600 dark:text-amber-400" />, 
       step: 1 
     },
     cooking: { 
       label: "Sedang Dimasak", 
-      color: "text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]", 
-      bg: "bg-orange-950/20 border-orange-500/30", 
-      neonBorder: "shadow-[0_0_20px_rgba(249,115,22,0.2)] border-b border-b-orange-500/30", 
-      icon: <ChefHat size={16} className="text-orange-400" />, 
+      color: "text-orange-600 dark:text-orange-400 dark:drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]", 
+      bg: "bg-orange-500/10 dark:bg-orange-950/20 border-orange-500/30", 
+      neonBorder: "dark:shadow-[0_0_20px_rgba(249,115,22,0.2)] border-b border-b-orange-500/30", 
+      icon: <ChefHat size={16} className="text-orange-600 dark:text-orange-400" />, 
       step: 2 
     },
     ready: { 
       label: "Siap Diantar", 
-      color: "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]", 
-      bg: "bg-blue-950/20 border-blue-500/30", 
-      neonBorder: "shadow-[0_0_20px_rgba(59,130,246,0.2)] border-b border-b-blue-500/30", 
-      icon: <UtensilsCrossed size={16} className="text-blue-400" />, 
+      color: "text-blue-600 dark:text-blue-400 dark:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]", 
+      bg: "bg-blue-500/10 dark:bg-blue-950/20 border-blue-500/30", 
+      neonBorder: "dark:shadow-[0_0_20px_rgba(59,130,246,0.2)] border-b border-b-blue-500/30", 
+      icon: <UtensilsCrossed size={16} className="text-blue-600 dark:text-blue-400" />, 
       step: 3 
     },
     served: { 
       label: "Sudah Disajikan", 
-      color: "text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]", 
-      bg: "bg-green-950/20 border-green-500/30", 
-      neonBorder: "shadow-[0_0_20px_rgba(34,197,94,0.2)] border-b border-b-green-500/30", 
-      icon: <CheckCircle2 size={16} className="text-green-400" />, 
+      color: "text-green-600 dark:text-green-400 dark:drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]", 
+      bg: "bg-green-500/10 dark:bg-green-950/20 border-green-500/30", 
+      neonBorder: "dark:shadow-[0_0_20px_rgba(34,197,94,0.2)] border-b border-b-green-500/30", 
+      icon: <CheckCircle2 size={16} className="text-green-600 dark:text-green-400" />, 
       step: 4 
     },
   };
