@@ -9,6 +9,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
 import { printService } from "../../utils/printService";
+import { toast } from "react-hot-toast";
 
 // Session ID unik untuk tab ini untuk koordinasi kunci antar-tab
 const TAB_SESSION_ID = Math.random().toString(36).substring(2, 9);
@@ -107,6 +108,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       playNotifBeep();
     };
 
+    toast("🔊 Memutar notifikasi suara...", { icon: '🤖', duration: 3000 });
     window.speechSynthesis.speak(utterance);
   }, [enabled]);
 
