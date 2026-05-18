@@ -86,13 +86,15 @@ export function AdminLayout({
                   onSetModule(item.id);
                   if (window.innerWidth < 1024) onSetMobileSidebarOpen(false);
                 }}
-                className={`w-full flex items-center rounded-xl text-left transition-all group relative ${sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
+                className={`sidebar-item w-full flex items-center rounded-xl text-left transition-all group relative ${sidebarOpen || mobileSidebarOpen ? "px-3 py-2.5 gap-3" : "p-3 justify-center"
                   } ${active
                     ? "text-primary drop-shadow-[0_0_8px_rgba(232,119,34,0.8)]"
                     : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                   }`}
-                title={!sidebarOpen && !mobileSidebarOpen ? item.label : undefined}
               >
+                {!sidebarOpen && !mobileSidebarOpen && (
+                  <span className="sidebar-tooltip">{item.label}</span>
+                )}
                 <Icon size={22} className={`flex-shrink-0 transition-transform ${active ? "scale-110" : "group-hover:scale-110"}`} />
 
                 <span className={`inline-block whitespace-nowrap font-black text-xs uppercase tracking-wider transition-all duration-300 truncate ${
