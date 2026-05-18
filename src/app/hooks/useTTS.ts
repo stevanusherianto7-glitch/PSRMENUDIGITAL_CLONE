@@ -9,7 +9,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
 import { printService } from "../../utils/printService";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 // Session ID unik untuk tab ini untuk koordinasi kunci antar-tab
 const TAB_SESSION_ID = Math.random().toString(36).substring(2, 9);
