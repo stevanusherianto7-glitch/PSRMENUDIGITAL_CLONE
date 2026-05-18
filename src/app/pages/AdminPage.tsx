@@ -285,6 +285,7 @@ export default function AdminPage() {
       // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
       const now = Date.now();
       const timeWindow = now - (24 * 60 * 60 * 1000); // 24 jam terakhir
+      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
 
       const active = orders.filter(o => {
         if (o.status === "cancelled") return false;
