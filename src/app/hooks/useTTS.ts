@@ -180,15 +180,40 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     if (orders.length === 0) return;
 
-    // Cari order baru yang BELUM ADA di globalKnownIds
-    const newOrders = orders.filter(o => !globalKnownIds.has(o.id));
+    // Cari order baru yang BELUM ADA di globalKnownIds DAN belum di-lock oleh tab lain
+    const now = Date.now();
+    const newOrders = orders.filter(o => {
+      if (globalKnownIds.has(o.id)) return false;
+
+      // Cross-tab check: cek apakah tab lain sudah mengklaim order ini (lock 30 detik)
+      try {
+        const lockData = localStorage.getItem(`tts_lock_${o.id}`);
+        if (lockData) {
+          const lockTime = parseInt(lockData, 10);
+          if (now - lockTime < 30000) {
+            // Lock masih aktif (< 30 detik) → tab lain sudah menangani
+            globalKnownIds.add(o.id);
+            return false;
+          }
+          // Lock sudah expired → hapus dan izinkan
+          localStorage.removeItem(`tts_lock_${o.id}`);
+        }
+      } catch (_) { /* localStorage mungkin tidak tersedia */ }
+
+      return true;
+    });
 
     if (newOrders.length === 0) return;
 
     console.log("[TTS] Detected", newOrders.length, "NEW orders:", newOrders.map(o => o.id));
 
-    // Tandai semua order baru sebagai "diketahui" secara instan agar polling berikutnya tidak mengumumkan ulang
-    newOrders.forEach(o => globalKnownIds.add(o.id));
+    // Tandai semua order baru di memori + kunci di localStorage (cross-tab lock 30 detik)
+    newOrders.forEach(o => {
+      globalKnownIds.add(o.id);
+      try {
+        localStorage.setItem(`tts_lock_${o.id}`, String(now));
+      } catch (_) { /* ignore */ }
+    });
 
     // Umumkan pesanan secara berurutan dengan jeda 8 detik antar pesanan
     newOrders.forEach((order, index) => {
@@ -201,6 +226,14 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       }, index * 8000);
       timeoutsRef.current.push(announceTimeoutId);
     });
+
+    // Bersihkan lock keys setelah 60 detik agar localStorage tidak membengkak
+    const cleanupId = window.setTimeout(() => {
+      newOrders.forEach(o => {
+        try { localStorage.removeItem(`tts_lock_${o.id}`); } catch (_) {}
+      });
+    }, 60000);
+    timeoutsRef.current.push(cleanupId);
 
     return () => {
       // Bersihkan semua timeout jika dependencies berubah atau unmount
