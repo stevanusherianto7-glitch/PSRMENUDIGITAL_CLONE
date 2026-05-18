@@ -272,6 +272,24 @@ export default function GuestMenuPage() {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance("Semua pesanan aktif di meja ini telah berhasil dibersihkan.");
         utterance.lang = "id-ID";
+        utterance.pitch = 1.4; // Pitch lebih tinggi agar suara Andika terdengar lebih muda
+        utterance.rate = 1.05; // Sedikit lebih cepat agar lebih energik
+        
+        const voices = window.speechSynthesis.getVoices();
+        const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+        
+        // Pilih suara Andika atau suara pria lainnya
+        const maleVoice = idVoices.find(v => 
+          v.name.includes("Andika") || 
+          v.name.toLowerCase().includes("male")
+        );
+        
+        if (maleVoice) {
+          utterance.voice = maleVoice;
+        } else if (idVoices.length > 0) {
+          utterance.voice = idVoices[0];
+        }
+        
         window.speechSynthesis.speak(utterance);
       }
       
