@@ -208,7 +208,6 @@ export default function GuestMenuPage() {
       setView("status");
     } catch (e) {
       console.error("createOrder error:", e);
-      alert("Gagal mengirim pesanan. Periksa koneksi internet dan coba lagi.");
     }
     setPlacing(false);
   }

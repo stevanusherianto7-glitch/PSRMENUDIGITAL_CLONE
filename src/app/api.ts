@@ -136,6 +136,7 @@ export async function createOrder(payload: {
 
   if (error) {
     console.error("createOrder error:", error.message);
+    alert("Supabase Error: " + error.message);
     throw error;
   }
 
