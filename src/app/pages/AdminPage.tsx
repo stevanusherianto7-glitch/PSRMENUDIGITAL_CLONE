@@ -264,7 +264,7 @@ export default function AdminPage() {
       const s = localStorage.getItem("pawon_session");
       if (!s) { navigate("/"); return; }
       const parsed = JSON.parse(s) as UserSession;
-      if (parsed.role !== "admin") { navigate("/waiter"); return; }
+      if (parsed.role !== "admin" && parsed.role !== "manager" && parsed.role !== "owner") { navigate("/waiter"); return; }
       setSession(parsed);
       preloadVoices();
     } catch (e) {
