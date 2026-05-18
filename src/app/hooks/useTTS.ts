@@ -248,9 +248,13 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 /** Panggil sekali untuk preload daftar suara browser */
 export function preloadVoices() {
   if (!Capacitor.isNativePlatform() && "speechSynthesis" in window) {
+    // Kosongkan antrian yang mungkin macet dari sesi sebelumnya
+    window.speechSynthesis.cancel();
+    
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
     };
   }
 }
+
