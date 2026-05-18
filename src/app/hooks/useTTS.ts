@@ -94,7 +94,9 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     if (femaleVoice) {
       utterance.voice = femaleVoice;
     } else if (idVoices.length > 0) {
-      utterance.voice = idVoices[0]; // Fallback ke suara Indo pertama
+      // Pastikan membuang suara Andika (pria) jika memungkinkan
+      const anyOtherVoice = idVoices.find(v => !v.name.includes("Andika") && !v.name.toLowerCase().includes("male"));
+      utterance.voice = anyOtherVoice || idVoices[0];
     }
 
     // Error handler: jika TTS gagal, play beep sebagai fallback

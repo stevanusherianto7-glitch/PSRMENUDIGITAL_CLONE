@@ -78,15 +78,15 @@ export default function WaiterPage() {
   const loadOrders = useCallback(async () => {
     try {
       const all = await fetchOrders();
-      // Filter: hanya order HARI INI & belum selesai/dibatalkan.
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      // Filter: hanya order 24 jam terakhir & belum selesai/dibatalkan.
+      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
 
       const active = all.filter(o => {
         if (o.status === "served" || o.status === "cancelled") return false;
-        const createdAt = new Date(o.created_at).getTime();
-        // Harus dari hari ini
-        return createdAt >= todayStart.getTime();
+        const dateStr = o.created_at || "";
+        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        // Harus dalam 24 jam terakhir
+        return createdAt >= timeWindow;
       });
       setOrders(active);
     } catch (e) {

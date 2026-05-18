@@ -281,15 +281,15 @@ export default function AdminPage() {
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
-      // Filter: hanya order hari ini (kecuali yang dibatalkan).
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      // Filter: hanya order 24 jam terakhir (kecuali yang dibatalkan).
+      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
 
       const active = orders.filter(o => {
         if (o.status === "cancelled") return false;
-        const createdAt = new Date(o.created_at).getTime();
-        // Order hari ini saja
-        return createdAt >= todayStart.getTime();
+        // Supabase Postgres timestamp without timezone defaults to UTC. Ensure we parse it correctly.
+        const dateStr = o.created_at || "";
+        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        return createdAt >= timeWindow;
       });
       setLiveOrders(active);
     } catch (e) { console.log("Error loading orders:", e); }

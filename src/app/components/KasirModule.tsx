@@ -312,9 +312,12 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       e.stopPropagation();
     }
     try {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayTransactions = (transactions || []).filter(tx => new Date(tx.created_at) >= todayStart);
+      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
+      const todayTransactions = (transactions || []).filter(tx => {
+        const dateStr = tx.created_at || "";
+        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        return createdAt >= timeWindow;
+      });
 
       const qrisTotal = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
       const debitTotal = todayTransactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0);
@@ -330,14 +333,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       const realItems = Array.from(itemsMap.entries()).map(([name, qty]) => ({ name, qty }));
       const totalTerjual = realItems.reduce((s, x) => s + x.qty, 0);
 
-      const cancelledToday = (orders || []).filter(o => o.status === "cancelled" && new Date(o.updated_at || o.created_at) >= todayStart).length;
+      const cancelledToday = (orders || []).filter(o => {
+        if (o.status !== "cancelled") return false;
+        const dateStr = o.updated_at || o.created_at || "";
+        const updatedAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        return updatedAt >= timeWindow;
+      }).length;
 
       const closingReportData = {
         bulan: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
         kasir: "Kasir PSR",
         startTime: todayTransactions.length > 0
           ? new Date(todayTransactions[todayTransactions.length - 1].created_at).toLocaleString("id-ID")
-          : new Date(todayStart).toLocaleString("id-ID"),
+          : new Date(timeWindow).toLocaleString("id-ID"),
         endTime: new Date().toLocaleString("id-ID"),
         terjual: totalTerjual || 0,
         items: realItems,
