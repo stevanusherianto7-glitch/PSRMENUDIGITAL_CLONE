@@ -154,41 +154,49 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
           const exp = getExpiryStatus(item.exp_date);
           const lowStock = item.stock < item.min_stock;
           return (
-            <div key={item.id} className="bg-card border border-border/60 rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]">
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
-                  <h4 className="font-black text-sm text-foreground leading-tight truncate">{item.name}</h4>
-                </div>
-                <div className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${exp.bg} ${exp.color}`}>
-                  {exp.label}
-                </div>
+            <div key={item.id} className="stok-card rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]">
+              {/* Background Decoration */}
+              <div className="stok-container">
+                <div className="stok-cloud stok-front"><span className="stok-left-front"></span><span className="stok-right-front"></span></div>
+                <span className="stok-sun stok-sunshine"></span><span className="stok-sun"></span>
+                <div className="stok-cloud stok-back"><span className="stok-left-back"></span><span className="stok-right-back"></span></div>
               </div>
-
-              <div className="flex items-end justify-between border-t border-border/40 pt-3">
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sisa Stok</p>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className={`text-lg font-black font-['Poppins'] ${lowStock ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]" : "text-foreground"}`}>
-                      {item.stock}
-                    </span>
-                    <span className="text-[10px] font-bold text-muted-foreground">{item.unit}</span>
+              <div className="relative z-10 space-y-3">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
+                    <h4 className="font-black text-sm text-foreground leading-tight truncate">{item.name}</h4>
                   </div>
-                  {lowStock && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Stok Rendah</span>
-                    </div>
-                  )}
+                  <div className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${exp.bg} ${exp.color}`}>
+                    {exp.label}
+                  </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-2 py-1 border border-border/40">
-                    <Edit2 size={12} className="text-muted-foreground" onClick={() => openModal(item)} />
-                    <div className="w-[1px] h-3 bg-border/60" />
-                    <Trash2 size={12} className="text-red-400" onClick={() => onDelete(item.id)} />
+                <div className="flex items-end justify-between border-t border-border/40 pt-3">
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sisa Stok</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-lg font-black font-['Poppins'] ${lowStock ? "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.2)]" : "text-foreground"}`}>
+                        {item.stock}
+                      </span>
+                      <span className="text-[10px] font-bold text-muted-foreground">{item.unit}</span>
+                    </div>
+                    {lowStock && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Stok Rendah</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">Exp: {item.exp_date}</p>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-1.5 bg-secondary/50 rounded-lg px-2 py-1 border border-border/40">
+                      <Edit2 size={12} className="text-muted-foreground" onClick={() => openModal(item)} />
+                      <div className="w-[1px] h-3 bg-border/60" />
+                      <Trash2 size={12} className="text-red-400" onClick={() => onDelete(item.id)} />
+                    </div>
+                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">Exp: {item.exp_date}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -202,55 +210,63 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
           const exp = getExpiryStatus(item.exp_date);
           const lowStock = item.stock < item.min_stock;
           return (
-            <div key={item.id} className="bg-card border border-border/60 rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
-              <div>
-                <div className="flex justify-between items-start gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
-                    <h4 className="font-black text-sm text-foreground leading-tight truncate" title={item.name}>{item.name}</h4>
-                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{item.id}</p>
-                  </div>
-                  <div className={`px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${exp.bg} ${exp.color} flex items-center gap-1`}>
-                    {exp.icon} {exp.label}
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-1">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sisa Stok</p>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className={`text-2xl font-black font-poppins ${lowStock ? "text-red-500" : "text-foreground"}`}>
-                      {item.stock}
-                    </span>
-                    <span className="text-xs font-bold text-muted-foreground">{item.unit}</span>
-                  </div>
-                  {lowStock && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Stok Rendah</span>
-                    </div>
-                  )}
-                </div>
+            <div key={item.id} className="stok-card rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
+              {/* Background Decoration */}
+              <div className="stok-container">
+                <div className="stok-cloud stok-front"><span className="stok-left-front"></span><span className="stok-right-front"></span></div>
+                <span className="stok-sun stok-sunshine"></span><span className="stok-sun"></span>
+                <div className="stok-cloud stok-back"><span className="stok-left-back"></span><span className="stok-right-back"></span></div>
               </div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
+                      <h4 className="font-black text-sm text-foreground leading-tight truncate" title={item.name}>{item.name}</h4>
+                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{item.id}</p>
+                    </div>
+                    <div className={`px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${exp.bg} ${exp.color} flex items-center gap-1`}>
+                      {exp.icon} {exp.label}
+                    </div>
+                  </div>
 
-              <div className="border-t border-border/40 pt-3 flex items-center justify-between">
-                <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                  Exp: {item.exp_date}
+                  <div className="mt-4 space-y-1">
+                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sisa Stok</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-2xl font-black font-poppins ${lowStock ? "text-red-500" : "text-foreground"}`}>
+                        {item.stock}
+                      </span>
+                      <span className="text-xs font-bold text-muted-foreground">{item.unit}</span>
+                    </div>
+                    {lowStock && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Stok Rendah</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button 
-                    onClick={() => openModal(item)} 
-                    className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label="Edit"
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button 
-                    onClick={() => onDelete(item.id)} 
-                    className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
-                    aria-label="Hapus"
-                  >
-                    <Trash2 size={12} />
-                  </button>
+
+                <div className="border-t border-foreground/10 pt-3 flex items-center justify-between mt-4">
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                    Exp: {item.exp_date}
+                  </div>
+                  <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => openModal(item)} 
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Edit"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button 
+                      onClick={() => onDelete(item.id)} 
+                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
+                      aria-label="Hapus"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
