@@ -166,8 +166,11 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     if (!isLoaded) return; // Tunggu sampai data awal selesai dimuat
 
     if (isFirstLoad.current) {
-      // Saat pertama data masuk (setelah loaded), tandai semua order yang sudah ada — jangan diumumkan
-      // PENTING: harus selalu set false, bahkan jika orders kosong
+      toast.success(`[TTS Debug] First load. Mengabaikan ${orders.length} order.`);
+      orders.forEach(o => knownIds.current.add(o.id));
+      isFirstLoad.current = false;
+      return;
+    }
       orders.forEach(o => knownIds.current.add(o.id));
       isFirstLoad.current = false;
       return;
@@ -185,6 +188,10 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       }
       return true;
     });
+
+    if (newOrders.length > 0) {
+      toast(`[TTS Debug] Menemukan ${newOrders.length} order baru!`, { icon: '🔍' });
+    }
 
     if (newOrders.length === 0) return;
 
