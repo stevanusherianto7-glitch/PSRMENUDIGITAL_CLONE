@@ -128,7 +128,7 @@ export function MenuManagement({
             {viewMode === "grid" ? (
               <button
                 onClick={openAdd}
-                className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                className="uiverse-button text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20"
               >
                 <Plus size={16} /> Tambah Menu
               </button>
@@ -219,14 +219,14 @@ export function MenuManagement({
                 {/* Add New Card */}
                 <button
                   onClick={openAdd}
-                  className="bg-card border-2 border-dashed border-border rounded-xl overflow-hidden transition-all hover:border-primary/40 hover:bg-primary/5 group flex flex-col items-center justify-center gap-3 min-h-[220px]"
+                  className="uiverse-card-btn min-h-[220px]"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <Plus size={22} className="text-primary" />
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center transition-colors">
+                    <Plus size={22} color="currentColor" />
                   </div>
                   <div className="text-center">
-                    <p className="text-xs font-bold text-foreground">Tambah Menu Baru</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Klik untuk menambah item</p>
+                    <p className="text-xs font-bold text-white">Tambah Menu Baru</p>
+                    <p className="text-[10px] text-white/80 mt-0.5">Klik untuk menambah item</p>
                   </div>
                 </button>
 
