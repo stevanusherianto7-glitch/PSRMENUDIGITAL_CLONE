@@ -375,4 +375,39 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
   }
+
+  /* Dynamic Color-Shifting Halal Logo Animations */
+  @keyframes halal-color-shift-light {
+    0% {
+      filter: drop-shadow(0 0 3px rgba(232, 119, 34, 0.25)) sepia(70%) saturate(220%) hue-rotate(0deg);
+    }
+    50% {
+      filter: drop-shadow(0 0 9px rgba(63, 125, 69, 0.4)) sepia(70%) saturate(220%) hue-rotate(140deg);
+    }
+    100% {
+      filter: drop-shadow(0 0 3px rgba(232, 119, 34, 0.25)) sepia(70%) saturate(220%) hue-rotate(360deg);
+    }
+  }
+
+  @keyframes halal-color-shift-dark {
+    0% {
+      filter: invert(1) brightness(1.1) drop-shadow(0 0 5px rgba(240, 137, 56, 0.5));
+    }
+    50% {
+      filter: invert(1) brightness(1.1) drop-shadow(0 0 12px rgba(76, 175, 106, 0.7)) hue-rotate(180deg);
+    }
+    100% {
+      filter: invert(1) brightness(1.1) drop-shadow(0 0 5px rgba(240, 137, 56, 0.5));
+    }
+  }
+
+  .halal-shift-light {
+    animation: halal-color-shift-light 8s ease-in-out infinite;
+    transition: all 0.5s ease;
+  }
+
+  .halal-shift-dark {
+    animation: halal-color-shift-dark 8s ease-in-out infinite;
+    transition: all 0.5s ease;
+  }
 }

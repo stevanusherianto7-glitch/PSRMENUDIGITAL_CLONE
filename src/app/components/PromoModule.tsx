@@ -75,7 +75,7 @@ export function PromoModule({ promos, onTogglePromo, onAddPromo }: PromoModulePr
 
       {/* Modal Buat Promo */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsCreateModalOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/ backdrop-blur-sm" onClick={() => setIsCreateModalOpen(false)}>
           <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
             <div className="text-center">
               <h3 className="font-bold text-lg font-['Poppins']">Buat Promo Baru</h3>

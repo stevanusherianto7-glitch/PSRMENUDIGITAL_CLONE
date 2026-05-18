@@ -5,9 +5,11 @@ import { Plus, Edit2, Trash2, Search, UserPlus, Mail, Lock, Shield } from 'lucid
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
+import { projectId, publicAnonKey } from '../../utils/supabase/info';
+
 // Buat client sementara agar tidak mengganggu session manager yang sedang login
-const SUPABASE_URL = 'https://ugfpbkjuxrdgveyfbfks.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_goaDeAnsgkAQ1ZQM_lArBQ_LhC6vN-7';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `https://${projectId}.supabase.co`;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || publicAnonKey;
 const tempSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false }
 });
@@ -216,7 +218,7 @@ export const KaryawanModule = () => {
 
       {/* Dialog for Add/Edit */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-foreground mb-4">{currentEmp ? "Edit Karyawan" : "Daftarkan Karyawan Baru"}</h3>
             
@@ -299,4 +301,3 @@ export const KaryawanModule = () => {
     </div>
   );
 };
-

@@ -179,7 +179,7 @@ export const AssetModule = () => {
 
       {/* Dialog for Add/Edit */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-foreground mb-4">{currentAsset ? "Edit Asset" : "Tambah Asset"}</h3>
             <div className="space-y-4">

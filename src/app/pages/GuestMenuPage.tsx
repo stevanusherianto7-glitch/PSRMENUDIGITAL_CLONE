@@ -12,13 +12,37 @@ import {
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
-import { createOrder, fetchOrders } from "../api";
+import { createOrder, fetchOrders, deleteOrder } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { useThemeStore } from "../hooks/useThemeStore";
 
 type View = "menu" | "cart" | "status";
 
+function OptimizedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-secondary/40">
+      {!loaded && (
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/30 via-secondary/60 to-secondary/30 animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        className={`${className} transition-all duration-500 ease-out ${
+          loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        }`}
+      />
+    </div>
+  );
+}
+
 export default function GuestMenuPage() {
+  const { isDark } = useThemeStore();
   const { tableId } = useParams<{ tableId: string }>();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(SEED_MENU);
   const [category, setCategory] = useState("Makanan");
@@ -35,6 +59,7 @@ export default function GuestMenuPage() {
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -90,9 +115,24 @@ export default function GuestMenuPage() {
     try {
       const orders = await fetchOrders(undefined, tableId);
       const active = orders.filter(o =>
-        o.status !== "served" && o.status !== "cancelled"
+        o.status !== "cancelled" && o.status !== "served"
       );
-      setMyOrders(active);
+      
+      setMyOrders(prev => {
+        // Gabungkan order yang baru saja dibuat (di memori) tapi belum terindeks oleh Supabase fetch
+        const now = Date.now();
+        const recentLocalOrders = prev.filter(p => 
+          !active.some(a => a.id === p.id) && 
+          (now - new Date(p.created_at).getTime()) < 10000 // Kurang dari 10 detik
+        );
+        
+        if (recentLocalOrders.length > 0) {
+          return [...recentLocalOrders, ...active].sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        }
+        return active;
+      });
       // Cache ke localStorage untuk offline fallback
       if (active.length > 0) {
         localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify(active));
@@ -101,7 +141,19 @@ export default function GuestMenuPage() {
       console.warn("loadMyOrders error, showing cache:", e);
       try {
         const cached = localStorage.getItem(`guest_orders_${tableId}`);
-        if (cached && myOrders.length === 0) {
+        if (cached) {
+          setMyOrders(JSON.parse(cached));
+        }
+      } catch (_) { /* ignore */ }
+    }
+  }, [tableId]);
+
+  // Load localStorage cache instantly on mount
+  useEffect(() => {
+    if (tableId) {
+      try {
+        const cached = localStorage.getItem(`guest_orders_${tableId}`);
+        if (cached) {
           setMyOrders(JSON.parse(cached));
         }
       } catch (_) { /* ignore */ }
@@ -162,15 +214,74 @@ export default function GuestMenuPage() {
   }
 
   const statusConfig: Record<string, { label: string; color: string; bg: string; neonBorder: string; icon: React.ReactNode; step: number }> = {
-    pending: { label: "Menunggu Konfirmasi", color: "text-yellow-500", bg: "bg-yellow-500/10 border-yellow-500/20", neonBorder: "shadow-[0_0_12px_rgba(234,179,8,0.3)]", icon: <Clock size={16} />, step: 1 },
-    cooking: { label: "Sedang Dimasak", color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/20", neonBorder: "shadow-[0_0_12px_rgba(249,115,22,0.3)]", icon: <ChefHat size={16} />, step: 2 },
-    ready: { label: "Siap Diantar", color: "text-blue-500", bg: "bg-blue-500/10 border-blue-500/20", neonBorder: "shadow-[0_0_12px_rgba(59,130,246,0.3)]", icon: <UtensilsCrossed size={16} />, step: 3 },
-    served: { label: "Sudah Disajikan", color: "text-green-500", bg: "bg-green-500/10 border-green-500/20", neonBorder: "shadow-[0_0_12px_rgba(34,197,94,0.3)]", icon: <CheckCircle2 size={16} />, step: 4 },
+    pending: { 
+      label: "Menunggu Konfirmasi", 
+      color: "text-yellow-400 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]", 
+      bg: "bg-yellow-950/20 border-yellow-500/30", 
+      neonBorder: "shadow-[0_0_20px_rgba(234,179,8,0.2)] border-b border-b-yellow-500/30", 
+      icon: <Clock size={16} className="text-yellow-400" />, 
+      step: 1 
+    },
+    cooking: { 
+      label: "Sedang Dimasak", 
+      color: "text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]", 
+      bg: "bg-orange-950/20 border-orange-500/30", 
+      neonBorder: "shadow-[0_0_20px_rgba(249,115,22,0.2)] border-b border-b-orange-500/30", 
+      icon: <ChefHat size={16} className="text-orange-400" />, 
+      step: 2 
+    },
+    ready: { 
+      label: "Siap Diantar", 
+      color: "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]", 
+      bg: "bg-blue-950/20 border-blue-500/30", 
+      neonBorder: "shadow-[0_0_20px_rgba(59,130,246,0.2)] border-b border-b-blue-500/30", 
+      icon: <UtensilsCrossed size={16} className="text-blue-400" />, 
+      step: 3 
+    },
+    served: { 
+      label: "Sudah Disajikan", 
+      color: "text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]", 
+      bg: "bg-green-950/20 border-green-500/30", 
+      neonBorder: "shadow-[0_0_20px_rgba(34,197,94,0.2)] border-b border-b-green-500/30", 
+      icon: <CheckCircle2 size={16} className="text-green-400" />, 
+      step: 4 
+    },
   };
 
   function handleStartOrder() {
     setOrderMode(welcomeMode);
     setShowWelcome(false);
+  }
+
+  async function handleResetActiveOrders() {
+    if (myOrders.length === 0) return;
+    const confirmReset = window.confirm(
+      "PERINGATAN: Apakah Anda yakin ingin mereset dan menghapus semua pesanan aktif di meja ini?\n\nSemua pesanan yang sedang diproses atau dimasak akan dihapus secara permanen!"
+    );
+    if (!confirmReset) return;
+
+    setResetting(true);
+    try {
+      // Hapus secara paralel menggunakan deleteOrder API
+      await Promise.all(myOrders.map(o => deleteOrder(o.id)));
+      setMyOrders([]);
+      localStorage.removeItem(`guest_orders_${tableId}`);
+      
+      // Mengumumkan reset sukses lewat Text-to-Speech
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance("Semua pesanan aktif di meja ini telah berhasil dibersihkan.");
+        utterance.lang = "id-ID";
+        window.speechSynthesis.speak(utterance);
+      }
+      
+      alert("Pesanan aktif berhasil dibersihkan.");
+    } catch (e) {
+      console.error("Gagal mereset pesanan:", e);
+      alert("Terjadi kesalahan saat mereset beberapa pesanan. Silakan coba lagi.");
+    } finally {
+      setResetting(false);
+    }
   }
 
   if (tableError || !tableId || !tableId.trim()) {
@@ -199,7 +310,7 @@ export default function GuestMenuPage() {
 
       {/* ── Welcome Modal ───────────────────────────────────────────── */}
       {showWelcome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm">
           <div
             className="bg-card w-full max-w-md rounded-2xl overflow-hidden mx-4 shadow-2xl"
           >
@@ -208,11 +319,16 @@ export default function GuestMenuPage() {
             {welcomeStep === 1 && (
               <div className="p-6">
                 <div className="flex flex-col items-center text-center mb-6">
-                  <div className="relative mb-3">
+                  <div className="relative mb-3 flex items-center justify-center gap-6">
                     <img
                       src={logoImg}
                       alt={BRAND_NAME}
-                      className="w-16 h-16 rounded-2xl object-cover border-2 border-foreground/10"
+                      className="w-16 h-16 rounded-2xl object-cover border-2 border-foreground/10 shadow-sm"
+                    />
+                    <img 
+                      src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+                      alt="Sertifikat Halal" 
+                      className={`h-16 w-auto object-contain transition-all duration-500 ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
                     />
                   </div>
                   <h2
@@ -405,19 +521,29 @@ export default function GuestMenuPage() {
           </div>
           <div className="flex-shrink-0 mr-1">
             <img 
-              src="https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+              src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
               alt="Sertifikat Halal" 
-              className="h-[65px] w-auto object-contain drop-shadow-sm"
+              className={`h-[65px] w-auto object-contain transition-all duration-500 ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
               title="Restoran Bersertifikat Halal"
             />
           </div>
           {myOrders.length > 0 && (
-            <button
-              onClick={() => setView(view === "status" ? "menu" : "status")}
-              className="flex items-center gap-1.5 text-xs bg-primary/10 border border-primary/20 text-primary px-3 py-1.5 rounded-full font-semibold"
-            >
-              <Clock size={12} /> {myOrders.length} Pesanan
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setView(view === "status" ? "menu" : "status")}
+                className="flex items-center gap-1.5 text-xs bg-primary/10 border border-primary/20 text-primary px-3 py-1.5 rounded-full font-semibold"
+              >
+                <Clock size={12} /> {myOrders.length} Pesanan
+              </button>
+              <button
+                onClick={handleResetActiveOrders}
+                disabled={resetting}
+                title="Reset pesanan aktif meja ini"
+                className="w-8 h-8 rounded-full border border-border bg-secondary hover:bg-red-500/10 text-muted-foreground hover:text-red-400 disabled:opacity-40 transition-all flex items-center justify-center"
+              >
+                <Trash2 size={13} className={resetting ? "animate-spin" : ""} />
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -463,7 +589,7 @@ export default function GuestMenuPage() {
                     }`}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <OptimizedImage src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105" />
                       {item.tag && (
                         <span className="absolute top-2 left-2 bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                           {item.tag}
@@ -539,7 +665,9 @@ export default function GuestMenuPage() {
               <div className="space-y-3">
                 {cart.map(item => (
                   <div key={item.id} className="flex items-center gap-3 bg-card border border-border rounded-xl p-3">
-                    <img src={item.image} alt={item.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                    <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0">
+                      <OptimizedImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{item.name}</p>
                       <p className="text-primary font-bold text-sm font-poppins">{rp(item.price)}</p>
@@ -644,37 +772,64 @@ export default function GuestMenuPage() {
                     </div>
 
                     {/* Progress Stepper dengan Neon */}
-                    <div className="flex items-center px-4 py-4 gap-1">
-                      {(["pending", "cooking", "ready", "served"] as const).map((s, i) => {
-                        const done = cfg.step > i + 1;
-                        const active = cfg.step === i + 1;
-                        const stepLabels = ["Konfirmasi", "Dimasak", "Siap", "Disajikan"];
-                        return (
-                          <div key={s} className="flex items-center flex-1">
-                            <div className="flex flex-col items-center gap-1">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 relative transition-all duration-500 ${
+                    <div className="px-4 py-5 flex flex-col gap-3">
+                      {/* Baris Lingkaran & Garis */}
+                      <div className="flex items-center justify-between relative px-2">
+                        {/* Line Background */}
+                        <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-1 bg-secondary rounded-full -z-10"></div>
+                        {/* Line Active/Done (calculated by step width) */}
+                        <div 
+                          className="absolute left-6 top-1/2 -translate-y-1/2 h-1 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8),_0_0_4px_rgba(34,197,94,0.4)] transition-all duration-500 -z-10"
+                          style={{ width: `${(Math.max(0, cfg.step - 1) / 3) * 100}%` }}
+                        ></div>
+                        
+                        {(["pending", "cooking", "ready", "served"] as const).map((s, i) => {
+                          const done = cfg.step > i + 1;
+                          const active = cfg.step === i + 1;
+                          return (
+                            <div 
+                              key={s} 
+                              className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold relative transition-all duration-500 ${
                                 done 
-                                  ? "bg-green-500 text-white shadow-[0_0_8px_rgba(34,197,94,0.5)]" 
+                                  ? "bg-green-500 text-white shadow-[0_0_12px_rgba(34,197,94,0.6)]" 
                                   : active 
-                                    ? `bg-primary text-white shadow-[0_0_16px_rgba(232,119,34,0.6)]` 
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.8)]" 
                                     : "bg-secondary border border-border text-muted-foreground"
-                              }`}>
-                                {/* Efek Neon Kedip untuk step aktif */}
-                                {active && <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-50"></span>}
-                                {active && <span className="absolute -inset-1 rounded-full border-2 border-primary/40 animate-pulse"></span>}
-                                <span className="relative z-10">{i + 1}</span>
-                              </div>
-                              {/* Label step */}
-                              <span className={`text-[8px] font-semibold leading-tight text-center ${
-                                done ? "text-green-500" : active ? "text-primary font-bold animate-pulse" : "text-muted-foreground/50"
-                              }`}>{stepLabels[i]}</span>
+                              }`}
+                            >
+                              {active && (
+                                <>
+                                  <span className="absolute -inset-1.5 rounded-full border-2 border-orange-500/40 animate-ping opacity-75"></span>
+                                  <span className="absolute -inset-3 rounded-full border border-orange-400/20 animate-pulse opacity-40"></span>
+                                </>
+                              )}
+                              <span className="relative z-10">{i + 1}</span>
                             </div>
-                            {i < 3 && (
-                              <div className={`flex-1 h-0.5 mb-4 mx-0.5 transition-all duration-500 ${done ? "bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.4)]" : "bg-border"}`} />
-                            )}
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Baris Label */}
+                      <div className="grid grid-cols-4 text-center px-1">
+                        {["Konfirmasi", "Dimasak", "Siap", "Disajikan"].map((lbl, i) => {
+                          const done = cfg.step > i + 1;
+                          const active = cfg.step === i + 1;
+                          return (
+                            <span 
+                              key={lbl} 
+                              className={`text-[9px] font-black uppercase tracking-wider transition-all duration-300 ${
+                                done 
+                                  ? "text-green-500" 
+                                  : active 
+                                    ? "text-orange-400 font-extrabold drop-shadow-[0_0_8px_rgba(249,115,22,0.5)] animate-pulse" 
+                                    : "text-muted-foreground/45"
+                              }`}
+                            >
+                              {lbl}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="px-4 pb-4 space-y-1.5">
@@ -706,7 +861,7 @@ export default function GuestMenuPage() {
       {/* Item Detail Modal */}
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm"
           onClick={() => setSelectedItem(null)}
         >
           <div
@@ -714,7 +869,7 @@ export default function GuestMenuPage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="aspect-video overflow-hidden">
-              <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
+              <OptimizedImage src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
             </div>
             <div className="p-5">
               <div className="flex items-start justify-between gap-3">
@@ -765,4 +920,3 @@ export default function GuestMenuPage() {
     </ErrorBoundary>
   );
 }
-

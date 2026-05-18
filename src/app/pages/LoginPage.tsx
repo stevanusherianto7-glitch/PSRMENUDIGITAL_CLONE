@@ -152,7 +152,7 @@ export default function LoginPage() {
             <div>
               <label className="block mb-2">Password</label>
               <div className="relative">
-                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
                   type={showPass ? "text" : "password"}
                   value={password}

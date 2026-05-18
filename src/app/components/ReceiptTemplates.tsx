@@ -180,7 +180,9 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
         </div>
         {tx.discount_amount ? (
           <div className="flex justify-between">
-            <span>Diskon ({tx.discount || 0}%):</span>
+            <span>
+              Diskon ({tx.discount !== undefined && tx.discount !== null ? tx.discount : (tx.subtotal > 0 ? Math.round((tx.discount_amount || 0) / tx.subtotal * 100) : 0)}%):
+            </span>
             <span>-{tx.discount_amount.toLocaleString("id-ID")}</span>
           </div>
         ) : null}

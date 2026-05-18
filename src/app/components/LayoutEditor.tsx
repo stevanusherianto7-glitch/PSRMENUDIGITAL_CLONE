@@ -102,12 +102,12 @@ export function LayoutEditor({
               } ${!item.available ? "opacity-50" : ""}`}
             >
               {/* Drag handle */}
-              <div className="absolute top-2 left-2 z-10 bg-black/50 rounded-lg p-1">
+              <div className="absolute top-2 left-2 z-10 bg-black/40 dark:bg-black/ rounded-lg p-1">
                 <GripVertical size={12} className="text-white/70" />
               </div>
 
               {/* Order number */}
-              <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center">
+              <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-black/40 dark:bg-black/ rounded-full flex items-center justify-center">
                 <span className="text-[10px] font-bold text-white">{i + 1}</span>
               </div>
 
@@ -123,7 +123,7 @@ export function LayoutEditor({
                 {/* Edit photo overlay */}
                 <button
                   onClick={() => onEditPhoto(item)}
-                  className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-all flex items-center justify-center opacity-0 hover:opacity-100 group"
+                  className="absolute inset-0 bg-black/0 hover:bg-black/40 dark:bg-black/ transition-all flex items-center justify-center opacity-0 hover:opacity-100 group"
                 >
                   <div className="flex flex-col items-center gap-1 text-white">
                     <Camera size={18} />

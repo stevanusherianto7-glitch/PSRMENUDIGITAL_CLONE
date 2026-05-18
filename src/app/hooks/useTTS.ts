@@ -8,6 +8,10 @@ import { useRef, useEffect, useCallback } from "react";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
+import { printService } from "../../utils/printService";
+
+// Session ID unik untuk tab ini untuk koordinasi kunci antar-tab
+const TAB_SESSION_ID = Math.random().toString(36).substring(2, 9);
 
 /**
  * playNotifBeep — Notifikasi suara beep menggunakan Web Audio API.
@@ -34,7 +38,7 @@ function playNotifBeep() {
  * useTTS — Text-to-Speech untuk notifikasi pesanan masuk.
  * Otomatis membacakan pesanan baru yang belum pernah diumumkan.
  */
-export function useTTS(orders: Order[], enabled: boolean = true) {
+export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
   const knownIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
 
@@ -65,8 +69,8 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
       return;
     }
 
-    // Cancel antrian lama agar tidak tumpuk
-    window.speechSynthesis.cancel();
+    // Jangan batalkan antrian agar pesan bisa diucapkan sampai selesai (antri)
+    // window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
@@ -94,8 +98,10 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
     }
 
     // Error handler: jika TTS gagal, play beep sebagai fallback
-    utterance.onerror = () => {
-      console.warn("TTS utterance error, playing beep fallback");
+    utterance.onerror = (e) => {
+      // Abaikan error jika sengaja di-cancel (karena ada notif antrian berikutnya)
+      if (e.error === 'interrupted' || e.error === 'canceled') return;
+      console.warn("TTS utterance error, playing beep fallback", e);
       playNotifBeep();
     };
 
@@ -147,16 +153,16 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
       `Mohon segera diproses.`
     ].filter(Boolean);
     
-    // Ucapkan tiap bagian dengan jeda 1.5 detik
-    parts.forEach((part, index) => {
-      setTimeout(() => speak(part), index * 1500);
-    });
+    const fullText = parts.join(". ");
+    speak(fullText);
   }, [speak]);
 
   // Detect pesanan baru ketika orders berubah
   useEffect(() => {
+    if (!isLoaded) return; // Tunggu sampai data awal selesai dimuat
+
     if (isFirstLoad.current) {
-      // Saat pertama load, tandai semua order yang sudah ada — jangan diumumkan
+      // Saat pertama data masuk (setelah loaded), tandai semua order yang sudah ada — jangan diumumkan
       // PENTING: harus selalu set false, bahkan jika orders kosong
       orders.forEach(o => knownIds.current.add(o.id));
       isFirstLoad.current = false;
@@ -165,24 +171,74 @@ export function useTTS(orders: Order[], enabled: boolean = true) {
 
     if (orders.length === 0) return;
 
-    const newOrders = orders.filter(o => !knownIds.current.has(o.id));
+    const newOrders = orders.filter(o => {
+      if (knownIds.current.has(o.id)) return false;
+      // CROSS-TAB CHECK: Mencegah tab ganda membacakan order yang sama
+      const announced = localStorage.getItem(`tts_announced_${o.id}`);
+      if (announced) {
+        knownIds.current.add(o.id);
+        return false;
+      }
+      return true;
+    });
+
     if (newOrders.length === 0) return;
 
-    // Bersihkan antrian lama
-    if (Capacitor.isNativePlatform()) {
-      TextToSpeech.stop().catch(() => {});
-    } else if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-
-    // Tambahkan ke set agar tidak diumumkan dua kali
+    // Kunci secara sinkron di level memori lokal tab ini agar tab ini tidak menschedule ulang
     newOrders.forEach(o => knownIds.current.add(o.id));
 
-    // Umumkan dengan jeda antar pesanan jika lebih dari satu
-    newOrders.forEach((order, index) => {
-      setTimeout(() => announceOrder(order), index * 8000);
-    });
-  }, [orders, announceOrder]);
+    // Bikin lock key unik untuk batch pesanan baru ini
+    const batchId = newOrders.map(o => o.id).sort().join("_");
+    const batchLockKey = `tts_batch_lock_${batchId}`;
+
+    // Jitter delay acak (0-800ms) untuk memecah Race Condition antar-tab
+    const jitter = Math.random() * 800;
+
+    setTimeout(() => {
+      // Cek apakah tab lain sudah memenangkan batch lock ini
+      const activeLock = localStorage.getItem(batchLockKey);
+      if (activeLock) {
+        return; // Tab lain sudah memproses seluruh batch ini
+      }
+
+      // Tab ini yang menang, kunci seluruh batch!
+      try {
+        localStorage.setItem(batchLockKey, TAB_SESSION_ID);
+      } catch (e) {
+        console.warn("Gagal menulis batch lock ke localStorage:", e);
+      }
+
+      // Kunci masing-masing order di localStorage agar tab lain tidak memproses ulang
+      newOrders.forEach(order => {
+        try {
+          localStorage.setItem(`tts_announced_${order.id}`, Date.now().toString());
+        } catch (e) {
+          console.warn("Gagal menulis tts_announced ke localStorage:", e);
+        }
+      });
+
+      // Umumkan pesanan secara berurutan
+      newOrders.forEach((order, index) => {
+        setTimeout(() => {
+          announceOrder(order);
+          // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
+          if (printService.getIsConnected()) {
+             printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
+          }
+        }, index * 8000);
+      });
+
+      // Bersihkan batch lock dari localStorage setelah selesai diumumkan (setelah 10 menit)
+      setTimeout(() => {
+        try {
+          localStorage.removeItem(batchLockKey);
+        } catch (e) {
+          console.warn("Gagal menghapus batch lock dari localStorage:", e);
+        }
+      }, 600000);
+
+    }, jitter);
+  }, [orders, announceOrder, isLoaded]);
 
   return { speak };
 }

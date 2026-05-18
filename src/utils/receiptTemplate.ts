@@ -81,8 +81,9 @@ export const ReceiptTemplate = {
       .newline();
 
     if (tx.discount_amount) {
+      const pct = tx.discount !== undefined && tx.discount !== null ? tx.discount : (tx.subtotal > 0 ? Math.round(tx.discount_amount / tx.subtotal * 100) : 0);
       builder = builder
-        .text(ReceiptTemplate.formatLine(`Diskon (${tx.discount}%):`, `-${tx.discount_amount.toLocaleString('id-ID')}`))
+        .text(ReceiptTemplate.formatLine(`Diskon (${pct}%):`, `-${tx.discount_amount.toLocaleString('id-ID')}`))
         .newline();
     }
 

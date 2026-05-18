@@ -16,6 +16,7 @@ import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { fetchOrders, updateOrder, deleteOrder } from "../api";
 import { supabase } from "../../lib/supabase";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
+import { printService } from "../../utils/printService";
 import type { Order, OrderStatus, UserSession } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 
@@ -46,7 +47,7 @@ export default function WaiterPage() {
   const [resetting, setResetting] = useState(false);
 
   // ─── TTS — panggil setiap kali 'orders' berubah ───────────────────────────
-  const { speak } = useTTS(orders, ttsEnabled);
+  const { speak } = useTTS(orders, ttsEnabled, !loading);
 
   useEffect(() => {
     try {
@@ -78,17 +79,14 @@ export default function WaiterPage() {
     try {
       const all = await fetchOrders();
       // Filter: hanya order HARI INI & belum selesai/dibatalkan.
-      // Order lebih dari 4 jam dianggap basi dan dilewati.
-      const now = Date.now();
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
-      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
 
       const active = all.filter(o => {
         if (o.status === "served" || o.status === "cancelled") return false;
         const createdAt = new Date(o.created_at).getTime();
-        // Harus dari hari ini DAN belum lewat 4 jam
-        return createdAt >= todayStart.getTime() && (now - createdAt) < MAX_AGE_MS;
+        // Harus dari hari ini
+        return createdAt >= todayStart.getTime();
       });
       setOrders(active);
     } catch (e) {
@@ -156,11 +154,9 @@ export default function WaiterPage() {
         .in("id", ids);
       
       if (error) {
-        console.error("Supabase delete error:", error);
-        // Fallback: coba satu per satu via API
-        for (const o of orders) {
-          await deleteOrder(o.id).catch(() => {});
-        }
+        console.error("Supabase delete error, using parallel API fallback:", error);
+        // Fallback: hapus secara paralel via deleteOrder API
+        await Promise.all(orders.map(o => deleteOrder(o.id).catch(() => {})));
       }
       setOrders([]);
       setShowResetConfirm(false);
@@ -428,6 +424,15 @@ export default function WaiterPage() {
                         Sudah Disajikan ke Meja {order.tableId}
                       </button>
                     )}
+                    {(tab === "kitchen" || tab === "bar") && (order.status === "pending" || order.status === "cooking") && (
+                      <button
+                        onClick={() => printService.printKitchen(order)}
+                        className="flex-none py-2 px-3 rounded-lg bg-secondary border border-border text-foreground text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                        title="Cetak Tiket Fisik"
+                      >
+                        <ChefHat size={12} />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -457,7 +462,7 @@ export default function WaiterPage() {
 
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={() => setShowResetConfirm(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/ backdrop-blur-sm p-4" onClick={() => setShowResetConfirm(false)}>
           <div className="bg-card border border-border rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-5 border-b border-border text-center">
               <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3">

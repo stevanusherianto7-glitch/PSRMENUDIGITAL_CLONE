@@ -4,7 +4,7 @@
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN KETIDAKSESUAIAN DATA FINANSIAL. ⚠️
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   ArrowUpRight, Database, Printer, ExternalLink, 
   RefreshCw, X, PieChart as PieIcon, BarChart3, Clock, Download
@@ -25,6 +25,56 @@ interface LaporanModuleProps {
 }
 
 const CATEGORY_COLORS = ["#C8A96E", "#E2C98A", "#6366F1"];
+
+interface TiltCardProps {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: string;
+}
+
+function TiltCard({ children, className = "", glowColor = "rgba(200, 169, 110, 0.15)" }: TiltCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setCoords({ x, y });
+  };
+
+  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setCoords({ x: 0, y: 0 });
+  };
+
+  const rotateX = isHovered ? -coords.y * 12 : 0;
+  const rotateY = isHovered ? coords.x * 12 : 0;
+
+  const cardStyle: React.CSSProperties = {
+    transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(${isHovered ? 1.01 : 1}, ${isHovered ? 1.01 : 1}, 1)`,
+    transition: isHovered ? "transform 0.05s ease-out" : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)",
+    boxShadow: isHovered 
+      ? `0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px ${glowColor}`
+      : "0 4px 20px rgba(0, 0, 0, 0.15)",
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={cardStyle}
+      className={`bg-card border border-border/60 rounded-3xl p-6 transition-shadow duration-500 ease-out select-none cursor-pointer ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function LaporanModule({ transactions }: LaporanModuleProps) {
   const [isPrinting, setIsPrinting] = useState(false);
@@ -79,23 +129,49 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   async function handlePrintThermal() {
     setIsPrinting(true);
     try {
-      // Mock closing data for thermal
-      const closingData = {
-        date: new Date().toLocaleDateString("id-ID"),
-        penjualanBersih: weekTotal,
-        pb1: Math.round(weekTotal * 0.1),
-        qris: transactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.4),
-        tunai: transactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        kartu: transactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        totalTransaksi: txCount,
-        totalItem: transactions.reduce((s, tx) => s + tx.items.length, 0) || 500,
-        hpp: Math.round(weekTotal * 0.4),
-        labaKotor: Math.round(weekTotal * 0.6)
+      // Hitung data real pemasukan dari transaksi
+      const qrisTotal = transactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
+      const debitTotal = transactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0);
+      const tunaiTotal = transactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
+      const totalPemasukan = qrisTotal + debitTotal + tunaiTotal;
+
+      // Hitung data real item terjual
+      const itemsMap = new Map<string, number>();
+      transactions.forEach(tx => {
+        tx.items.forEach(item => {
+          itemsMap.set(item.name, (itemsMap.get(item.name) || 0) + item.qty);
+        });
+      });
+      const realItems = Array.from(itemsMap.entries()).map(([name, qty]) => ({ name, qty }));
+      const totalTerjual = realItems.reduce((s, x) => s + x.qty, 0);
+
+      const closingReportData = {
+        bulan: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
+        kasir: "Kasir PSR",
+        startTime: transactions.length > 0
+          ? new Date(transactions[transactions.length - 1].created_at).toLocaleString("id-ID")
+          : new Date().toLocaleString("id-ID"),
+        endTime: new Date().toLocaleString("id-ID"),
+        terjual: totalTerjual || 0,
+        items: realItems,
+        totalVoid: 0,
+        pemasukan: {
+          qris: qrisTotal || 0,
+          debit: debitTotal || 0,
+          tunai: tunaiTotal || 0,
+          total: totalPemasukan || 0
+        },
+        kasKecil: {
+          awal: 500000,
+          saldo: 500000 + tunaiTotal,
+          total: tunaiTotal
+        }
       };
-      await printService.printClosingReport(); // Using pre-existing method
+
+      await printService.printClosingReport(closingReportData); // Mengirim data transaksi real
       toast.success("Laporan closing dicetak.");
     } catch (err) {
-      toast.error("Gagal cetak.");
+      toast.error("Gagal cetak: " + (err as Error).message);
     } finally {
       setIsPrinting(false);
     }
@@ -122,7 +198,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* ── Grafik Penjualan Per Kategori ── */}
-        <div className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm">
+        <TiltCard glowColor="rgba(200, 169, 110, 0.2)">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gold-faint flex items-center justify-center">
@@ -134,7 +210,10 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
               </div>
             </div>
             <button 
-              onClick={() => exportCategorySalesReport(categoryData, totalSales)}
+              onClick={(e) => {
+                e.stopPropagation();
+                exportCategorySalesReport(categoryData, totalSales);
+              }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-[10px] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all border border-border"
             >
               <Download size={12} /> PDF
@@ -165,10 +244,10 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </TiltCard>
 
         {/* ── Grafik Jam Ramai Transaksi ── */}
-        <div className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm">
+        <TiltCard glowColor="rgba(99, 102, 241, 0.2)">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
               <BarChart3 size={16} className="text-indigo-400" />
@@ -210,7 +289,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </TiltCard>
 
       </div>
 

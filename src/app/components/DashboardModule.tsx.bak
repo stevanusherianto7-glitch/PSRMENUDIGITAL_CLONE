@@ -1,0 +1,431 @@
+/** 
+ * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
+ * FILE INI BERISI DASHBOARD ANALITIK DAN VISUALISASI DATA (RECHARTS) KEDAI ELVERA 57.
+ * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN LAPORAN KEUANGAN TIDAK AKURAT. ⚠️
+ */
+import React, { useState, useEffect } from "react";
+import { Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, Download, Clock } from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { rp } from "../data";
+import type { Transaction, Order } from "../types";
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, BarChart, Bar, Legend
+} from "recharts";
+
+// ─── Chart Colors ─────────────────────────────────────────────────────────────
+const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+
+// ─── Chart helpers ─────────────────────────────────────────────────────────────
+function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
+  return (
+    <div className="w-full h-[180px]">
+      <ResponsiveContainer>
+        <AreaChart
+          data={data}
+          margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1}/>
+            </linearGradient>
+            <filter id="shadow" height="200%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
+              <feOffset in="blur" dx="2" dy="4" result="offsetBlur" />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#4B5563" fontSize={10} tickFormatter={(v) => `Rp${v/1000}k`} tickLine={false} axisLine={false} width={40} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+            labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+            itemStyle={{ color: '#6366F1' }}
+            formatter={(value: any) => [rp(value), "Penjualan"]}
+          />
+          <Area
+            type="monotone"
+            dataKey="sales"
+            stroke="#6366F1"
+            strokeWidth={4}
+            fillOpacity={1}
+            fill="url(#colorSales)"
+            filter="url(#shadow)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function CategoryPieChart({ data }: { data: { name: string; value: number }[] }) {
+  return (
+    <div className="w-full h-[180px]">
+      <ResponsiveContainer>
+        <PieChart>
+          <defs>
+            <filter id="pieShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+              <feOffset dx="2" dy="4" result="offsetblur" />
+              <feComponentTransfer>
+                <feFuncA type="linear" slope="0.5" />
+              </feComponentTransfer>
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={45}
+            outerRadius={70}
+            paddingAngle={5}
+            dataKey="value"
+            stroke="none"
+            filter="url(#pieShadow)"
+          >
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
+            itemStyle={{ fontSize: '10px' }}
+          />
+          <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function PeakHoursBarChart({ data }: { data: { hour: string; count: number }[] }) {
+  return (
+    <div className="w-full h-[180px]">
+      <ResponsiveContainer>
+        <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F59E0B" />
+              <stop offset="100%" stopColor="#D97706" />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} width={40} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
+          />
+          <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} barSize={20} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, sub, trend, trendUp, accent, loading }: {
+  label: string; value: string; sub?: string; trend?: string; trendUp?: boolean; accent?: string; loading?: boolean;
+}) {
+  return (
+    <div className="bg-card border border-border/60 rounded-xl p-4 flex flex-col gap-2 transition-all duration-300 hover:shadow-md hover:border-indigo-500/20 group">
+      <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.15em] mb-0.5">{label}</p>
+      {loading ? (
+        <div className="h-5 bg-secondary animate-pulse rounded-md w-3/4"></div>
+      ) : (
+        <p className={`font-black leading-tight font-['Poppins'] text-lg truncate ${accent || "text-[#E8EAF0]"}`} title={value}>{value}</p>
+      )}
+      <div className="flex items-center gap-1.5 mt-auto">
+        {loading ? (
+          <div className="h-3 bg-secondary animate-pulse rounded-md w-1/2"></div>
+        ) : (
+          <>
+            {trend && (
+              <span className={`flex items-center gap-0.5 text-[10px] font-bold ${trendUp ? "text-green-500" : "text-red-500"}`}>
+                {trendUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}{trend}
+              </span>
+            )}
+            {sub && <span className="text-muted-foreground text-[10px] font-semibold truncate">{sub}</span>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface DashboardModuleProps {
+  transactions: Transaction[];
+  liveOrders: Order[];
+  connected: boolean;
+}
+
+export const DashboardModule = ({ transactions, liveOrders, connected }: DashboardModuleProps) => {
+  const [todayMetrics, setTodayMetrics] = useState({ totalSales: 0, transactionCount: 0, avgTransaction: 0 });
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    let transactionsSubscription: any;
+    let ordersSubscription: any;
+
+    const fetchMetrics = async () => {
+      setLoading(true);
+      setFetchError(false);
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('total')
+          .gte('created_at', today + 'T00:00:00.000Z')
+          .lte('created_at', today + 'T23:59:59.999Z');
+
+        if (error) throw error;
+
+        if (data) {
+          const totalSales = data.reduce((sum, tx) => sum + (tx.total || 0), 0);
+          const transactionCount = data.length;
+          const avgTransaction = transactionCount > 0 ? Math.round(totalSales / transactionCount) : 0;
+
+          setTodayMetrics({ totalSales, transactionCount, avgTransaction });
+        }
+      } catch (err) {
+        console.error("Failed to fetch metrics:", err);
+        setFetchError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (connected) {
+      fetchMetrics();
+
+      transactionsSubscription = supabase
+        .channel('transactions-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'transactions'
+        }, () => {
+          fetchMetrics();
+        })
+        .subscribe();
+
+      ordersSubscription = supabase
+        .channel('orders-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders'
+        }, () => {
+          console.log('Orders updated via realtime');
+        })
+        .subscribe();
+
+      interval = setInterval(fetchMetrics, 30000);
+    } else {
+      setLoading(false);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (transactionsSubscription) transactionsSubscription.unsubscribe();
+      if (ordersSubscription) ordersSubscription.unsubscribe();
+    };
+  }, [connected, retryCount]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayTx = transactions.filter(tx => tx.created_at.startsWith(todayStr));
+  const todaySales = connected ? todayMetrics.totalSales : todayTx.reduce((s, tx) => s + tx.total, 0);
+  const todayCount = connected ? todayMetrics.transactionCount : todayTx.length;
+  const todayAvg = connected ? todayMetrics.avgTransaction : (todayCount > 0 ? Math.round(todaySales / todayCount) : 0);
+
+  const pending = liveOrders.filter(o => o.status === "pending").length;
+  const cooking = liveOrders.filter(o => o.status === "cooking").length;
+
+  // ─── Data Processing ────────────────────────────────────────────────────────
+  
+  // 1. Hourly Sales
+  const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+    hour: i.toString().padStart(2, "0") + ":00",
+    sales: 0,
+    count: 0
+  }));
+
+  transactions.forEach(tx => {
+    if (tx.created_at.startsWith(todayStr)) {
+      const hour = new Date(tx.created_at).getHours();
+      if (hour >= 0 && hour < 24) {
+        hourlyData[hour].sales += tx.total;
+        hourlyData[hour].count += 1;
+      }
+    }
+  });
+
+  // 2. Category Composition
+  const catMap = new Map<string, number>();
+  transactions.forEach(tx => {
+    if (tx.created_at.startsWith(todayStr)) {
+      tx.items.forEach(item => {
+        const cat = item.category || "Lainnya";
+        catMap.set(cat, (catMap.get(cat) || 0) + (item.price * item.qty));
+      });
+    }
+  });
+  const categoryData = Array.from(catMap.entries()).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+
+  // 3. Peak Hours (Order Count)
+  const peakHoursData = hourlyData.map(h => ({ hour: h.hour, count: h.count })).filter(h => h.count > 0 || (parseInt(h.hour) > 9 && parseInt(h.hour) < 22));
+
+  return (
+    <div className="space-y-4">
+      {/* Error Fallback Alert */}
+      {fetchError && (
+        <div className="flex items-center justify-between gap-3 bg-red-500/5 border border-red-500/15 rounded-lg p-3 animate-fade">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+            <p className="text-[11px] font-bold text-foreground">
+              Offline Mode: Menggunakan data lokal.
+            </p>
+          </div>
+          <button 
+            onClick={() => setRetryCount(c => c + 1)}
+            className="text-[10px] font-black text-red-500 hover:text-red-600 px-2 py-1 bg-red-500/10 rounded-md transition-all uppercase"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Live alerts */}
+      {(pending > 0 || cooking > 0) && (
+        <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/15 rounded-lg p-3">
+          <Bell size={14} className="text-amber-500 flex-shrink-0 animate-pulse" />
+          <p className="text-[11px] text-foreground font-semibold">
+            <span className="text-amber-500">{pending} Antrian</span> ·{" "}
+            <span className="text-orange-500">{cooking} Dimasak</span>
+          </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <MetricCard label="Penjualan" value={rp(todaySales)} trend="+12.4%" trendUp sub="vs kem." accent="text-indigo-400" loading={loading} />
+        <MetricCard label="Laba Kotor" value={rp(Math.round(todaySales * 0.5))} trend="+8.1%" trendUp sub="50%" accent="text-emerald-400" loading={loading} />
+        <MetricCard label="Laba Bersih" value={rp(Math.round(todaySales * 0.3))} trend="+5.3%" trendUp sub="30%" accent="text-green-400" loading={loading} />
+        <MetricCard label="Pesanan" value={String(liveOrders.filter(o => o.status !== "served").length)} sub="Aktif" accent="text-amber-400" loading={loading} />
+        <MetricCard label="Transaksi" value={String(todayCount)} trend="+3" trendUp sub={`avg ${rp(todayAvg)}`} accent="text-orange-400" loading={loading} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Sales Trend */}
+        <div className="bg-card border border-border/60 rounded-xl p-4 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+                <BarIcon size={12} className="text-indigo-400" /> Tren Penjualan
+              </h3>
+              <p className="text-muted-foreground text-[10px] font-bold">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
+            </div>
+            <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border uppercase">Live Update</span>
+          </div>
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Loading Chart...</span>
+            </div>
+          ) : (
+            <HourlySalesChart data={hourlyData} />
+          )}
+        </div>
+
+        {/* Category Composition */}
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+              <PieIcon size={12} className="text-emerald-400" /> Komposisi Menu
+            </h3>
+            <button className="text-[10px] font-black text-primary hover:underline uppercase">Detail</button>
+          </div>
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50"></div>
+          ) : (
+            <CategoryPieChart data={categoryData} />
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Peak Hours */}
+        <div className="bg-card border border-border/60 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80 flex items-center gap-2">
+              <Clock size={12} className="text-amber-400" /> Jam Ramai
+            </h3>
+            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Berdasarkan Pesanan</span>
+          </div>
+          {loading ? (
+            <div className="w-full h-[180px] bg-secondary/30 animate-pulse rounded-lg flex items-center justify-center border border-border/50"></div>
+          ) : (
+            <PeakHoursBarChart data={peakHoursData} />
+          )}
+        </div>
+
+        {/* Recent transactions */}
+        <div className="bg-card border border-border/60 rounded-xl p-4 lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-black text-xs uppercase tracking-widest text-foreground/80">Transaksi Terakhir</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border flex items-center gap-1 uppercase">
+                <Database size={8} className="text-indigo-400" /> Supabase
+              </span>
+            </div>
+          </div>
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="border-b border-border/50">
+                  {["ID", "Meja", "Item", "Jumlah", "Waktu"].map(h => (
+                    <th key={h} className={`text-muted-foreground pb-2 pr-3 font-black uppercase tracking-tighter ${h === "Jumlah" || h === "Waktu" ? "text-right" : "text-left"}`}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/30">
+                {loading ? (
+                  [...Array(3)].map((_, i) => (
+                    <tr key={i}>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-16"></div></td>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-10"></div></td>
+                      <td className="py-2 pr-3"><div className="h-3 bg-secondary animate-pulse rounded w-8"></div></td>
+                      <td className="py-2 pr-3 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-12 ml-auto"></div></td>
+                      <td className="py-2 text-right"><div className="h-3 bg-secondary animate-pulse rounded w-10 ml-auto"></div></td>
+                    </tr>
+                  ))
+                ) : (
+                  transactions.slice(0, 5).map(tx => (
+                    <tr key={tx.id} className="hover:bg-secondary/40 transition-colors group">
+                      <td className="py-2 pr-3 font-mono text-[10px] text-muted-foreground">{tx.id.slice(-6).toUpperCase()}</td>
+                      <td className="py-2 pr-3 font-bold">{tx.table_id || "Walk-in"}</td>
+                      <td className="py-2 pr-3 font-semibold text-muted-foreground">{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
+                      <td className="py-2 pr-3 text-right font-black text-green-500">{rp(tx.total)}</td>
+                      <td className="py-2 text-right text-muted-foreground font-bold">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                    </tr>
+                  ))
+                )}
+                {!loading && transactions.length === 0 && (
+                  <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">Belum ada transaksi.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

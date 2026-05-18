@@ -41,7 +41,7 @@ export function exportMonthlyPDF(
 ) {
   const monthYearStr = currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
   
-  let html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -119,7 +119,7 @@ export function exportCategorySalesReport(
   categoryData: { name: string; value: number; amount: number }[],
   totalSales: number
 ) {
-  let html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -220,7 +220,7 @@ export function exportWeeklyPDF(
   const DAYS = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
   const dateStr = effectiveDate ? new Date(effectiveDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : "Segera";
 
-  let html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -301,7 +301,7 @@ export function exportInventoryPDF(
   const startStr = new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   const endStr = new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   
-  let html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>

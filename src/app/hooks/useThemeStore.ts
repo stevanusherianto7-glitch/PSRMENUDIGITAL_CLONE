@@ -15,6 +15,9 @@ const STORAGE_KEY = "pawon_theme";
 
 type Theme = "light" | "dark";
 
+let globalTheme: Theme = getInitialTheme();
+const listeners = new Set<(t: Theme) => void>();
+
 function getInitialTheme(): Theme {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -41,24 +44,37 @@ function applyThemeToDOM(theme: Theme) {
 }
 
 export function useThemeStore() {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>(globalTheme);
 
-  // Apply theme on mount and changes
   useEffect(() => {
-    applyThemeToDOM(theme);
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {
-      // localStorage not available
-    }
-  }, [theme]);
-
-  const toggleTheme = useCallback(() => {
-    setThemeState(prev => prev === "light" ? "dark" : "light");
+    const handleChange = (newTheme: Theme) => {
+      setThemeState(newTheme);
+    };
+    listeners.add(handleChange);
+    return () => {
+      listeners.delete(handleChange);
+    };
   }, []);
 
   const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
+    globalTheme = t;
+    applyThemeToDOM(t);
+    try {
+      localStorage.setItem(STORAGE_KEY, t);
+    } catch {
+      // silent
+    }
+    listeners.forEach(listener => listener(t));
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    const next = globalTheme === "light" ? "dark" : "light";
+    setTheme(next);
+  }, [setTheme]);
+
+  // Ensure DOM is in sync on mount
+  useEffect(() => {
+    applyThemeToDOM(globalTheme);
   }, []);
 
   return { theme, toggleTheme, setTheme, isDark: theme === "dark" };

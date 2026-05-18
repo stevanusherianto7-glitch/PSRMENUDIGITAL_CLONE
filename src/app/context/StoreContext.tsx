@@ -5,7 +5,7 @@
  */
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import type { Order, MenuItem } from "../types";
-import { fetchOrders } from "../api";
+import { fetchOrders, subscribeToOrders } from "../api";
 import { supabase } from "../../lib/supabase";
 import { SEED_MENU } from "../data";
 
@@ -86,20 +86,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     refreshOrders();
     refreshMenu();
 
-    // Setup real-time for orders
-    const channel = supabase
-      .channel("any-orders-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        () => {
-          refreshOrders();
-        }
-      )
-      .subscribe();
+    // Setup real-time for orders using robust centralized observer
+    const unsubscribe = subscribeToOrders(() => {
+      refreshOrders();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [refreshOrders, refreshMenu]);
 

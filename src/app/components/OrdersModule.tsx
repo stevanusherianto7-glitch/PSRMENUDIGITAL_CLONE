@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, CheckCircle2, ChefHat, Clock, Flame, ShoppingBag, XCircle } from "lucide-react";
-import { supabase } from "../../lib/supabase";
+import { subscribeToOrders } from "../api";
 import { rp } from "../data";
 import type { Order, OrderStatus } from "../types";
 
@@ -27,28 +27,16 @@ interface OrdersModuleProps {
 export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }: OrdersModuleProps) => {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates using robust centralized observer
   useEffect(() => {
     if (connected) {
-      const channel = supabase
-        .channel('orders-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders'
-          },
-          (payload) => {
-            console.log('Real-time change:', payload);
-            // Refresh orders when any change occurs
-            onRefresh();
-          }
-        )
-        .subscribe();
+      const unsubscribe = subscribeToOrders((event, record) => {
+        console.log(`[Realtime] Order ${event}: ${record.id}`);
+        onRefresh();
+      });
 
       return () => {
-        supabase.removeChannel(channel);
+        unsubscribe();
       };
     }
   }, [connected, onRefresh]);
@@ -74,46 +62,24 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
         </button>
       </div>
 
-      {/* Status filter */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex justify-center gap-2 w-full max-w-lg">
-          {(["all", "pending", "cooking"] as const).map(s => {
-            const cfg = s === "all" ? { color: "text-foreground", bg: "bg-secondary", border: "border-border" } : orderStatusConfig[s];
-            return (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${filter === s
-                    ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
-                    : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
-                  }`}
-              >
-                <div className="text-sm">{s === "all" ? <ShoppingBag size={14} /> : orderStatusConfig[s as OrderStatus].icon}</div>
-                <div className="truncate w-full text-center">{s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label}</div>
-                {counts[s] > 0 && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${filter === s ? "bg-foreground/10" : "bg-secondary"}`}>{counts[s]}</span>}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex justify-center gap-2 w-full max-w-[66%] sm:max-w-xs">
-          {(["ready", "served"] as const).map(s => {
-            const cfg = orderStatusConfig[s];
-            return (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-xl text-[10px] font-black border transition-all duration-300 transform uppercase tracking-tighter ${filter === s
-                    ? `${cfg.bg} ${cfg.border} ${cfg.color} shadow-md scale-[1.05]`
-                    : "bg-card border-border text-muted-foreground hover:bg-secondary/50"
-                  }`}
-              >
-                <div className="text-sm">{orderStatusConfig[s as OrderStatus].icon}</div>
-                <div className="truncate w-full text-center">{orderStatusConfig[s as OrderStatus].label}</div>
-                {counts[s] > 0 && <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${filter === s ? "bg-foreground/10" : "bg-secondary"}`}>{counts[s]}</span>}
-              </button>
-            );
-          })}
-        </div>
+      {/* Status filter — Uiverse-inspired premium cards */}
+      <div className="flex flex-wrap justify-center gap-3">
+        {(["all", "pending", "cooking", "ready", "served"] as const).map(s => {
+          const isActive = filter === s;
+          const label = s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label;
+          const icon = s === "all" ? <ShoppingBag size={18} /> : React.cloneElement(orderStatusConfig[s as OrderStatus].icon as React.ReactElement, { size: 18 });
+          return (
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={`order-filter-card flex flex-col items-center gap-2 min-w-[100px] flex-1 max-w-[140px] ${isActive ? "active" : ""}`}
+            >
+              <div className="card-icon">{icon}</div>
+              <span className="card-label">{label}</span>
+              <span className="card-count">{counts[s]}</span>
+            </button>
+          );
+        })}
       </div>
 
       {filtered.length === 0 ? (

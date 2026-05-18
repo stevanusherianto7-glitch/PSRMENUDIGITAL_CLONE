@@ -55,7 +55,7 @@ export function InventoryItemModal({ isOpen, onClose, item, onSave }: InventoryI
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/ backdrop-blur-sm" onClick={onClose}>
       <div className="bg-card border border-border rounded-2xl p-6 max-w-md w-full mx-4 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="text-center">
           <h3 className="font-bold text-lg font-['Poppins']">{item ? "Edit Bahan Baku" : "Tambah Bahan Baku"}</h3>

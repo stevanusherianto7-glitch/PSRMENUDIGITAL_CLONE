@@ -30,10 +30,89 @@ class PrintService {
   private serialPort: any = null;
   private serialWriter: any = null;
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
+  private heartbeatInterval: any = null;
   
   // HARDCODE MAC PRINTER ANDA
   private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
-  private readonly DEFAULT_NAME = 'RPP02N (KASIR)';
+  private readonly DEFAULT_NAME = 'RPP02N';
+
+  constructor() {
+    this.autoReconnectWebSerial();
+    this.startConnectionHeartbeat();
+    this.setupWebSerialHotplugListeners();
+  }
+
+  private setupWebSerialHotplugListeners() {
+    if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+      // Event saat device dicolokkan (plugged in)
+      (navigator as any).serial.addEventListener("connect", (event: any) => {
+        console.log("[PrintService] Port connected:", event.target);
+        toast.info("Perangkat Serial terdeteksi dicolokkan. Menghubungkan...");
+        this.autoReconnectWebSerial();
+      });
+
+      // Event saat device dicabut (unplugged)
+      (navigator as any).serial.addEventListener("disconnect", (event: any) => {
+        console.log("[PrintService] Port disconnected:", event.target);
+        if (this.serialPort === event.target) {
+          this.serialWriter = null;
+          this.serialPort = null;
+          this.setConnected(false);
+          toast.error("Printer Serial dicabut / terputus.");
+        }
+      });
+    }
+  }
+
+  private startConnectionHeartbeat() {
+    if (typeof window !== 'undefined') {
+      this.heartbeatInterval = setInterval(() => {
+        this.checkRealtimeConnection();
+      }, 5000);
+    }
+  }
+
+  private async checkRealtimeConnection() {
+    if (typeof bluetoothSerial !== 'undefined' && this.isConnected) {
+      bluetoothSerial.isConnected(
+        () => {
+          // connection still healthy
+        },
+        () => {
+          // connection lost!
+          this.setConnected(false);
+          toast.error("Koneksi printer Bluetooth terputus.");
+        }
+      );
+    } else if (this.serialPort && this.isConnected) {
+      // Cek apakah serial port masih terbuka dan writable
+      const isClosed = !this.serialPort.readable || !this.serialPort.writable;
+      if (isClosed) {
+        this.serialWriter = null;
+        this.serialPort = null;
+        this.setConnected(false);
+        toast.error("Printer Serial tidak merespon / terputus.");
+      }
+    }
+  }
+
+  private async autoReconnectWebSerial() {
+    if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+      try {
+        const ports = await (navigator as any).serial.getPorts();
+        if (ports && ports.length > 0) {
+          const port = ports[0];
+          await port.open({ baudRate: 9600 });
+          this.serialPort = port;
+          this.serialWriter = port.writable.getWriter();
+          this.setConnected(true);
+          console.log("[PrintService] Auto-reconnected to Web Serial printer.");
+        }
+      } catch (e) {
+        console.warn("[PrintService] Auto-reconnect failed:", e);
+      }
+    }
+  }
 
   public getIsConnected() { return this.isConnected; }
   public getDefaultMac() { return this.DEFAULT_MAC; }
@@ -144,7 +223,8 @@ class PrintService {
    * Kirim Data ke Printer dengan alur: Connect -> Write -> Disconnect
    * Dilengkapi sistem Auto-Retry (Maksimal 3x) agar tahan banting (Robust) terhadap koneksi tidak stabil.
    */
-  async printRaw(data: ArrayBuffer, address: string = this.DEFAULT_MAC): Promise<void> {
+  async printRaw(data: Uint8Array, address: string = this.DEFAULT_MAC): Promise<void> {
+    const cleanBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     const isBluetooth = typeof bluetoothSerial !== 'undefined';
     const MAX_RETRIES = 3;
     let attempt = 0;
@@ -159,13 +239,15 @@ class PrintService {
 
         // 1. BUKA SOKET (Connect)
         if (isBluetooth) {
-          await new Promise((resolve, reject) => {
-            bluetoothSerial.connectInsecure(address,
-              () => resolve(true),
-              (err) => reject(new Error("Gagal membuka soket: " + err))
-            );
-          });
-          this.setConnected(true);
+          if (!this.isConnected) {
+            await new Promise((resolve, reject) => {
+              bluetoothSerial.connectInsecure(address,
+                () => resolve(true),
+                (err) => reject(new Error("Gagal membuka soket: " + err))
+              );
+            });
+            this.setConnected(true);
+          }
         } else if (typeof navigator !== 'undefined' && 'serial' in navigator) {
           // Web Serial fallback
           if (!this.serialPort) {
@@ -180,24 +262,30 @@ class PrintService {
         // 2. KIRIM DATA (Write)
         if (isBluetooth) {
           await new Promise((resolve, reject) => {
-            bluetoothSerial.write(data,
+            bluetoothSerial.write(cleanBuffer,
               () => resolve(true),
               (err) => reject(new Error("Gagal mengirim data: " + err))
             );
           });
         } else if (this.serialWriter) {
-          await this.serialWriter.write(new Uint8Array(data));
+          await this.serialWriter.write(data);
         }
 
         // Beri jeda sangat singkat agar buffer terkirim ke hardware
         await new Promise(r => setTimeout(r, 500));
 
-        // Jika berhasil sampai sini, KELUAR DARI LOOP (sukses)
+        // Jika berhasil sampai sini, KELUAR DARI LOOP (sukses). Biarkan printer TETAP ONLINE.
         if (attempt > 1) toast.success("Printer berhasil terhubung kembali!");
         return;
 
       } catch (err) {
         console.error(`Print attempt ${attempt} failed:`, err);
+        
+        // JIKA GAGAL, baru kita tutup port (disconnect) untuk mereset state sebelum mencoba lagi
+        if (isBluetooth) {
+          bluetoothSerial.disconnect(() => {}, () => {});
+          this.setConnected(false);
+        }
         
         // Jika sudah mentok 3 kali, lemparkan error ke UI
         if (attempt >= MAX_RETRIES) {
@@ -207,14 +295,6 @@ class PrintService {
 
         // Beri jeda 2 detik sebelum mencoba lagi (Recovery Time)
         await new Promise(r => setTimeout(r, 2000));
-        
-      } finally {
-        // 3. TUTUP SOKET (Disconnect) - Sesuai Instruksi
-        // Eksekusi setiap selesai mencoba (baik sukses maupun gagal) agar port tidak terkunci (zombie state).
-        if (isBluetooth) {
-          bluetoothSerial.disconnect(() => {}, () => {});
-          this.setConnected(false);
-        }
       }
     }
   }
@@ -229,7 +309,7 @@ class PrintService {
     }
     
     // Pancing izin dengan list (Opsional tapi sering membantu di Android 12+)
-    try { bluetoothSerial.list(() => {}, () => {}); } catch(e) {}
+    try { bluetoothSerial.list(() => {}, () => {}); } catch (e) { /* ignore */ }
 
     return new Promise((resolve) => {
       const timeout = setTimeout(() => resolve(false), 3000);
@@ -299,7 +379,7 @@ class PrintService {
         );
       } else {
         // Mock untuk desktop testing
-        resolve([{ name: this.DEFAULT_NAME + " (Mock)", address: this.DEFAULT_MAC, id: "1" }]);
+        resolve([{ name: this.DEFAULT_NAME, address: this.DEFAULT_MAC, id: "1" }]);
       }
     });
   }
@@ -318,7 +398,7 @@ class PrintService {
       .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
       .text('--- UJI COBA CETAK ---')
       .newline()
-      .text('Kedai Elvera 57')
+      .text('PAWON SALAM')
       .newline()
       .text('--------------------------------')
       .newline()
@@ -335,12 +415,12 @@ class PrintService {
       .newline()
       .encode();
 
-    await this.printRaw(data.buffer);
+    await this.printRaw(data);
   }
 
   async printTransaction(tx: Transaction) {
     const data = ReceiptTemplate.generateTransaction(tx);
-    await this.printRaw(data.buffer);
+    await this.printRaw(data);
   }
 
   async printKitchen(order: Order) {
@@ -351,7 +431,7 @@ class PrintService {
         // Jeda 1 detik antar struk agar printer tidak bentrok
         await new Promise(r => setTimeout(r, 1000));
       }
-      await this.printRaw(receipts[i].buffer);
+      await this.printRaw(receipts[i]);
     }
   }
 
@@ -383,7 +463,7 @@ class PrintService {
     };
 
     const printData = ReceiptTemplate.generateClosingReport(data);
-    await this.printRaw(printData.buffer);
+    await this.printRaw(printData);
   }
 
   /**
@@ -412,15 +492,26 @@ class PrintService {
   async disconnect() {
     try {
       if (this.serialWriter) {
-        await this.serialWriter.releaseLock();
-        await this.serialPort.close();
+        try { await this.serialWriter.releaseLock(); } catch (e) { /* ignore */ }
         this.serialWriter = null;
+      }
+      if (this.serialPort) {
+        try { await this.serialPort.close(); } catch (e) { /* ignore */ }
         this.serialPort = null;
-      } else if (typeof bluetoothSerial !== 'undefined') {
+      }
+      
+      const bt = (window as any).bluetoothSerial || (typeof bluetoothSerial !== 'undefined' ? bluetoothSerial : null);
+      if (bt) {
         await new Promise<void>((resolve) => {
-          bluetoothSerial.disconnect(
-            () => resolve(),
-            () => resolve() // resolve even on error to avoid hanging
+          bt.disconnect(
+            () => {
+              console.log("Bluetooth disconnected successfully.");
+              resolve();
+            },
+            (err: any) => {
+              console.error("Bluetooth disconnect error:", err);
+              resolve(); // Resolve anyway to prevent hanging
+            }
           );
         });
       }
