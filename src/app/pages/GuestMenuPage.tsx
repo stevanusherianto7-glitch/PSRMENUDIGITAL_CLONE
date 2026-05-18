@@ -379,34 +379,34 @@ export default function GuestMenuPage() {
                         emoji: "🛍️",
                       },
                     ].map(m => (
-                      <button
-                        key={m.id}
-                        onClick={() => setWelcomeMode(m.id)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all active:scale-95 ${
-                          welcomeMode === m.id
-                            ? m.id === "dine-in"
-                              ? "border-indigo-500 bg-indigo-500/10"
-                              : "border-emerald-500 bg-emerald-500/10"
-                            : "border-border bg-card"
-                        }`}
-                      >
-                        <span className="text-2xl">{m.emoji}</span>
-                        <div className="text-center">
-                          <p className={`text-sm font-bold ${
-                            welcomeMode === m.id
-                              ? welcomeMode === "dine-in" ? "text-indigo-400" : "text-emerald-400"
-                              : "text-foreground"
-                          }`}>{m.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{m.sub}</p>
-                        </div>
-                        {welcomeMode === m.id && (
-                          <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                            m.id === "dine-in" ? "bg-indigo-500" : "bg-emerald-500"
-                          }`}>
-                            <CheckCircle2 size={10} className="text-white" />
+                      <div key={m.id} className={`kenny-container noselect ${welcomeMode === m.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-[20px]' : 'opacity-70 hover:opacity-100'}`}>
+                        <div className="kenny-canvas" onClick={() => setWelcomeMode(m.id)}>
+                          {[...Array(25)].map((_, i) => (
+                            <div key={i} className={`kenny-tracker tr-${i + 1}`}></div>
+                          ))}
+                          <div className="kenny-card">
+                            <div className="kenny-prompt flex flex-col items-center justify-center w-full h-full absolute inset-0">
+                              <span className="text-3xl mb-2">{m.emoji}</span>
+                              <p className="text-sm font-bold text-white">{m.label}</p>
+                              <p className="text-[10px] text-white/80">{m.sub}</p>
+                              {welcomeMode === m.id && (
+                                <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-white/30 backdrop-blur-md">
+                                  <CheckCircle2 size={12} className="text-white" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="kenny-title flex flex-col items-center justify-center w-full h-full absolute inset-0">
+                              <span className="text-4xl mb-2">{m.emoji}</span>
+                              <p className="text-lg font-bold text-white">{m.label}</p>
+                              {welcomeMode === m.id && (
+                                <div className="mt-2 w-6 h-6 rounded-full flex items-center justify-center bg-white/30 backdrop-blur-md">
+                                  <CheckCircle2 size={14} className="text-white" />
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
