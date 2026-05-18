@@ -154,59 +154,145 @@ export const KaryawanModule = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
           {filteredEmployees.map(emp => {
             const initials = emp.employee_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
             
-            // Warna role yang soft dan premium
-            const roleColors: Record<string, string> = {
-              waiter: "bg-blue-500/10 border-blue-500/20 text-blue-500",
-              cook: "bg-orange-500/10 border-orange-500/20 text-orange-500",
-              manager: "bg-purple-500/10 border-purple-500/20 text-purple-500",
-              owner: "bg-emerald-500/10 border-emerald-500/20 text-emerald-500",
+            // Gradient & warna per role (terinspirasi desain kartu cuaca Uiverse.io)
+            const roleStyles: Record<string, { 
+              gradient: string; badge: string; badgeText: string; accent: string; 
+              iconBg: string; label: string; emoji: string;
+            }> = {
+              waiter: {
+                gradient: "from-blue-50 via-white to-white",
+                badge: "bg-blue-500/15 border-blue-400/30",
+                badgeText: "text-blue-600",
+                accent: "bg-blue-400",
+                iconBg: "from-blue-400 to-cyan-400",
+                label: "Pelayan",
+                emoji: "🍽️",
+              },
+              cook: {
+                gradient: "from-orange-50 via-amber-50/50 to-white",
+                badge: "bg-orange-500/15 border-orange-400/30",
+                badgeText: "text-orange-600",
+                accent: "bg-orange-400",
+                iconBg: "from-orange-400 to-red-400",
+                label: "Dapur",
+                emoji: "🔥",
+              },
+              manager: {
+                gradient: "from-purple-50 via-violet-50/30 to-white",
+                badge: "bg-purple-500/15 border-purple-400/30",
+                badgeText: "text-purple-600",
+                accent: "bg-purple-400",
+                iconBg: "from-purple-400 to-pink-400",
+                label: "Manager",
+                emoji: "⭐",
+              },
+              owner: {
+                gradient: "from-emerald-50 via-teal-50/30 to-white",
+                badge: "bg-emerald-500/15 border-emerald-400/30",
+                badgeText: "text-emerald-600",
+                accent: "bg-emerald-400",
+                iconBg: "from-emerald-400 to-cyan-400",
+                label: "Owner",
+                emoji: "👑",
+              },
+              "assisten kepala resto": {
+                gradient: "from-amber-50 via-yellow-50/30 to-white",
+                badge: "bg-amber-500/15 border-amber-400/30",
+                badgeText: "text-amber-700",
+                accent: "bg-amber-400",
+                iconBg: "from-amber-400 to-orange-400",
+                label: "Asisten Kepala",
+                emoji: "🏅",
+              },
             };
             
-            const currentRoleColor = roleColors[emp.role.toLowerCase()] || "bg-secondary border-border text-muted-foreground";
+            const style = roleStyles[emp.role.toLowerCase()] || roleStyles.waiter;
 
             return (
-              <div key={emp.id} className="bg-card border border-border/60 rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
-                <div className="flex items-center gap-4">
-                  {/* Avatar Lingkaran */}
-                  <div className="w-12 h-12 rounded-full bg-secondary/80 flex items-center justify-center text-sm font-black text-muted-foreground border border-border/40 shadow-inner flex-shrink-0">
-                    {initials}
-                  </div>
-                  
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-black text-sm text-foreground leading-tight truncate" title={emp.employee_name}>{emp.employee_name}</h4>
-                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{emp.id}</p>
-                    
-                    <span className={`inline-block mt-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${currentRoleColor}`}>
-                      {emp.role}
-                    </span>
-                  </div>
+              <div 
+                key={emp.id} 
+                className={`relative overflow-hidden rounded-[23px] bg-gradient-to-br ${style.gradient} p-6 cursor-pointer group`}
+                style={{
+                  boxShadow: '0px 100px 40px rgba(0,0,0,0.01), 0px 50px 35px rgba(0,0,0,0.04), 0px 22px 22px rgba(0,0,0,0.07), 0px 6px 12px rgba(0,0,0,0.08), 0px 0px 0px rgba(0,0,0,0.08)',
+                  transition: 'all 0.8s cubic-bezier(0.15, 0.83, 0.66, 1)',
+                  minHeight: '200px',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+              >
+                {/* ═══ Elemen Dekoratif Animasi (Adaptasi Awan/Matahari → Role Icon) ═══ */}
+                <div className="absolute -right-4 -top-6 w-[140px] h-[140px] flex items-center justify-center pointer-events-none select-none">
+                  {/* Lingkaran Glow (seperti matahari di kartu cuaca) */}
+                  <div 
+                    className={`absolute w-20 h-20 rounded-full bg-gradient-to-br ${style.iconBg} opacity-20`}
+                    style={{ animation: 'sdm-sunshine 3s infinite ease-in-out' }}
+                  />
+                  <div 
+                    className={`absolute w-16 h-16 rounded-full bg-gradient-to-br ${style.iconBg} opacity-30`}
+                  />
+                  {/* Emoji Role Besar (menggantikan ikon cuaca) */}
+                  <span 
+                    className="relative text-[42px] z-10"
+                    style={{ animation: 'sdm-float 4s infinite ease-in-out' }}
+                  >
+                    {style.emoji}
+                  </span>
                 </div>
 
-                <div className="border-t border-border/40 pt-3 flex items-center justify-between">
-                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                    Aksi
-                  </div>
-                  {/* Di HP selalu muncul, di Desktop muncul saat hover */}
-                  <div className="flex items-center gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => handleOpenDialog(emp)} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Edit"
-                    >
-                      <Edit2 size={12} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(emp.id)} 
-                      className="p-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-colors"
-                      aria-label="Hapus"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
+                {/* ═══ Elemen Bubble Dekoratif (Adaptasi Awan) ═══ */}
+                <div className="absolute pointer-events-none select-none" style={{ right: '20px', top: '90px', animation: 'sdm-clouds 8s infinite ease-in-out' }}>
+                  <div className={`inline-block w-8 h-8 rounded-full ${style.accent} opacity-10`} />
+                  <div className={`inline-block w-5 h-5 rounded-full ${style.accent} opacity-10 -ml-2`} />
+                </div>
+
+                {/* ═══ Header — Nama & ID ═══ */}
+                <div className="relative z-10 flex flex-col gap-1.5 pr-16">
+                  <span className="font-extrabold text-[15px] leading-tight text-slate-700 truncate" title={emp.employee_name}>
+                    {emp.employee_name}
+                  </span>
+                  <span className="font-bold text-[11px] leading-tight text-slate-400 font-mono truncate">
+                    {emp.id.substring(0, 18)}...
+                  </span>
+                </div>
+
+                {/* ═══ Role Badge (seperti temp-scale di kartu cuaca) ═══ */}
+                <div className="absolute left-6 bottom-14">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${style.badge} ${style.badgeText}`}>
+                    {style.emoji} {emp.role}
+                  </span>
+                </div>
+
+                {/* ═══ Role Label Besar (seperti suhu di kartu cuaca) ═══ */}
+                <div className="absolute left-6 bottom-[52px]">
+                </div>
+
+                {/* ═══ Aksi (kanan bawah) ═══ */}
+                <div className="absolute right-5 bottom-5 flex items-center gap-1 z-10">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleOpenDialog(emp); }} 
+                    className="p-2 rounded-xl bg-white/60 hover:bg-white border border-slate-200/60 text-slate-400 hover:text-blue-500 transition-all hover:shadow-md"
+                    aria-label="Edit karyawan"
+                    title="Edit"
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDelete(emp.id); }} 
+                    className="p-2 rounded-xl bg-white/60 hover:bg-red-50 border border-slate-200/60 text-slate-400 hover:text-red-500 transition-all hover:shadow-md"
+                    aria-label="Hapus karyawan"
+                    title="Hapus"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+
+                {/* ═══ Label "AKSI" kiri bawah ═══ */}
+                <div className="absolute left-6 bottom-5">
+                  <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">Aksi →</span>
                 </div>
               </div>
             );
