@@ -81,15 +81,15 @@ export default function WaiterPage() {
       // Filter: hanya order HARI INI & belum selesai/dibatalkan.
       // Order lebih dari 4 jam dianggap basi dan dilewati.
       const now = Date.now();
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+      const timeWindow = now - (24 * 60 * 60 * 1000); // 24 jam
       const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
 
       const active = all.filter(o => {
         if (o.status === "served" || o.status === "cancelled") return false;
-        const createdAt = new Date(o.created_at).getTime();
-        // Harus dari hari ini DAN belum lewat 4 jam
-        return createdAt >= todayStart.getTime() && (now - createdAt) < MAX_AGE_MS;
+        const dateStr = o.created_at || "";
+        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        // Harus dalam window 24 jam DAN belum lewat 4 jam
+        return createdAt >= timeWindow && (now - createdAt) < MAX_AGE_MS;
       });
       setOrders(active);
     } catch (e) {

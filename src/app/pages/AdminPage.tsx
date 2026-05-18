@@ -264,7 +264,7 @@ export default function AdminPage() {
       const s = localStorage.getItem("pawon_session");
       if (!s) { navigate("/"); return; }
       const parsed = JSON.parse(s) as UserSession;
-      if (parsed.role !== "admin") { navigate("/waiter"); return; }
+      if (parsed.role !== "admin" && parsed.role !== "manager" && parsed.role !== "owner") { navigate("/waiter"); return; }
       setSession(parsed);
       preloadVoices();
     } catch (e) {
@@ -284,16 +284,13 @@ export default function AdminPage() {
       // Filter: hanya order hari ini & belum lewat 4 jam (untuk active orders).
       // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
       const now = Date.now();
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 jam
+      const timeWindow = now - (24 * 60 * 60 * 1000); // 24 jam terakhir
 
       const active = orders.filter(o => {
         if (o.status === "cancelled") return false;
-        const createdAt = new Date(o.created_at).getTime();
-        // Order hari ini saja
-        if (createdAt < todayStart.getTime()) return false;
-        // Served orders: tampilkan sepanjang hari ini (untuk kasir)
+        const dateStr = o.created_at || "";
+        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
+        if (createdAt < timeWindow) return false;
         if (o.status === "served") return true;
         // Active orders (pending/cooking/ready): maks 4 jam
         return (now - createdAt) < MAX_AGE_MS;
