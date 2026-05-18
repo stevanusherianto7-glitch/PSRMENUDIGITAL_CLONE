@@ -40,7 +40,7 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
         {/* Branding */}
         <div className="z-10 flex flex-col items-center gap-0.5">
           <img src={logoImg} alt="Logo" className="w-8 h-8 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
-          <h2 className="text-[9px] font-black uppercase tracking-[0.35em] mb-0 text-gold-theme">KEDAI ELVERA 57</h2>
+          <h2 className="text-[9px] font-black uppercase tracking-[0.35em] mb-0 text-gold-theme">PAWON SALAM</h2>
           <div className="h-[1px] w-6 bg-gold-gradient-fade mt-0.5" />
         </div>
 
@@ -55,7 +55,7 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
         {/* Halal ID + Table Number — compact section */}
         <div className="z-10 flex flex-col items-center gap-1">
           <img 
-            src="https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
+            src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" 
             alt="Halal Indonesia" 
             className="h-5 w-auto object-contain drop-shadow-[0_2px_6px_rgba(200,169,110,0.25)]"
             crossOrigin="anonymous"
