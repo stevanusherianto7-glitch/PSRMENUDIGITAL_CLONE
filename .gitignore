@@ -54,3 +54,9 @@ coverage/
 # Executables
 *.exe
 supabase.exe
+
+# Local helper and diagnostic scripts (contains Supabase secrets)
+db_cleanup.js
+db_columns.js
+temp_query.cjs
+test_order.js
