@@ -33,12 +33,11 @@ interface KasirModuleProps {
   promos: Promo[];
   tables: TableData[];
   orders: Order[];
-  transactions?: Transaction[];
   autoSelectOrderId?: string | null;
   onClearAutoSelect?: () => void;
 }
 
-export function KasirModule({ menuItems, onTransaction, promos, tables, orders, transactions = [], autoSelectOrderId, onClearAutoSelect }: KasirModuleProps) {
+export function KasirModule({ menuItems, onTransaction, promos, tables, orders, autoSelectOrderId, onClearAutoSelect }: KasirModuleProps) {
   const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
     pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
     cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={12} /> },
@@ -101,49 +100,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
     return unsub;
   }, []);
 
-  const [printedOrderIds, setPrintedOrderIds] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem("printed_kitchen_order_ids");
-      return saved ? JSON.parse(saved) : [];
-    } catch (_) {
-      return [];
-    }
-  });
-
-  // Efek Auto-Print Tiket Dapur ketika ada pesanan baru tiba
-  useEffect(() => {
-    if (!orders || orders.length === 0) return;
-
-    // Filter pesanan yang statusnya 'served' dan belum pernah dicetak dapurnya sebelumnya
-    const unprinted = orders.filter(o => 
-      o.status === "served" && 
-      !printedOrderIds.includes(o.id)
-    );
-
-    if (unprinted.length > 0) {
-      unprinted.forEach(order => {
-        // Lakukan cetak dapur otomatis di background
-        printService.printKitchen(order)
-          .then(() => {
-            toast.success(`Auto-Print Tiket Dapur: Meja ${order.tableId}`);
-          })
-          .catch(err => {
-            console.warn("Auto-print kitchen failed:", err);
-            toast.error(`Auto-Print Gagal: Meja ${order.tableId}`);
-          });
-      });
-
-      // Update state & localStorage
-      const newIds = [...printedOrderIds, ...unprinted.map(o => o.id)];
-      setPrintedOrderIds(newIds);
-      try {
-        localStorage.setItem("printed_kitchen_order_ids", JSON.stringify(newIds));
-      } catch (_) {
-        // Abaikan kegagalan menulis ke localStorage
-      }
-    }
-  }, [orders, printedOrderIds]);
-
   const mockOrders: Order[] = [
     {
       id: "O-1001",
@@ -198,23 +154,12 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
   async function processPayment() {
     if (!payMethod || cart.length === 0) return;
-    
-    // Anti salah tekan - double-confirm native
-    const confirmMsg = `APAKAH ANDA YAKIN INGIN MEMPROSES PEMBAYARAN INI?\n\n` +
-      `Meja: ${orderMode === "take-away" ? "TAKE AWAY" : "MEJA " + (selectedTable || "-")}\n` +
-      `Total: ${rp(total)}\n` +
-      `Metode: ${payMethod.toUpperCase()}\n\n` +
-      `Tekan OK untuk mencetak struk dan menyelesaikan transaksi.`;
-      
-    if (!window.confirm(confirmMsg)) {
-      return;
-    }
-    
     setShowPayConfirm(false);
+    
     setSaving(true);
     try {
       const txId = `TX-${Date.now().toString(36).toUpperCase()}`;
-      const tx: Transaction & { notes?: string } = {
+      const tx: Transaction = {
         id: txId,
         table_id: orderMode === "take-away" ? null : selectedTable,
         items: cart,
@@ -224,8 +169,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         tax,
         total,
         method: payMethod,
-        created_at: new Date().toISOString(),
-        notes: chefNotes || undefined
+        created_at: new Date().toISOString()
       };
 
       // 1. Simpan Transaksi & Detail ke Database (Latar Belakang)
@@ -242,7 +186,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       // 4. Update UI seketika
       setLastTxId(txId);
       setCurrentTx(tx);
-      setCurrentOrder({ ...tx, type: "kasir", orderMode, tableId: tx.table_id, notes: chefNotes || undefined });
+      setCurrentOrder({ ...tx, type: "kasir", orderMode, tableId: tx.table_id });
       setPaid(true);
 
       // 5. AUTO PRINT (Sesuai Alur POS Profesional)
@@ -312,58 +256,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       e.stopPropagation();
     }
     try {
-      const timeWindow = Date.now() - (24 * 60 * 60 * 1000);
-      const todayTransactions = (transactions || []).filter(tx => {
-        const dateStr = tx.created_at || "";
-        const createdAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
-        return createdAt >= timeWindow;
-      });
-
-      const qrisTotal = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
-      const debitTotal = todayTransactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0);
-      const tunaiTotal = todayTransactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
-      const totalPemasukan = qrisTotal + debitTotal + tunaiTotal;
-
-      const itemsMap = new Map<string, number>();
-      todayTransactions.forEach(tx => {
-        tx.items.forEach(item => {
-          itemsMap.set(item.name, (itemsMap.get(item.name) || 0) + item.qty);
-        });
-      });
-      const realItems = Array.from(itemsMap.entries()).map(([name, qty]) => ({ name, qty }));
-      const totalTerjual = realItems.reduce((s, x) => s + x.qty, 0);
-
-      const cancelledToday = (orders || []).filter(o => {
-        if (o.status !== "cancelled") return false;
-        const dateStr = o.updated_at || o.created_at || "";
-        const updatedAt = new Date(dateStr.includes('Z') || dateStr.includes('+') ? dateStr : `${dateStr}Z`).getTime();
-        return updatedAt >= timeWindow;
-      }).length;
-
-      const closingReportData = {
-        bulan: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
-        kasir: "Kasir PSR",
-        startTime: todayTransactions.length > 0
-          ? new Date(todayTransactions[todayTransactions.length - 1].created_at).toLocaleString("id-ID")
-          : new Date(timeWindow).toLocaleString("id-ID"),
-        endTime: new Date().toLocaleString("id-ID"),
-        terjual: totalTerjual || 0,
-        items: realItems,
-        totalVoid: cancelledToday,
-        pemasukan: {
-          qris: qrisTotal || 0,
-          debit: debitTotal || 0,
-          tunai: tunaiTotal || 0,
-          total: totalPemasukan || 0
-        },
-        kasKecil: {
-          awal: 500000,
-          saldo: 500000 + tunaiTotal,
-          total: tunaiTotal
-        }
-      };
-
-      await printService.printClosingReport(closingReportData);
+      await printService.printClosingReport();
       toast.success("Laporan closing berhasil dicetak");
     } catch (error) {
       toast.error("Gagal mencetak laporan: " + (error as Error).message);
@@ -401,21 +294,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           <button
             onClick={() => setIsPrinterModalOpen(true)}
             title="Pengaturan Printer Bluetooth"
-            className={`ml-auto px-4 py-2.5 rounded-2xl border transition-all duration-500 flex items-center justify-center gap-2.5 ${
+            className={`ml-auto px-4 py-2 rounded-xl border transition-all flex items-center justify-center gap-2 ${
               printerConnected
-                ? "bg-green-500/20 border-green-500/50 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.5)] animate-[pulse_2s_infinite] hover:shadow-[0_0_30px_rgba(34,197,94,0.8)]"
-                : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                ? "bg-green-500/10 border-green-500/30 text-green-500 shadow-[0_0_12px_rgba(34,197,94,0.4)] hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]"
+                : "bg-card border-border/60 text-muted-foreground hover:bg-secondary hover:text-foreground"
             }`}
           >
-            <span className="relative flex items-center justify-center">
-              <Printer size={16} className={printerConnected ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-bounce" : ""} />
+            <span className="relative">
+              <Printer size={16} />
               {printerConnected && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-ping" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
               )}
             </span>
-            <span className="text-[10px] font-black uppercase tracking-widest sm:inline hidden">
-              {printerConnected ? "Online" : "Offline"}
-            </span>
+            {printerConnected && <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline">Online</span>}
           </button>
         </div>
 
@@ -425,6 +316,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             const cfg = orderStatusConfig[order.status];
             return (
               <div
+                role="button"
                 key={order.id}
                 onClick={() => {
                   setCart(order.items);
@@ -539,7 +431,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            title="Tutup Keranjang"
             className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all md:hidden"
           >
             <X size={20} />
@@ -555,7 +446,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   <select
                     value={selectedTable}
                     onChange={(e) => setSelectedTable(e.target.value)}
-                    title="Pilih Nomor Meja"
                     className="w-full bg-secondary border border-border rounded-2xl px-5 py-3 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
                   >
                     <option value="" disabled className="bg-card">-- PILIH NOMOR MEJA --</option>
@@ -582,16 +472,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 );
               })}
             </div>
-
-            <div>
-              <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block ml-1">Catatan Pesanan Dapur</label>
-              <textarea
-                value={chefNotes}
-                onChange={(e) => setChefNotes(e.target.value)}
-                placeholder="Contoh: Minta pedas sedang, ES TEH manis dipisah..."
-                className="w-full bg-secondary border border-border rounded-2xl px-5 py-3 text-xs font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none h-16"
-              />
-            </div>
           </div>
 
           {paid ? (
@@ -616,11 +496,11 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-left ml-1">Layanan Cetak Ulang</p>
                   <div className="grid grid-cols-1 gap-2">
                     <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-primary text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                      <Printer size={18} /> Cetak Ulang Struk
+                      <Printer size={18} /> Struk Pelanggan
                     </button>
                     <div className="grid grid-cols-2 gap-2">
                       <button type="button" onClick={(e) => handlePrintKitchenReceipt(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-orange-700 transition-all">
-                        <ChefHat size={16} /> Cetak Ulang Dapur
+                        <ChefHat size={16} /> Struk Dapur
                       </button>
                       <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
                         <Save size={16} /> Laporan Penutupan
@@ -667,7 +547,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   <div key={c.id} className="flex items-center gap-4 bg-secondary/50 border border-border rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
                     <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-border">
                       <img
-                        src={menuItems.find(m => m.id === c.id || m.name.toLowerCase() === c.name.toLowerCase())?.image || c.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&q=80"}
+                        src={menuItems.find(m => m.id === c.id)?.image || c.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&q=80"}
                         alt={c.name}
                         loading="lazy"
                         decoding="async"
@@ -749,8 +629,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
               <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <AlertTriangle size={24} className="text-primary animate-pulse" />
               </div>
-              <h3 className="font-black text-sm uppercase tracking-widest animate-in fade-in" style={{ color: '#F3F4F6' }}>Konfirmasi Pembayaran</h3>
-              <p className="text-[9px] font-bold uppercase tracking-tighter mt-1" style={{ color: '#9CA3AF' }}>Pastikan seluruh data pesanan telah sesuai</p>
+              <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Konfirmasi Pembayaran</h3>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Pastikan seluruh data pesanan telah sesuai</p>
             </div>
             
             <div className="px-6 py-5">
@@ -759,23 +639,23 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Total Bayar</span>
+                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Bayar</span>
                   <span className="text-sm font-black text-primary font-['Poppins'] tracking-tighter">{rp(total)}</span>
                 </div>
                 
                 <div className="border-t border-dashed border-white/10 my-1" />
 
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Metode</span>
-                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{payMethod}</span>
+                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Metode</span>
+                  <span className="font-black text-foreground uppercase tracking-wider">{payMethod}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Layanan</span>
-                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
+                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Layanan</span>
+                  <span className="font-black text-foreground uppercase tracking-wider">{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Total Item</span>
-                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
+                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Total Item</span>
+                  <span className="font-black text-foreground uppercase tracking-wider">{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
                 </div>
 
                 <div className="border-b border-dashed border-white/10 my-1" />
@@ -785,10 +665,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             <div className="px-6 py-4 border-t border-white/5 flex gap-3 bg-white/[0.01]">
               <button
                 onClick={() => setShowPayConfirm(false)}
-                className="flex-1 py-3.5 rounded-xl border border-white/10 text-xs font-black uppercase tracking-wider hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-300"
-                style={{ color: '#9CA3AF' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                className="flex-1 py-3.5 rounded-xl border border-white/10 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/20 transition-all duration-300"
               >
                 Batal
               </button>
