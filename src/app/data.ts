@@ -15,9 +15,10 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-export const APP_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png";
+// Local offline-ready logo with fallback reference: https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png
+export const APP_LOGO = "/logo-kedai-elvera-57.png";
 export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
-export const PUBLIC_ICON_LOGO = "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png";
+export const PUBLIC_ICON_LOGO = "/logo-kedai-elvera-57.png";
 
 // ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
 export const SEED_MENU: MenuItem[] = [
@@ -352,7 +353,7 @@ export const orderModeConfig = {
   "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
 } as const;
 
-export const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
+export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
 
 export const tableStatusConfig = {
   available: { label: "Kosong", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" },
