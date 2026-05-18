@@ -741,8 +741,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
               <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <AlertTriangle size={24} className="text-primary animate-pulse" />
               </div>
-              <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Konfirmasi Pembayaran</h3>
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Pastikan seluruh data pesanan telah sesuai</p>
+              <h3 className="font-black text-sm uppercase tracking-widest animate-in fade-in" style={{ color: '#F3F4F6' }}>Konfirmasi Pembayaran</h3>
+              <p className="text-[9px] font-bold uppercase tracking-tighter mt-1" style={{ color: '#9CA3AF' }}>Pastikan seluruh data pesanan telah sesuai</p>
             </div>
             
             <div className="px-6 py-5">
@@ -751,23 +751,23 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Bayar</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Total Bayar</span>
                   <span className="text-sm font-black text-primary font-['Poppins'] tracking-tighter">{rp(total)}</span>
                 </div>
                 
                 <div className="border-t border-dashed border-white/10 my-1" />
 
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Metode</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{payMethod}</span>
+                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Metode</span>
+                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{payMethod}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Layanan</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
+                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Layanan</span>
+                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Total Item</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
+                  <span className="font-bold uppercase tracking-widest" style={{ color: '#9CA3AF' }}>Total Item</span>
+                  <span className="font-black uppercase tracking-wider" style={{ color: '#E5E7EB' }}>{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
                 </div>
 
                 <div className="border-b border-dashed border-white/10 my-1" />
@@ -777,7 +777,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             <div className="px-6 py-4 border-t border-white/5 flex gap-3 bg-white/[0.01]">
               <button
                 onClick={() => setShowPayConfirm(false)}
-                className="flex-1 py-3.5 rounded-xl border border-white/10 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/20 transition-all duration-300"
+                className="flex-1 py-3.5 rounded-xl border border-white/10 text-xs font-black uppercase tracking-wider hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-300"
+                style={{ color: '#9CA3AF' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#9CA3AF'}
               >
                 Batal
               </button>
