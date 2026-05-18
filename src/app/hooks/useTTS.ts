@@ -78,23 +78,27 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
-    utterance.rate = 1.0;   // Sedikit lebih cepat → kesan pria muda energik
-    utterance.pitch = 1.0;  // Pitch natural pria muda (tidak terlalu tinggi/rendah)
+    utterance.rate = 0.95;  // Tempo tenang dan jelas untuk announcer dapur/kasir
+    utterance.pitch = 1.15; // Pitch sedikit tinggi → kesan suara wanita natural
     utterance.volume = 1;
 
-    // Pilih suara bahasa Indonesia — PRIORITAS: Andika (pria muda Indonesia native)
+    // Pilih suara bahasa Indonesia — PRIORITAS: suara wanita (Gadis/Google)
     const voices = window.speechSynthesis.getVoices();
     const idVoices = voices.filter(
       v => v.lang === "id-ID" || v.lang.startsWith("id")
     );
     
-    // 1. Utamakan suara Andika (pria muda Indonesia, tersedia di Microsoft Edge & Windows)
-    const andikaVoice = idVoices.find(v => v.name.includes("Andika"));
+    // 1. Utamakan suara wanita Indonesia (Gadis di Edge, Google di Chrome)
+    const femaleVoice = idVoices.find(v => 
+      v.name.includes("Gadis") || 
+      v.name.includes("Google") || 
+      v.name.toLowerCase().includes("female")
+    );
     
-    if (andikaVoice) {
-      utterance.voice = andikaVoice;
+    if (femaleVoice) {
+      utterance.voice = femaleVoice;
     } else if (idVoices.length > 0) {
-      // 2. Fallback: pilih suara Indonesia lainnya yang tersedia
+      // 2. Fallback: suara Indonesia lainnya (termasuk Andika jika hanya itu yang ada)
       utterance.voice = idVoices[0];
     }
 
