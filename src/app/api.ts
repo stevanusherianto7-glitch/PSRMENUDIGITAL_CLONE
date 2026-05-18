@@ -28,9 +28,7 @@ export function toDatabaseOrder(order: Partial<Order>): any {
   const { tableId, orderMode, ...rest } = order;
   return {
     ...rest,
-    // Support both styles to ensure zero breakdown regardless of DB column types
-    tableId: tableId,
-    orderMode: orderMode,
+    // Strictly use snake_case for Supabase schema
     table_id: tableId,
     order_mode: orderMode,
   };
@@ -199,8 +197,7 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
         query = query.eq("status", status);
       }
       if (tableId) {
-        // Query using OR to support camelCase and snake_case transparently
-        query = query.or(`tableId.eq.${tableId},table_id.eq.${tableId}`);
+        query = query.eq("table_id", tableId);
       }
 
       // Bypass browser cache for GET requests
