@@ -171,11 +171,6 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       isFirstLoad.current = false;
       return;
     }
-      orders.forEach(o => knownIds.current.add(o.id));
-      isFirstLoad.current = false;
-      return;
-    }
-
     if (orders.length === 0) return;
 
     const newOrders = orders.filter(o => {
