@@ -78,29 +78,24 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
-    utterance.rate = 0.95;
-    utterance.pitch = 1.15;
+    utterance.rate = 1.0;   // Sedikit lebih cepat → kesan pria muda energik
+    utterance.pitch = 1.0;  // Pitch natural pria muda (tidak terlalu tinggi/rendah)
     utterance.volume = 1;
 
-    // Pilih suara bahasa Indonesia jika tersedia
+    // Pilih suara bahasa Indonesia — PRIORITAS: Andika (pria muda Indonesia native)
     const voices = window.speechSynthesis.getVoices();
     const idVoices = voices.filter(
       v => v.lang === "id-ID" || v.lang.startsWith("id")
     );
     
-    // Prioritaskan suara wanita yang dikenal natural (Gadis di Edge, Google di Chrome)
-    const femaleVoice = idVoices.find(v => 
-      v.name.includes("Gadis") || 
-      v.name.includes("Google") || 
-      v.name.toLowerCase().includes("female")
-    );
+    // 1. Utamakan suara Andika (pria muda Indonesia, tersedia di Microsoft Edge & Windows)
+    const andikaVoice = idVoices.find(v => v.name.includes("Andika"));
     
-    if (femaleVoice) {
-      utterance.voice = femaleVoice;
+    if (andikaVoice) {
+      utterance.voice = andikaVoice;
     } else if (idVoices.length > 0) {
-      // Pastikan membuang suara Andika (pria) jika memungkinkan
-      const anyOtherVoice = idVoices.find(v => !v.name.includes("Andika") && !v.name.toLowerCase().includes("male"));
-      utterance.voice = anyOtherVoice || idVoices[0];
+      // 2. Fallback: pilih suara Indonesia lainnya yang tersedia
+      utterance.voice = idVoices[0];
     }
 
     // Error handler: jika TTS gagal, play beep sebagai fallback
