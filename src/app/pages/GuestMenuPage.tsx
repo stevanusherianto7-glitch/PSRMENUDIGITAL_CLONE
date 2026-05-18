@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
-import { createOrder, fetchOrders, deleteOrder } from "../api";
+import { createOrder, fetchOrders, deleteOrder, updateOrder } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useThemeStore } from "../hooks/useThemeStore";
@@ -114,8 +114,13 @@ export default function GuestMenuPage() {
     }
     try {
       const orders = await fetchOrders(undefined, tableId);
+      
+      // Ambil list order yang telah di-clear secara lokal oleh guest
+      const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
+      const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
+
       const active = orders.filter(o =>
-        o.status !== "cancelled" && o.status !== "served"
+        o.status !== "cancelled" && o.status !== "served" && !clearedIds.includes(o.id)
       );
       
       setMyOrders(prev => {
@@ -261,35 +266,60 @@ export default function GuestMenuPage() {
 
     setResetting(true);
     try {
-      // Hapus secara paralel menggunakan deleteOrder API
-      await Promise.all(myOrders.map(o => deleteOrder(o.id)));
+      // 1. Simpan ID pesanan yang di-clear ke localStorage agar terfilter dari layar guest ini secara instan
+      const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
+      const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
+      const newCleared = [...new Set([...clearedIds, ...myOrders.map(o => o.id)])];
+      localStorage.setItem(`cleared_orders_${tableId}`, JSON.stringify(newCleared));
+
+      // 2. Hubungi backend secara background (best-effort) untuk membatalkan
+      try {
+        await Promise.all(myOrders.map(o => updateOrder(o.id, { status: "cancelled" })));
+      } catch (err) {
+        console.warn("Could not cancel on backend (RLS block/offline), kept in local cleared storage:", err);
+      }
+
       setMyOrders([]);
       localStorage.removeItem(`guest_orders_${tableId}`);
       
-      // Mengumumkan reset sukses lewat Text-to-Speech
+      // Mengumumkan reset sukses lewat Text-to-Speech (Suara Andika Remaja)
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance("Semua pesanan aktif di meja ini telah berhasil dibersihkan.");
         utterance.lang = "id-ID";
-        utterance.pitch = 1.4; // Pitch lebih tinggi agar suara Andika terdengar lebih muda
-        utterance.rate = 1.05; // Sedikit lebih cepat agar lebih energik
+        utterance.pitch = 1.35; // Pitch tinggi agar Andika terdengar muda (remaja)
+        utterance.rate = 1.1; // Sedikit lebih cepat khas gaya bicara remaja yang dinamis
         
-        const voices = window.speechSynthesis.getVoices();
-        const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+        // Muat daftar suara
+        let voices = window.speechSynthesis.getVoices();
         
-        // Pilih suara Andika atau suara pria lainnya
-        const maleVoice = idVoices.find(v => 
-          v.name.includes("Andika") || 
-          v.name.toLowerCase().includes("male")
-        );
-        
-        if (maleVoice) {
-          utterance.voice = maleVoice;
-        } else if (idVoices.length > 0) {
-          utterance.voice = idVoices[0];
+        const selectAndikaVoice = (vList: SpeechSynthesisVoice[]) => {
+          const idVoices = vList.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+          return idVoices.find(v => 
+            v.name.includes("Andika") || 
+            v.name.toLowerCase().includes("male") ||
+            v.name.includes("Microsoft Andika")
+          ) || idVoices[0];
+        };
+
+        let selectedVoice = selectAndikaVoice(voices);
+
+        // Fallback jika suara belum ter-preload (umum di Chrome/Windows)
+        if (!selectedVoice && voices.length === 0) {
+          window.speechSynthesis.onvoiceschanged = () => {
+            const reloadedVoices = window.speechSynthesis.getVoices();
+            const voice = selectAndikaVoice(reloadedVoices);
+            if (voice) {
+              utterance.voice = voice;
+              window.speechSynthesis.speak(utterance);
+            }
+          };
+        } else {
+          if (selectedVoice) {
+            utterance.voice = selectedVoice;
+          }
+          window.speechSynthesis.speak(utterance);
         }
-        
-        window.speechSynthesis.speak(utterance);
       }
       
       alert("Pesanan aktif berhasil dibersihkan.");

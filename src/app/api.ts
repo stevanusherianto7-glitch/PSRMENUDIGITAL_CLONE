@@ -34,6 +34,19 @@ function generateOrderId(): string {
 /**
  * Fetch orders, optionally filter by status and/or tableId.
  */
+/**
+ * DTO Adapter: Maps snake_case database columns to camelCase properties.
+ * This guarantees frontend compatibility even if duplicate database columns are dropped!
+ */
+export function mapOrder(o: any): Order {
+  if (!o) return o;
+  return {
+    ...o,
+    tableId: o.table_id || o.tableId || "",
+    orderMode: o.order_mode || o.orderMode || o.mode || "dine-in",
+  };
+}
+
 export async function fetchOrders(status?: string, tableId?: string): Promise<Order[]> {
   let query = supabase
     .from("orders")
@@ -44,7 +57,7 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     query = query.eq("status", status);
   }
   if (tableId) {
-    query = query.eq("tableId", tableId);
+    query = query.eq("table_id", tableId);
   }
 
   // Bypass browser cache for GET requests
@@ -57,7 +70,7 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     throw error;
   }
 
-  return (data as Order[]) || [];
+  return ((data as any[]) || []).map(mapOrder);
 }
 
 /**
@@ -89,7 +102,7 @@ export async function fetchPaginatedOrders(
   }
 
   return {
-    data: (data as Order[]) || [],
+    data: ((data as any[]) || []).map(mapOrder),
     total: count || 0,
     page,
     limit,
@@ -110,7 +123,7 @@ export async function createOrder(payload: {
 }): Promise<Order> {
   const order = {
     id: generateOrderId(),
-    tableId: payload.tableId,
+    table_id: payload.tableId, // Hanya kirim kolom snake_case yang ada di DB
     items: payload.items.map((c) => ({
       id: c.id,
       name: c.name,
@@ -121,7 +134,7 @@ export async function createOrder(payload: {
     subtotal: payload.subtotal,
     total: payload.total,
     notes: payload.notes || "",
-    orderMode: payload.orderMode,
+    order_mode: payload.orderMode, // Hanya kirim kolom snake_case yang ada di DB
     status: "pending" as OrderStatus,
     type: payload.type,
     created_at: new Date().toISOString(),
@@ -140,7 +153,7 @@ export async function createOrder(payload: {
     throw error;
   }
 
-  return data as Order;
+  return mapOrder(data);
 }
 
 /**

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 // Session ID unik untuk tab ini untuk koordinasi kunci antar-tab
 const TAB_SESSION_ID = Math.random().toString(36).substring(2, 9);
+const globalKnownIds = new Set<string>();
 
 /**
  * playNotifBeep — Notifikasi suara beep menggunakan Web Audio API.
@@ -40,8 +41,8 @@ function playNotifBeep() {
  * Otomatis membacakan pesanan baru yang belum pernah diumumkan.
  */
 export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
-  const knownIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
+  const timeoutsRef = useRef<number[]>([]);
 
   const speak = useCallback(async (text: string) => {
     if (!enabled) return;
@@ -168,18 +169,18 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     if (isFirstLoad.current) {
       // Saat pertama data masuk (setelah loaded), tandai semua order yang sudah ada — jangan diumumkan
       // PENTING: harus selalu set false, bahkan jika orders kosong
-      orders.forEach(o => knownIds.current.add(o.id));
+      orders.forEach(o => globalKnownIds.add(o.id));
       isFirstLoad.current = false;
       return;
     }
     if (orders.length === 0) return;
 
     const newOrders = orders.filter(o => {
-      if (knownIds.current.has(o.id)) return false;
+      if (globalKnownIds.has(o.id)) return false;
       // CROSS-TAB CHECK: Mencegah tab ganda membacakan order yang sama
       const announced = localStorage.getItem(`tts_announced_${o.id}`);
       if (announced) {
-        knownIds.current.add(o.id);
+        globalKnownIds.add(o.id);
         return false;
       }
       return true;
@@ -188,7 +189,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     if (newOrders.length === 0) return;
 
     // Kunci secara sinkron di level memori lokal tab ini agar tab ini tidak menschedule ulang
-    newOrders.forEach(o => knownIds.current.add(o.id));
+    newOrders.forEach(o => globalKnownIds.add(o.id));
 
     // Bikin lock key unik untuk batch pesanan baru ini
     const batchId = newOrders.map(o => o.id).sort().join("_");
@@ -197,7 +198,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     // Jitter delay acak (0-800ms) untuk memecah Race Condition antar-tab
     const jitter = Math.random() * 800;
 
-    setTimeout(() => {
+    const mainTimeoutId = window.setTimeout(() => {
       // Cek apakah tab lain sudah memenangkan batch lock ini
       const activeLock = localStorage.getItem(batchLockKey);
       if (activeLock) {
@@ -222,25 +223,35 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
       // Umumkan pesanan secara berurutan
       newOrders.forEach((order, index) => {
-        setTimeout(() => {
+        const announceTimeoutId = window.setTimeout(() => {
           announceOrder(order);
           // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
           if (printService.getIsConnected()) {
              printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
           }
         }, index * 8000);
+        timeoutsRef.current.push(announceTimeoutId);
       });
 
       // Bersihkan batch lock dari localStorage setelah selesai diumumkan (setelah 10 menit)
-      setTimeout(() => {
+      const cleanLockTimeoutId = window.setTimeout(() => {
         try {
           localStorage.removeItem(batchLockKey);
         } catch (e) {
           console.warn("Gagal menghapus batch lock dari localStorage:", e);
         }
       }, 600000);
+      timeoutsRef.current.push(cleanLockTimeoutId);
 
     }, jitter);
+
+    timeoutsRef.current.push(mainTimeoutId);
+
+    return () => {
+      // Bersihkan semua timeout jika dependencies berubah atau unmount
+      timeoutsRef.current.forEach(window.clearTimeout);
+      timeoutsRef.current = [];
+    };
   }, [orders, announceOrder, isLoaded]);
 
   return { speak };
