@@ -91,6 +91,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
   const [currentPayingOrderId, setCurrentPayingOrderId] = useState<string | null>(null);
   const [printerConnected, setPrinterConnected] = useState(printService.getIsConnected());
   const [showPayConfirm, setShowPayConfirm] = useState(false);
+  const [processedOrderIds, setProcessedOrderIds] = useState<string[]>([]);
 
   // Listen to printer connection status changes
   useEffect(() => {
@@ -181,6 +182,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       // 3. Hapus antrean (Latar Belakang)
       if (currentPayingOrderId) {
         deleteOrder(currentPayingOrderId).catch(e => console.log("Order delete error:", e));
+        setProcessedOrderIds(prev => [...prev, currentPayingOrderId]);
       }
 
       // 4. Update UI seketika
@@ -312,7 +314,9 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
         {/* Grid of Active Bills */}
         <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 p-2 custom-scrollbar content-start">
-          {(orders && orders.length > 0 ? orders : mockOrders).filter(o => o.status === "served").map(order => {
+          {(orders && orders.length > 0 ? orders : mockOrders)
+            .filter(o => o.status === "served" && !processedOrderIds.includes(o.id))
+            .map(order => {
             const cfg = orderStatusConfig[order.status];
             return (
               <div
