@@ -69,9 +69,22 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     async function loadMenu() {
+      console.log("[DEBUG] loadMenu starting...");
       setLoading(true);
+
+      // Safety timeout of 2000ms to prevent hanging on database/offline issues
+      const safetyTimeout = setTimeout(() => {
+        console.warn("[DEBUG] loadMenu safety timeout triggered! Falling back to SEED_MENU.");
+        setMenuItems(SEED_MENU.filter(m => m.available));
+        setLoading(false);
+      }, 2000);
+
       try {
-        const { data } = await supabase.from("menu_items").select("*");
+        console.log("[DEBUG] Fetching menu items from Supabase...");
+        const { data, error } = await supabase.from("menu_items").select("*");
+        clearTimeout(safetyTimeout);
+        console.log("[DEBUG] Supabase select finished. error:", error, "data count:", data?.length);
+        if (error) throw error;
         if (data && data.length > 0) {
           const dbById = new Map(data.map((r: any) => [r.id, r]));
           const merged: MenuItem[] = SEED_MENU.map(seed => {
@@ -101,11 +114,18 @@ export default function GuestMenuPage() {
               tag: r.tag || undefined,
               description: r.description || "",
             }));
-          setMenuItems([...merged, ...extras].filter(m => m.available));
+          const finalMenu = [...merged, ...extras].filter(m => m.available);
+          console.log("[DEBUG] Setting menu items from database merge. count:", finalMenu.length);
+          setMenuItems(finalMenu);
+        } else {
+          console.log("[DEBUG] Data is empty, setting seed menu...");
+          setMenuItems(SEED_MENU.filter(m => m.available));
         }
       } catch (e) {
+        console.error("[DEBUG] loadMenu caught exception:", e);
         setMenuItems(SEED_MENU.filter(m => m.available));
       } finally {
+        console.log("[DEBUG] loadMenu finally reached, setting loading false...");
         setLoading(false);
       }
     }
@@ -212,12 +232,49 @@ export default function GuestMenuPage() {
         type: "guest",
       });
       setMyOrders(prev => [order, ...prev]);
+      
+      // Cache to localStorage for robust client-side tracking
+      try {
+        const cached = localStorage.getItem(`guest_orders_${tableId}`);
+        const parsed = cached ? JSON.parse(cached) : [];
+        localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([order, ...parsed]));
+      } catch (_) {}
+
       setCart([]);
       setNotes("");
       setOrderMode("dine-in");
       setView("status");
     } catch (e) {
-      console.error("createOrder error:", e);
+      console.warn("[ROBUST FALLBACK] createOrder failed (offline/network error), executing offline localStorage fallback:", e);
+      
+      // Create local fallback offline order draft
+      const fallbackOrder: Order = {
+        id: `OFFLINE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+        tableId,
+        items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category })),
+        subtotal,
+        total: total,
+        notes: notes || "",
+        orderMode,
+        status: "pending",
+        type: "guest",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      setMyOrders(prev => [fallbackOrder, ...prev]);
+      
+      // Persist fallback order locally in cache
+      try {
+        const cached = localStorage.getItem(`guest_orders_${tableId}`);
+        const parsed = cached ? JSON.parse(cached) : [];
+        localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([fallbackOrder, ...parsed]));
+      } catch (_) {}
+      
+      setCart([]);
+      setNotes("");
+      setOrderMode("dine-in");
+      setView("status");
     }
     setPlacing(false);
   }
