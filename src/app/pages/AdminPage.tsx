@@ -455,18 +455,17 @@ export default function AdminPage() {
   const handleTransaction = useCallback(async (tx: Transaction) => {
     setTransactions(prev => [tx, ...prev]);
     if (connected) {
-      // 1. Simpan ke tabel transactions (utama)
+      // 1. Simpan ke tabel transactions (utama) - disanitasi hanya kolom yang ada di DB
       const { error } = await supabase.from("transactions").insert({
         id: tx.id,
-        table_id: tx.table_id,
         items: tx.items,
-        subtotal: tx.subtotal,
-        discount: tx.discount,
-        discount_amount: tx.discount_amount,
-        tax: tx.tax,
         total: tx.total,
+        created_at: tx.created_at,
+        discount: tx.discount || 0,
+        discount_amount: tx.discount_amount || 0,
         method: tx.method,
-        created_at: tx.created_at
+        paymentMethod: tx.method,
+        timestamp: tx.created_at
       });
       if (error) console.error("Error saving transaction:", error);
 

@@ -60,3 +60,9 @@ db_cleanup.js
 db_columns.js
 temp_query.cjs
 test_order.js
+
+# Test reports & scratch
+playwright-report/
+test-results/
+.agents/scratch/
+e2e_secrets.json

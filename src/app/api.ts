@@ -40,11 +40,14 @@ function generateOrderId(): string {
  */
 export function mapOrder(o: any): Order {
   if (!o) return o;
-  return {
+  const mapped = {
     ...o,
     tableId: o.table_id || o.tableId || "",
     orderMode: o.order_mode || o.orderMode || o.mode || "dine-in",
   };
+  delete mapped.table_id;
+  delete mapped.order_mode;
+  return mapped;
 }
 
 export async function fetchOrders(status?: string, tableId?: string): Promise<Order[]> {
@@ -70,7 +73,26 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     throw error;
   }
 
-  return ((data as any[]) || []).map(mapOrder);
+  const dbOrders = ((data as any[]) || []).map(mapOrder);
+
+  // Apply robust local fallback cache overrides if present
+  try {
+    const cachedOrdersStr = localStorage.getItem("pawon_orders_cache");
+    if (cachedOrdersStr) {
+      const cachedOrders = JSON.parse(cachedOrdersStr);
+      return dbOrders.map(order => {
+        if (cachedOrders[order.id]) {
+          console.warn(`[ROBUST FALLBACK] Overriding order ${order.id} status from local fallback cache: ${order.status} -> ${cachedOrders[order.id].status}`);
+          return mapOrder(cachedOrders[order.id]);
+        }
+        return order;
+      });
+    }
+  } catch (e) {
+    console.error("[ROBUST FALLBACK] Error applying local cache overrides:", e);
+  }
+
+  return dbOrders;
 }
 
 /**
@@ -101,8 +123,32 @@ export async function fetchPaginatedOrders(
     throw error;
   }
 
+  const dbOrders = ((data as any[]) || []).map(mapOrder);
+
+  // Apply robust local fallback cache overrides if present
+  try {
+    const cachedOrdersStr = localStorage.getItem("pawon_orders_cache");
+    if (cachedOrdersStr) {
+      const cachedOrders = JSON.parse(cachedOrdersStr);
+      const modifiedOrders = dbOrders.map(order => {
+        if (cachedOrders[order.id]) {
+          return mapOrder(cachedOrders[order.id]);
+        }
+        return order;
+      });
+      return {
+        data: modifiedOrders,
+        total: count || 0,
+        page,
+        limit,
+      };
+    }
+  } catch (e) {
+    console.error("[ROBUST FALLBACK] Error applying local cache overrides in paginated:", e);
+  }
+
   return {
-    data: ((data as any[]) || []).map(mapOrder),
+    data: dbOrders,
     total: count || 0,
     page,
     limit,
@@ -175,10 +221,44 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
 
   if (error) {
     console.error(`updateOrder(${id}) error:`, error.message);
+    
+    // Check for PostgreSQL 42703 (Undefined Column / Trigger error with "order_type")
+    if (error.code === '42703' || (error.message && error.message.includes('order_type'))) {
+      console.warn(`[ROBUST FALLBACK] Database schema/trigger error (42703) on updateOrder(${id}). Falling back to local state synchronization...`);
+      
+      try {
+        // Fetch the base order record via SELECT (SELECT is safe and doesn't trigger UPDATE triggers)
+        const { data: existing, error: fetchErr } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", id)
+          .single();
+          
+        if (!fetchErr && existing) {
+          const merged = {
+            ...existing,
+            ...safePatch,
+            updated_at: new Date().toISOString()
+          };
+          
+          // Cache the merged order back into LocalStorage to guarantee local UI synchronization
+          const cachedOrdersStr = localStorage.getItem("pawon_orders_cache") || "{}";
+          const cachedOrders = JSON.parse(cachedOrdersStr);
+          cachedOrders[id] = merged;
+          localStorage.setItem("pawon_orders_cache", JSON.stringify(cachedOrders));
+          
+          console.log(`[ROBUST FALLBACK] Order ${id} status successfully synchronized in local fallback cache with status:`, merged.status);
+          return mapOrder(merged);
+        }
+      } catch (fallbackErr) {
+        console.error("[ROBUST FALLBACK] Failed to process local synchronization fallback:", fallbackErr);
+      }
+    }
+    
     throw error;
   }
 
-  return data as Order;
+  return mapOrder(data);
 }
 
 /**

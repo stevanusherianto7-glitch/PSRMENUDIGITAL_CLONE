@@ -291,7 +291,7 @@ export default function GuestMenuPage() {
         utterance.rate = 1.1; // Sedikit lebih cepat khas gaya bicara remaja yang dinamis
         
         // Muat daftar suara
-        let voices = window.speechSynthesis.getVoices();
+        const voices = window.speechSynthesis.getVoices();
         
         const selectAndikaVoice = (vList: SpeechSynthesisVoice[]) => {
           const idVoices = vList.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
@@ -302,7 +302,7 @@ export default function GuestMenuPage() {
           ) || idVoices[0];
         };
 
-        let selectedVoice = selectAndikaVoice(voices);
+        const selectedVoice = selectAndikaVoice(voices);
 
         // Fallback jika suara belum ter-preload (umum di Chrome/Windows)
         if (!selectedVoice && voices.length === 0) {

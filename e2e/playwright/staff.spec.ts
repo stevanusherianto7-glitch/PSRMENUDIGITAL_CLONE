@@ -1,0 +1,145 @@
+import { test, expect } from '@playwright/test';
+import { createClient } from '@supabase/supabase-js';
+import * as fs from 'fs';
+import * as path from 'path';
+
+function getServiceRoleKey(): string {
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+  try {
+    const secretsPath = path.join(process.cwd(), 'e2e_secrets.json');
+    if (fs.existsSync(secretsPath)) {
+      const secrets = JSON.parse(fs.readFileSync(secretsPath, 'utf8'));
+      if (secrets.supabaseServiceRoleKey) {
+        return secrets.supabaseServiceRoleKey;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return '';
+}
+
+test.describe('Kedai Elvera 57 - E2E Multi-User Circular Ordering Flow (Playwright)', () => {
+  // Use Table A8 to avoid conflict with Table A9 in the other spec
+  const TABLE_ID = 'A8';
+
+  test('should process a complete guest-to-kitchen-to-waiter order lifecycle', async ({ page }) => {
+    // Register console logger for debugging
+    page.on('console', msg => {
+      console.log(`[BROWSER CONSOLE] ${msg.type()}: ${msg.text()}`);
+    });
+
+    // --- STEP 0: CLEANUP RESIDUAL ORDERS FROM DATABASE ---
+    const supabaseUrl = 'https://pbitlwrgainrcippjuwd.supabase.co';
+    const supabaseKey = getServiceRoleKey();
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log(`[TEST PREP] Deleting any residual database orders for table ${TABLE_ID}...`);
+    const { error: cleanupError } = await supabase
+      .from('orders')
+      .delete()
+      .eq('table_id', TABLE_ID);
+      
+    if (cleanupError) {
+      console.error(`[TEST PREP] Cleanup error:`, cleanupError.message);
+    } else {
+      console.log(`[TEST PREP] Residual orders successfully cleared for table ${TABLE_ID}.`);
+    }
+
+    // --- STEP 1: GUEST PLACES ORDER ---
+    await page.goto(`/#/menu/${TABLE_ID}`);
+
+    // Welcome modal step 1
+    await expect(page.locator('text=Selamat Datang di')).toBeVisible();
+    await page.locator('text=Dine In').first().click({ force: true });
+    await page.locator('button:has-text("Lanjut")').click();
+
+    // Welcome modal step 2
+    await page.locator('button:has-text("Mulai Pesan Sekarang!")').click();
+
+    // Choose "Nasi Goreng Jawa"
+    await page.locator('button:has-text("Nasi Goreng Jawa")').click();
+    await page.locator('button:has-text("Tambah")').click();
+
+    // Open Cart
+    await page.locator('button:has-text("Lihat Keranjang")').click();
+
+    // Enter notes and checkout
+    const notesTextarea = page.locator('textarea[placeholder*="masak pedas"]');
+    await notesTextarea.fill('Pedas mantap chef, telurnya matang ya.');
+    await page.locator('button:has-text("Pesan Sekarang")').click();
+
+    // Verify it is on the guest status tracking page
+    await expect(page.locator('h2:has-text("Status Pesanan")')).toBeVisible();
+    await expect(page.locator('span:has-text("Menunggu Konfirmasi")').first()).toBeVisible();
+
+    // --- STEP 2: KITCHEN STAFF LOGS IN AND COOKS THE ORDER ---
+    // Navigate to Login Page
+    await page.goto('/');
+
+    // Select the "Dapur" role button first
+    await page.locator('button:has-text("Dapur")').click();
+
+    // Fill credentials for Kitchen role
+    const passwordInput = page.locator('input[type="password"]');
+    await passwordInput.fill('[REDACTED_KITCHEN_PASSWORD]');
+    await page.locator('button:has-text("Masuk")').click();
+
+    // Assert redirection to the waiter/staff panel
+    await expect(page).toHaveURL(/.*#\/kitchen/);
+    await expect(page.locator('text=Dapur · Kedai Elvera 57')).toBeVisible();
+
+    // Switch to "Dapur" (kitchen) tab (should be active by default for kitchen role, but let's be safe)
+    await page.locator('button:has-text("Dapur")').click();
+
+    // Verify Guest order card from Table A8 is visible
+    const tableHeader = page.locator(`text=Meja ${TABLE_ID}`).first();
+    await expect(tableHeader).toBeVisible();
+    await expect(page.locator('text=Nasi Goreng Jawa').first()).toBeVisible();
+    await expect(page.locator('text=Pedas mantap chef, telurnya matang ya.').first()).toBeVisible();
+
+    // Click "Mulai Masak"
+    await page.locator('button:has-text("Mulai Masak")').first().click();
+
+    // Verify status changes to cooking and button becomes "Selesai Masak — Siap Antar"
+    const readyButton = page.locator('button:has-text("Selesai Masak")').first();
+    await expect(readyButton).toBeVisible();
+
+    // Click "Selesai Masak — Siap Antar"
+    await readyButton.click();
+
+    // Order should disappear from Dapur queue
+    await expect(tableHeader).not.toBeVisible();
+
+    // Logout from Kitchen
+    await page.locator('button[aria-label="Logout"]').click();
+    await expect(page).toHaveURL(/.*#\/$/); // back to login
+
+    // --- STEP 3: WAITER LOGS IN AND SERVES THE ORDER ---
+    // Select the "Waiter" role button first
+    await page.locator('button:has-text("Waiter")').click();
+
+    // Fill credentials for Waiter role
+    await passwordInput.fill('[REDACTED_WAITER_PASSWORD]');
+    await page.locator('button:has-text("Masuk")').click();
+
+    // Assert redirection
+    await expect(page).toHaveURL(/.*#\/waiter/);
+    await expect(page.locator('text=Pelayan · Kedai Elvera 57')).toBeVisible();
+
+    // Waiter tab should be active automatically. Verify Table A8 is in the "Siap Antar" list
+    await expect(page.locator(`text=Meja ${TABLE_ID}`).first()).toBeVisible();
+
+    // Click "Sudah Disajikan ke Meja A8"
+    await page.locator(`button:has-text("Sudah Disajikan ke Meja ${TABLE_ID}")`).first().click();
+
+    // Order should disappear from Waiter list, showing empty queue banner
+    await expect(page.locator(`text=Meja ${TABLE_ID}`).first()).not.toBeVisible();
+    await expect(page.locator('text=Tidak ada pesanan siap antar')).toBeVisible();
+
+    // Logout Waiter
+    await page.locator('button[aria-label="Logout"]').click();
+    await expect(page).toHaveURL(/.*#\/$/);
+  });
+});

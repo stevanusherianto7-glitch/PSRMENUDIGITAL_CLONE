@@ -7,6 +7,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:integration": "jest src/__tests__/components/LoginFlow.test.tsx",
+    "test:e2e:playwright": "playwright test",
+    "test:e2e:cypress": "cypress run",
     "build": "npx vite build",
     "dev": "vite",
     "lint": "eslint src",
@@ -83,6 +86,7 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "4.1.12",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -91,6 +95,7 @@
     "@vitejs/plugin-react": "4.7.0",
     "babel-jest": "^30.4.1",
     "babel-preset-react-app": "^10.1.0",
+    "cypress": "^15.15.0",
     "eslint": "^9.19.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.1.0",
