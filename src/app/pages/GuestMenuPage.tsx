@@ -79,8 +79,13 @@ export default function GuestMenuPage() {
             if (!r) return seed;
             return {
               ...seed,
+              name: r.name || seed.name,
+              category: r.category || seed.category,
               price: typeof r.price === "number" ? r.price : seed.price,
+              image: r.image && (String(r.image).startsWith("http") || String(r.image).startsWith("blob")) ? r.image : seed.image,
               available: typeof r.available === "boolean" ? r.available : seed.available,
+              tag: r.tag || seed.tag || undefined,
+              description: r.description || seed.description || "",
             };
           });
           const seedIds = new Set(SEED_MENU.map(m => m.id));

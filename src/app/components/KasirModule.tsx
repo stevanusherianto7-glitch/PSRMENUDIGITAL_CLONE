@@ -11,7 +11,7 @@ import {
   ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
   Printer, ShoppingBag, X, Clock, Flame, XCircle, AlertTriangle
 } from "lucide-react";
-import { rp, menuCategories } from "../data";
+import { rp, menuCategories, APP_LOGO } from "../data";
 
 const orderModeConfig = {
   "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
@@ -105,8 +105,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       id: "O-1001",
       tableId: "A1",
       items: [
-        { id: "m1", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1, available: true, category: "Makanan", image: "" },
-        { id: "m12", name: "ES TEH", price: 5000, qty: 1, available: true, category: "Minuman", image: "" }
+        { id: "menu_006", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1, available: true, category: "Makanan", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Gulai_Mangut_Semarang.png" },
+        { id: "menu_029", name: "ES TEH", price: 5000, qty: 1, available: true, category: "Minuman", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Es%20Teh.jpg" }
       ],
       subtotal: 40000,
       total: 40000,
@@ -120,8 +120,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       id: "O-1002",
       tableId: "A4",
       items: [
-        { id: "m4", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2, available: true, category: "Makanan", image: "" },
-        { id: "m11", name: "NIPIS MADU", price: 12000, qty: 2, available: true, category: "Minuman", image: "" }
+        { id: "menu_010", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2, available: true, category: "Makanan", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Tahu_Gimbal_Semarang.jpg" },
+        { id: "menu_018", name: "NIPIS MADU", price: 12000, qty: 2, available: true, category: "Minuman", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nipis%20Madu.png" }
       ],
       subtotal: 74000,
       total: 74000,
@@ -547,7 +547,12 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   <div key={c.id} className="flex items-center gap-4 bg-secondary/50 border border-border rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
                     <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-border">
                       <img
-                        src={menuItems.find(m => m.id === c.id)?.image || c.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&q=80"}
+                        src={
+                          (menuItems.find(m => m.id === c.id) || 
+                           menuItems.find(m => m.name.toLowerCase() === c.name.toLowerCase()))?.image || 
+                          c.image || 
+                          APP_LOGO
+                        }
                         alt={c.name}
                         loading="lazy"
                         decoding="async"
