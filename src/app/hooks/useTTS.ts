@@ -230,7 +230,11 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     // Bersihkan lock keys setelah 60 detik agar localStorage tidak membengkak
     const cleanupId = window.setTimeout(() => {
       newOrders.forEach(o => {
-        try { localStorage.removeItem(`tts_lock_${o.id}`); } catch (_) {}
+        try { 
+          localStorage.removeItem(`tts_lock_${o.id}`); 
+        } catch (err) {
+          console.warn("Failed to remove tts_lock from localStorage:", err);
+        }
       });
     }, 60000);
     timeoutsRef.current.push(cleanupId);

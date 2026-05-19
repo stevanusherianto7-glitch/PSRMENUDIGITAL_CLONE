@@ -238,7 +238,9 @@ export default function GuestMenuPage() {
         const cached = localStorage.getItem(`guest_orders_${tableId}`);
         const parsed = cached ? JSON.parse(cached) : [];
         localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([order, ...parsed]));
-      } catch (_) {}
+      } catch (err) {
+        console.warn("Failed to write to localStorage:", err);
+      }
 
       setCart([]);
       setNotes("");
@@ -269,7 +271,9 @@ export default function GuestMenuPage() {
         const cached = localStorage.getItem(`guest_orders_${tableId}`);
         const parsed = cached ? JSON.parse(cached) : [];
         localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([fallbackOrder, ...parsed]));
-      } catch (_) {}
+      } catch (err) {
+        console.warn("Failed to write to localStorage fallback:", err);
+      }
       
       setCart([]);
       setNotes("");
@@ -328,31 +332,31 @@ export default function GuestMenuPage() {
 
     setResetting(true);
     try {
-      // 1. Simpan ID pesanan yang di-clear ke localStorage agar terfilter dari layar guest ini secara instan
-      const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
-      const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
-      const newCleared = [...new Set([...clearedIds, ...myOrders.map(o => o.id)])];
-      localStorage.setItem(`cleared_orders_${tableId}`, JSON.stringify(newCleared));
-
-      // 2. Hubungi backend secara background (best-effort) untuk membatalkan
-      try {
-        await Promise.all(myOrders.map(o => updateOrder(o.id, { status: "cancelled" })));
-      } catch (err) {
-        console.warn("Could not cancel on backend (RLS block/offline), kept in local cleared storage:", err);
-      }
-
+      // 1. Optimistic UI update: filter and remove all local orders immediately
+      const ordersToCancel = [...myOrders];
       setMyOrders([]);
       localStorage.removeItem(`guest_orders_${tableId}`);
-      
-      // Mengumumkan reset sukses lewat Text-to-Speech (Suara Andika Remaja)
+
+      // 2. Save IDs to cleared_orders locally so they remain filtered on reload
+      const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
+      const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
+      const newCleared = [...new Set([...clearedIds, ...ordersToCancel.map(o => o.id)])];
+      localStorage.setItem(`cleared_orders_${tableId}`, JSON.stringify(newCleared));
+
+      // 3. Process backend updates asynchronously in the background
+      Promise.all(ordersToCancel.map(o => updateOrder(o.id, { status: "cancelled" })))
+        .catch(err => {
+          console.warn("Could not cancel some orders on backend (RLS block/offline), kept in local cleared storage:", err);
+        });
+
+      // Announce success instantly via Text-to-Speech
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance("Semua pesanan aktif di meja ini telah berhasil dibersihkan.");
         utterance.lang = "id-ID";
-        utterance.pitch = 1.35; // Pitch tinggi agar Andika terdengar muda (remaja)
-        utterance.rate = 1.1; // Sedikit lebih cepat khas gaya bicara remaja yang dinamis
+        utterance.pitch = 1.35;
+        utterance.rate = 1.1;
         
-        // Muat daftar suara
         const voices = window.speechSynthesis.getVoices();
         
         const selectAndikaVoice = (vList: SpeechSynthesisVoice[]) => {
@@ -366,7 +370,6 @@ export default function GuestMenuPage() {
 
         const selectedVoice = selectAndikaVoice(voices);
 
-        // Fallback jika suara belum ter-preload (umum di Chrome/Windows)
         if (!selectedVoice && voices.length === 0) {
           window.speechSynthesis.onvoiceschanged = () => {
             const reloadedVoices = window.speechSynthesis.getVoices();

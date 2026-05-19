@@ -220,10 +220,14 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     .single();
 
   if (error) {
-    console.error(`updateOrder(${id}) error:`, error.message);
+    const isTriggerError = error.code === '42703' || (error.message && error.message.includes('order_type'));
+    
+    if (!isTriggerError) {
+      console.error(`updateOrder(${id}) error:`, error.message);
+    }
     
     // Check for PostgreSQL 42703 (Undefined Column / Trigger error with "order_type")
-    if (error.code === '42703' || (error.message && error.message.includes('order_type'))) {
+    if (isTriggerError) {
       console.warn(`[ROBUST FALLBACK] Database schema/trigger error (42703) on updateOrder(${id}). Executing atomic DELETE-then-INSERT database synchronization...`);
       
       try {

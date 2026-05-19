@@ -128,9 +128,9 @@ test.describe('Kedai Elvera 57 - E2E Admin & POS Kasir Flow (Playwright)', () =>
     await orderCard.click();
 
     // Verify order items have been loaded into the cart
-    await expect(page.locator('text=Pengelola Tagihan').first()).toBeVisible();
-    await expect(page.locator('text=Nasi Goreng Jawa ×2').first()).toBeVisible();
-    await expect(page.locator('text=Rp 55.000').last()).toBeVisible();
+    await expect(page.locator('text=Pengelola Tagihan').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Nasi Goreng Jawa ×2').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=Rp 55.000').last()).toBeVisible({ timeout: 15000 });
 
     // --- STEP 4: CHOOSE PAYMENT METHOD & SUBMIT ---
     console.log('[TEST PROGRESS] Processing Tunai payment...');

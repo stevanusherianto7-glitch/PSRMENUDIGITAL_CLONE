@@ -63,6 +63,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         setCart(targetOrder.items);
         setSelectedTable(targetOrder.tableId || "");
         setCurrentPayingOrderId(targetOrder.id);
+        setIsCartOpen(true);
         toast.success(`Memuat bill ${targetOrder.tableId ? 'Meja ' + targetOrder.tableId : 'Take Away'}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
         if (onClearAutoSelect) onClearAutoSelect();
       }
@@ -284,7 +285,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
   ];
 
   return (
-    <div className="relative h-full lg:h-[calc(100vh-160px)] flex flex-col md:flex-row gap-6">
+    <div className="relative h-full lg:h-[calc(100vh-160px)] flex flex-col lg:flex-row gap-6">
       {/* Active Bills Area */}
       <div className="flex-1 h-full flex flex-col overflow-hidden">
         {/* Title for Kasir Bills */}
@@ -326,6 +327,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   setCart(order.items);
                   setSelectedTable(order.tableId || "");
                   setCurrentPayingOrderId(order.id);
+                  setIsCartOpen(true);
                   toast.success(`Memuat bill Meja ${order.tableId}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
                 }}
                 className={`bg-card border border-border/60 rounded-2xl transition-all duration-300 hover:shadow-lg text-left w-full h-auto min-h-[160px] flex flex-col cursor-pointer relative ${currentPayingOrderId === order.id ? "ring-2 ring-primary shadow-lg shadow-primary/20 z-10" : "hover:border-primary/30"
@@ -393,10 +395,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         </div>
       </div>
 
-      {/* Floating Action Button: Lanjut Bayar (Only visible on mobile) */}
+      {/* Floating Action Button: Lanjut Bayar (Only visible on mobile/tablet) */}
       <button
         onClick={() => setIsCartOpen(true)}
-        className={`fixed bottom-[calc(2rem+var(--safe-area-bottom))] right-6 left-6 md:left-auto z-40 flex md:hidden items-center justify-between px-8 py-4 rounded-3xl bg-primary text-white shadow-[0_20px_50px_rgba(232,119,34,0.4)] hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-500 ${cart.length === 0 ? "scale-0" : "scale-100"
+        className={`fixed bottom-[calc(2rem+var(--safe-area-bottom))] right-6 left-6 lg:left-auto z-40 flex lg:hidden items-center justify-between px-8 py-4 rounded-3xl bg-primary text-white shadow-[0_20px_50px_rgba(232,119,34,0.4)] hover:scale-105 active:scale-95 transition-all animate-in zoom-in duration-500 ${cart.length === 0 ? "scale-0" : "scale-100"
           }`}
       >
         <div className="flex flex-col items-start leading-tight pr-4">
@@ -411,10 +413,10 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         </div>
       </button>
 
-      {/* Checkout Drawer Overlay (Only on mobile) */}
+      {/* Checkout Drawer Overlay (Only on mobile/tablet) */}
       {isCartOpen && (
         <div
-          className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-sm z-[50] animate-in fade-in duration-300 md:hidden"
+          className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-sm z-[50] animate-in fade-in duration-300 lg:hidden"
           onClick={() => setIsCartOpen(false)}
         />
       )}
@@ -422,7 +424,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       {/* Checkout Drawer / Sidebar */}
       {cart.length > 0 && (
         <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-zinc-950/90 border-l border-white/10 backdrop-blur-3xl shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
-          } md:relative md:translate-x-0 md:shadow-none md:border md:border-white/10 md:rounded-[32px] md:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500`}>
+          } lg:relative lg:translate-x-0 lg:shadow-none lg:border lg:border-white/10 lg:rounded-[32px] lg:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500`}>
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary/20 rounded-2xl shadow-lg shadow-primary/10">
@@ -435,7 +437,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all md:hidden"
+            className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all lg:hidden"
+            title="Tutup"
           >
             <X size={20} />
           </button>

@@ -106,16 +106,25 @@ export default function WaiterPage() {
   }, [loadOrders]);
 
   async function handleStatusChange(order: Order, newStatus: OrderStatus) {
+    // 1. Optimistic UI update: remove or update the order in local state immediately
+    setOrders(prev => {
+      if (newStatus === "served" || newStatus === "cancelled") {
+        return prev.filter(o => o.id !== order.id);
+      }
+      return prev.map(o => o.id === order.id ? { ...o, status: newStatus } : o);
+    });
+
     setUpdating(order.id);
     try {
+      // 2. Perform backend database update
       const updated = await updateOrder(order.id, { status: newStatus });
-      setOrders(prev => {
-        if (newStatus === "served" || newStatus === "cancelled") {
-          return prev.filter(o => o.id !== order.id);
-        }
-        return prev.map(o => o.id === order.id ? updated : o);
-      });
-      // TTS notifikasi saat pesanan siap antar
+      
+      // 3. Sync the final updated order object if it is still in the active list
+      if (newStatus !== "served" && newStatus !== "cancelled") {
+        setOrders(prev => prev.map(o => o.id === order.id ? updated : o));
+      }
+      
+      // TTS notifications
       if (newStatus === "ready" && ttsEnabled) {
         speak(`Pesanan meja ${order.tableId} siap untuk diantarkan.`);
       }
@@ -123,9 +132,12 @@ export default function WaiterPage() {
         speak(`Pesanan meja ${order.tableId} sudah disajikan. Terima kasih.`);
       }
     } catch (e) {
-      console.log("Error updating order:", e);
+      console.log("Error updating order, reverting optimistic update:", e);
+      // Graceful rollback: reload all active orders from backend
+      loadOrders();
+    } finally {
+      setUpdating(null);
     }
-    setUpdating(null);
   }
 
   async function handleCancel(order: Order) {
