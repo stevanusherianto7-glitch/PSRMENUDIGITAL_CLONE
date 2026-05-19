@@ -3,22 +3,31 @@ import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import * as path from 'path';
 
-function getServiceRoleKey(): string {
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return process.env.SUPABASE_SERVICE_ROLE_KEY;
-  }
-  try {
-    const secretsPath = path.join(process.cwd(), 'e2e_secrets.json');
-    if (fs.existsSync(secretsPath)) {
-      const secrets = JSON.parse(fs.readFileSync(secretsPath, 'utf8'));
-      if (secrets.supabaseServiceRoleKey) {
-        return secrets.supabaseServiceRoleKey;
+function getSupabaseConfig(): { url: string; key: string } {
+  // Option B: Local Supabase Fallback for CI E2E Testing
+  const LOCAL_URL = 'http://127.0.0.1:54321';
+  const LOCAL_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY_LOCAL || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZmF1bHQiLCJyb2xlIjoic2VydmljZV9yb2xlIiwiaWF0IjoxNjc3ODk4MTE4LCJleHAiOjE5OTM0NzQxMTh9.n2p9H5B9m6x2m1w6x2n_L3L-V3H8G7j6_z9K1h2L_D4';
+
+  let url = process.env.VITE_SUPABASE_URL || LOCAL_URL;
+  let key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+  if (!key) {
+    try {
+      const secretsPath = path.join(process.cwd(), 'e2e_secrets.json');
+      if (fs.existsSync(secretsPath)) {
+        const secrets = JSON.parse(fs.readFileSync(secretsPath, 'utf8'));
+        key = secrets.supabaseServiceRoleKey || '';
       }
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // ignore
   }
-  return '';
+  
+  if (!key && url.includes('127.0.0.1')) {
+    key = LOCAL_KEY;
+  }
+
+  return { url, key };
 }
 
 test.describe('Kedai Elvera 57 - E2E Multi-User Circular Ordering Flow (Playwright)', () => {
@@ -32,9 +41,8 @@ test.describe('Kedai Elvera 57 - E2E Multi-User Circular Ordering Flow (Playwrig
     });
 
     // --- STEP 0: CLEANUP RESIDUAL ORDERS FROM DATABASE ---
-    const supabaseUrl = 'https://pbitlwrgainrcippjuwd.supabase.co';
-    const supabaseKey = getServiceRoleKey();
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const config = getSupabaseConfig();
+    const supabase = createClient(config.url, config.key);
     console.log(`[TEST PREP] Deleting any residual database orders for table ${TABLE_ID}...`);
     const { error: cleanupError } = await supabase
       .from('orders')

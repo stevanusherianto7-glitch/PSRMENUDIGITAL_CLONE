@@ -1,0 +1,57 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup Supabase CLI
+      uses: supabase/setup-cli@v1
+      with:
+        version: latest
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+
+    - name: Start Local Supabase (Opsi B: Real DB Mock)
+      run: supabase start
+      
+    - name: Create .env file for E2E
+      run: |
+        echo "VITE_API_URL=http://localhost:8080" > .env
+        echo "VITE_SUPABASE_URL=http://127.0.0.1:54321" >> .env
+        echo "VITE_SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_ANON_KEY_LOCAL || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlZmF1bHQiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3Nzg5ODExOCwiZXhwIjoxOTkzNDc0MTE4fQ.a6mZ34L863V7a6yB_y3Y3D0C6n_GqL0-E0D5-P3hP3Q' }}" >> .env
+        # Mock API flag (Opsi A: Untuk tes spesifik tanpa DB)
+        echo "VITE_USE_MOCK_API=true" >> .env
+
+    - name: Run Playwright tests
+      run: npm run test:e2e:playwright
+      env:
+        CI: true
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 14

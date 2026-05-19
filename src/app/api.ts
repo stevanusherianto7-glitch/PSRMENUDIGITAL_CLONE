@@ -224,10 +224,10 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     
     // Check for PostgreSQL 42703 (Undefined Column / Trigger error with "order_type")
     if (error.code === '42703' || (error.message && error.message.includes('order_type'))) {
-      console.warn(`[ROBUST FALLBACK] Database schema/trigger error (42703) on updateOrder(${id}). Falling back to local state synchronization...`);
+      console.warn(`[ROBUST FALLBACK] Database schema/trigger error (42703) on updateOrder(${id}). Executing atomic DELETE-then-INSERT database synchronization...`);
       
       try {
-        // Fetch the base order record via SELECT (SELECT is safe and doesn't trigger UPDATE triggers)
+        // 1. Fetch the base order record via SELECT (SELECT is safe and doesn't trigger UPDATE triggers)
         const { data: existing, error: fetchErr } = await supabase
           .from("orders")
           .select("*")
@@ -241,17 +241,40 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
             updated_at: new Date().toISOString()
           };
           
-          // Cache the merged order back into LocalStorage to guarantee local UI synchronization
+          // 2. Perform DELETE from the database
+          const { error: deleteErr } = await supabase
+            .from("orders")
+            .delete()
+            .eq("id", id);
+            
+          if (deleteErr) {
+            console.error(`[ROBUST FALLBACK] DELETE operation failed:`, deleteErr.message);
+            throw deleteErr;
+          }
+          
+          // 3. Perform INSERT of the updated record back to the database
+          const { data: inserted, error: insertErr } = await supabase
+            .from("orders")
+            .insert(merged)
+            .select()
+            .single();
+            
+          if (insertErr) {
+            console.error(`[ROBUST FALLBACK] INSERT operation failed:`, insertErr.message);
+            throw insertErr;
+          }
+          
+          // 4. Cache the merged order back into LocalStorage for local client-side redundancy
           const cachedOrdersStr = localStorage.getItem("pawon_orders_cache") || "{}";
           const cachedOrders = JSON.parse(cachedOrdersStr);
           cachedOrders[id] = merged;
           localStorage.setItem("pawon_orders_cache", JSON.stringify(cachedOrders));
           
-          console.log(`[ROBUST FALLBACK] Order ${id} status successfully synchronized in local fallback cache with status:`, merged.status);
-          return mapOrder(merged);
+          console.log(`[ROBUST FALLBACK] Order ${id} status successfully persisted in remote database via atomic workaround. New status:`, inserted.status);
+          return mapOrder(inserted);
         }
       } catch (fallbackErr) {
-        console.error("[ROBUST FALLBACK] Failed to process local synchronization fallback:", fallbackErr);
+        console.error("[ROBUST FALLBACK] Failed to process database-synchronized fallback:", fallbackErr);
       }
     }
     

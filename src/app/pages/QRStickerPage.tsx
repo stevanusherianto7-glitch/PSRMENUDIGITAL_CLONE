@@ -131,18 +131,27 @@ export default function QRStickerPage() {
         .bg-fade-right { background: linear-gradient(to right, transparent, #FFFFFF); }
         .bg-fade-left { background: linear-gradient(to left, transparent, #FFFFFF); }
 
+        @page {
+          size: auto;
+          margin: 0mm;
+        }
+
         @media print {
           body * { visibility: hidden !important; }
           #print-area, #print-area * { visibility: visible !important; }
           #print-area {
             position: fixed !important;
-            top: 0 !important; left: 0 !important;
+            top: 0 !important;
+            left: 0 !important;
             width: 100vw !important;
-            padding: 10mm !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
             background: white !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
+            z-index: 9999999 !important;
           }
           .no-print { display: none !important; }
         }
@@ -297,7 +306,7 @@ export default function QRStickerPage() {
 
         {/* ── Print area (hanya merender meja yang dipilih) ── */}
         <div id="print-area" className="hidden">
-          <div className="p-[10mm] flex justify-center items-center bg-white min-h-screen">
+          <div className="w-full h-full flex justify-center items-center bg-white">
             <StickerWithPrintArea tableId={selectedTableId} index={0} size={stickerSize} />
           </div>
         </div>
