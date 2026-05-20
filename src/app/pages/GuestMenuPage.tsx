@@ -8,7 +8,8 @@ import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
-  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle
+  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle,
+  Calendar, Users, Phone, User, FileText, Camera
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
@@ -17,7 +18,7 @@ import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useThemeStore } from "../hooks/useThemeStore";
 
-type View = "menu" | "cart" | "status" | "gallery";
+type View = "menu" | "cart" | "status" | "gallery" | "booking";
 
 interface EventPhoto {
   id: string;
@@ -106,6 +107,19 @@ export default function GuestMenuPage() {
   const [resetting, setResetting] = useState(false);
   const [selectedEventImage, setSelectedEventImage] = useState<string | null>(null);
   const [eventPhotos, setEventPhotos] = useState<EventPhoto[]>(EVENT_PHOTOS);
+
+  // --- Booking Form States ---
+  const [bookingName, setBookingName] = useState("");
+  const [bookingPhone, setBookingPhone] = useState("");
+  const [bookingType, setBookingType] = useState("Meja Makan");
+  const [bookingGuests, setBookingGuests] = useState(2);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
+  const [bookingNotes, setBookingNotes] = useState("");
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [lastBooking, setLastBooking] = useState<any>(null);
 
   useEffect(() => {
     async function fetchEventPhotos() {
@@ -288,7 +302,7 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     loadMyOrders();
-    let interval: NodeJS.Timeout | null = null;
+    let interval: any = null;
     if (autoRefresh && view === "status") {
       interval = setInterval(loadMyOrders, 5000);
     }
@@ -413,6 +427,58 @@ export default function GuestMenuPage() {
       step: 4 
     },
   };
+
+  async function handleCreateBooking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!bookingName || !bookingPhone || !bookingDate || !bookingTime) {
+      setBookingError("Semua bidang bertanda bintang (*) harus diisi!");
+      return;
+    }
+    setBookingError("");
+    setBookingSubmitting(true);
+
+    const payload = {
+      name: bookingName,
+      phone: bookingPhone,
+      type: bookingType,
+      guests: Number(bookingGuests),
+      date: bookingDate,
+      time: bookingTime,
+      notes: bookingNotes,
+      status: "pending"
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from("reservations")
+        .insert([payload])
+        .select();
+
+      if (error) throw error;
+      
+      const newBooking = data && data[0] ? data[0] : payload;
+      setLastBooking(newBooking);
+      setBookingSuccess(true);
+
+      // Save to localStorage so they can view it later or sync it
+      const savedBookings = JSON.parse(localStorage.getItem("guest_local_bookings") || "[]");
+      localStorage.setItem("guest_local_bookings", JSON.stringify([newBooking, ...savedBookings]));
+    } catch (err: any) {
+      console.warn("Failed to write booking to Supabase, saving to LocalStorage:", err);
+      // Resilience / Offline Fallback: save to localStorage and local state
+      const localBooking = {
+        id: "local-" + Date.now(),
+        ...payload
+      };
+      setLastBooking(localBooking);
+      setBookingSuccess(true);
+
+      const savedBookings = JSON.parse(localStorage.getItem("guest_local_bookings") || "[]");
+      localStorage.setItem("guest_local_bookings", JSON.stringify([localBooking, ...savedBookings]));
+    } finally {
+      setBookingSubmitting(false);
+    }
+  }
 
   function handleStartOrder() {
     setOrderMode(welcomeMode);
@@ -756,28 +822,38 @@ export default function GuestMenuPage() {
         </div>
       </header>
 
-      {/* Tab Switcher: Buku Menu vs Galeri Resto */}
+      {/* Tab Switcher: Buku Menu vs Galeri Resto vs Reservasi */}
       {view !== "cart" && view !== "status" && (
         <div className="flex px-4 pt-4 pb-2 gap-2 bg-background flex-shrink-0">
           <button
             onClick={() => setView("menu")}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
+            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
               view === "menu"
                 ? "bg-primary/10 border-primary/30 text-primary shadow-[0_2px_12px_rgba(249,115,22,0.15)] scale-[1.01]"
                 : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
             }`}
           >
-            📖 Buku Menu
+            📖 Menu
           </button>
           <button
             onClick={() => setView("gallery")}
-            className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
+            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
               view === "gallery"
                 ? "bg-primary/10 border-primary/30 text-primary shadow-[0_2px_12px_rgba(249,115,22,0.15)] scale-[1.01]"
                 : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
             }`}
           >
-            📸 Galeri Resto
+            📸 Galeri
+          </button>
+          <button
+            onClick={() => setView("booking")}
+            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
+              view === "booking"
+                ? "bg-primary/10 border-primary/30 text-primary shadow-[0_2px_12px_rgba(249,115,22,0.15)] scale-[1.01]"
+                : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            }`}
+          >
+            📅 Reservasi
           </button>
         </div>
       )}
@@ -883,6 +959,222 @@ export default function GuestMenuPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Booking / Reservation View */}
+      {view === "booking" && (
+        <div className="p-4 pb-24 overflow-y-auto flex-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="mb-4">
+            <h2 className="text-base font-black uppercase tracking-widest text-foreground font-poppins flex items-center gap-2">
+              <Calendar size={16} className="text-primary animate-pulse" />
+              Reservasi Tempat &amp; Acara
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Booking tempat untuk makan keluarga, pertemuan bisnis, ulang tahun, hingga pesta pernikahan di {BRAND_NAME}.
+            </p>
+          </div>
+
+          {bookingSuccess ? (
+            <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-2xl p-6 text-center space-y-4">
+              <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 size={24} className="animate-bounce" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-foreground font-poppins">Reservasi Berhasil Diajukan!</h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Pengajuan reservasi Anda telah kami terima dan sedang dalam proses verifikasi.
+                </p>
+              </div>
+
+              <div className="bg-secondary/40 border border-border/80 rounded-xl p-4 text-left space-y-2 text-xs">
+                <div className="flex justify-between border-b border-border/40 pb-1.5">
+                  <span className="text-muted-foreground">Nama Pemesan:</span>
+                  <span className="font-semibold text-foreground">{lastBooking?.name}</span>
+                </div>
+                <div className="flex justify-between border-b border-border/40 pb-1.5">
+                  <span className="text-muted-foreground">WhatsApp:</span>
+                  <span className="font-semibold text-foreground">{lastBooking?.phone}</span>
+                </div>
+                <div className="flex justify-between border-b border-border/40 pb-1.5">
+                  <span className="text-muted-foreground">Jenis Acara:</span>
+                  <span className="font-semibold text-foreground">{lastBooking?.type}</span>
+                </div>
+                <div className="flex justify-between border-b border-border/40 pb-1.5">
+                  <span className="text-muted-foreground">Jumlah Tamu:</span>
+                  <span className="font-semibold text-foreground">{lastBooking?.guests} Orang</span>
+                </div>
+                <div className="flex justify-between border-b border-border/40 pb-1.5">
+                  <span className="text-muted-foreground">Jadwal:</span>
+                  <span className="font-semibold text-foreground">{lastBooking?.date} @ {lastBooking?.time}</span>
+                </div>
+                {lastBooking?.notes && (
+                  <div className="pt-1">
+                    <span className="text-muted-foreground block mb-0.5">Catatan Khusus:</span>
+                    <p className="text-[11px] text-foreground bg-background/50 border border-border/40 p-2 rounded-lg leading-relaxed italic">{lastBooking?.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <a
+                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(
+                    `Halo Admin ${BRAND_NAME},\n\nSaya ingin mengonfirmasi reservasi tempat/acara yang telah diajukan di Buku Menu:\n\n*Nama:* ${lastBooking?.name}\n*No. WA:* ${lastBooking?.phone}\n*Acara/Tempat:* ${lastBooking?.type}\n*Jumlah Tamu:* ${lastBooking?.guests} orang\n*Tanggal:* ${lastBooking?.date}\n*Jam:* ${lastBooking?.time}\n*Catatan:* ${lastBooking?.notes || '-'}\n\nMohon untuk segera diverifikasi. Terima kasih!`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#20ba56] hover:shadow-lg hover:shadow-emerald-500/10 transition-all font-poppins"
+                >
+                  <Phone size={14} /> Konfirmasi Lewat WhatsApp
+                </a>
+                <button
+                  onClick={() => {
+                    setBookingSuccess(false);
+                    setBookingName("");
+                    setBookingPhone("");
+                    setBookingNotes("");
+                    setLastBooking(null);
+                  }}
+                  className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 text-muted-foreground hover:text-foreground text-[10px] font-black uppercase tracking-wider transition-all"
+                >
+                  Buat Reservasi Baru
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleCreateBooking} className="bg-card border border-border/80 rounded-2xl p-5 space-y-4 shadow-sm">
+              {bookingError && (
+                <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 border border-red-500/25 p-3 rounded-lg">
+                  <AlertCircle size={14} />
+                  <span>{bookingError}</span>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                  <User size={10} className="text-primary" />
+                  Nama Lengkap Pemesan <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Masukkan nama lengkap Anda"
+                  value={bookingName}
+                  onChange={(e) => setBookingName(e.target.value)}
+                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                  <Phone size={10} className="text-primary" />
+                  Nomor Telepon / WhatsApp <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Contoh: 081234567890"
+                  value={bookingPhone}
+                  onChange={(e) => setBookingPhone(e.target.value)}
+                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-mono font-semibold"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Sparkles size={10} className="text-primary" />
+                    Jenis Reservasi
+                  </label>
+                  <select
+                    value={bookingType}
+                    onChange={(e) => setBookingType(e.target.value)}
+                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                  >
+                    <option value="Meja Makan Biasa">Meja Makan Biasa</option>
+                    <option value="Pesta Ulang Tahun">Pesta Ulang Tahun</option>
+                    <option value="Acara Pernikahan (Wedding)">Acara Pernikahan (Wedding)</option>
+                    <option value="Corporate Gathering / Rapat">Corporate Gathering / Rapat</option>
+                    <option value="Kumpul Keluarga Besar">Kumpul Keluarga Besar</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Users size={10} className="text-primary" />
+                    Jumlah Tamu <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={bookingGuests}
+                    onChange={(e) => setBookingGuests(Number(e.target.value))}
+                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Calendar size={10} className="text-primary" />
+                    Tanggal Booking <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                    <Clock size={10} className="text-primary" />
+                    Jam Mulai <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={bookingTime}
+                    onChange={(e) => setBookingTime(e.target.value)}
+                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                  <FileText size={10} className="text-primary" />
+                  Catatan Khusus / Permintaan (Opsional)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Contoh: Butuh meja di dekat area musik live, request menu diet gluten-free, dekorasi kecil ultah, dll."
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-medium leading-relaxed resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={bookingSubmitting}
+                className="w-full py-3.5 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-wider hover:bg-orange-600 hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 font-poppins"
+              >
+                {bookingSubmitting ? (
+                  <>Mengirim Pengajuan...</>
+                ) : (
+                  <>
+                    <Calendar size={14} />
+                    Ajukan Reservasi Sekarang
+                  </>
+                )}
+              </button>
+            </form>
+          )}
         </div>
       )}
 

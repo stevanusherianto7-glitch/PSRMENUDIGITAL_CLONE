@@ -421,11 +421,54 @@ values
 on conflict do nothing;
 
 
+-- Tabel Reservasi Venue dan Tempat
+create table if not exists public.reservations (
+  id          uuid        primary key default uuid_generate_v4(),
+  name        text        not null,
+  phone       text        not null,
+  type        text        not null,
+  guests      integer     not null,
+  date        text        not null,
+  time        text        not null,
+  notes       text,
+  status      text        not null default 'pending',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table  public.reservations             is 'Tabel reservasi tempat/meja dan acara';
+comment on column public.reservations.id          is 'Primary key UUID';
+comment on column public.reservations.name        is 'Nama pemesan';
+comment on column public.reservations.phone       is 'Nomor telepon/WhatsApp pemesan';
+comment on column public.reservations.type        is 'Jenis reservasi (Meja Makan, Wedding, Birthday, Corporate, dll)';
+comment on column public.reservations.guests      is 'Jumlah tamu';
+comment on column public.reservations.date        is 'Tanggal booking';
+comment on column public.reservations.time        is 'Jam booking';
+comment on column public.reservations.notes       is 'Catatan atau permintaan khusus';
+comment on column public.reservations.status      is 'Status reservasi (pending, approved, rejected)';
+
+-- Trigger untuk update updated_at
+drop trigger if exists set_reservations_updated_at on public.reservations;
+create trigger set_reservations_updated_at
+  before update on public.reservations
+  for each row execute function public.handle_updated_at();
+
+-- Disable RLS (demo mode)
+alter table public.reservations disable row level security;
+
+-- Enable Realtime
+do $$ begin
+  alter publication supabase_realtime add table public.reservations;
+exception when duplicate_object then
+  raise notice 'Table reservations is already in supabase_realtime publication';
+end $$;
+
+
 -- ─────────────────────────────────────────────────────────────
 --  SELESAI ✓
---  Tabel  : 6 (meja, menu_items, order_menu_items, inventory, transactions, event_gallery)
---  Trigger: 3 (auto updated_at)
+--  Tabel  : 7 (meja, menu_items, order_menu_items, inventory, transactions, event_gallery, reservations)
+--  Trigger: 4 (auto updated_at)
 --  Indexes: 3 (created_at, method, table_id pada transactions)
---  Realtime: meja + transactions + event_gallery
+--  Realtime: meja + transactions + event_gallery + reservations
 --  Seed   : 9 meja, 10 menu, 10 inventory, 18 transaksi, 4 event gallery
 -- ─────────────────────────────────────────────────────────────
