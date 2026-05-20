@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
-  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle,
+  Utensils, ShoppingBag, Sparkles, MapPin, AlertCircle,
   Calendar, Users, Phone, User, FileText, Camera, Lock, Unlock, ShieldCheck
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
@@ -713,7 +713,7 @@ export default function GuestMenuPage() {
                     <span className="text-[10px] uppercase tracking-widest text-[#a76d33] font-bold block mb-3">
                       Sejak 2025 · Semarang
                     </span>
-                    <h1 className="font-serif text-3xl leading-tight">
+                    <h1 className="font-serif text-3xl leading-tight text-white">
                       Cita rasa Jawa,
                       <br />
                       <span className="text-[#a76d33] italic">disajikan modern.</span>
@@ -864,8 +864,12 @@ export default function GuestMenuPage() {
             {welcomeStep === 3 && (
               <div className="p-6">
                 <div className="text-center mb-5">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto mb-3">
-                    <ClipboardList size={22} className="text-amber-400" />
+                  <div className="relative mb-3 flex items-center justify-center">
+                    <img 
+                      src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+                      alt="Sertifikat Halal" 
+                      className={`h-14 w-auto object-contain transition-all duration-500 hover:scale-105 filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)] ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
+                    />
                   </div>
                   <h3
                     className="text-base font-extrabold text-foreground font-poppins"
