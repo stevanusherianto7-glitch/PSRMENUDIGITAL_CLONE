@@ -508,18 +508,30 @@ export default function GuestMenuPage() {
       const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
       const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
 
+      // Helper function to safely parse timezone-agnostic date strings from Supabase (treating them as UTC)
+      const parseUtcDate = (dateStr?: string) => {
+        if (!dateStr) return new Date();
+        const cleanStr = dateStr.includes("Z") || dateStr.includes("+") 
+          ? dateStr 
+          : `${dateStr.replace(" ", "T")}Z`;
+        return new Date(cleanStr);
+      };
+
       const active = orders.filter(o => {
         if (clearedIds.includes(o.id)) return false;
         if (o.status === "cancelled") return false;
 
         // Batasi pesanan tamu maksimal 30 menit sejak dibuat
-        const orderTime = new Date(o.created_at).getTime();
-        if ((Date.now() - orderTime) > 30 * 60 * 1000) {
+        const orderTime = parseUtcDate(o.created_at).getTime();
+        const timeDiff = Date.now() - orderTime;
+        
+        // Cek jika pesanan lebih lama dari 30 menit
+        if (timeDiff > 30 * 60 * 1000) {
           return false;
         }
 
         if (o.status === "served") {
-          const servedTime = new Date(o.served_at || o.updated_at).getTime();
+          const servedTime = parseUtcDate(o.served_at || o.updated_at).getTime();
           return (Date.now() - servedTime) < 15 * 60 * 1000; // 15 menit
         }
         return true;
@@ -530,12 +542,12 @@ export default function GuestMenuPage() {
         const now = Date.now();
         const recentLocalOrders = prev.filter(p => 
           !active.some(a => a.id === p.id) && 
-          (now - new Date(p.created_at).getTime()) < 10000 // Kurang dari 10 detik
+          (now - parseUtcDate(p.created_at).getTime()) < 10000 // Kurang dari 10 detik
         );
         
         if (recentLocalOrders.length > 0) {
           return [...recentLocalOrders, ...active].sort((a, b) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            parseUtcDate(b.created_at).getTime() - parseUtcDate(a.created_at).getTime()
           );
         }
         return active;

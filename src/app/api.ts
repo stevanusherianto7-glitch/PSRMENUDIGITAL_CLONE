@@ -380,11 +380,20 @@ export async function deleteOrder(id: string): Promise<void> {
  */
 export function getOrderDuration(order: Order): number {
   if (!order.created_at) return 0;
-  const start = new Date(order.created_at).getTime();
+  
+  const parseUtcDate = (dateStr?: string) => {
+    if (!dateStr) return new Date();
+    const cleanStr = dateStr.includes("Z") || dateStr.includes("+") 
+      ? dateStr 
+      : `${dateStr.replace(" ", "T")}Z`;
+    return new Date(cleanStr);
+  };
+
+  const start = parseUtcDate(order.created_at).getTime();
   const end = order.served_at 
-    ? new Date(order.served_at).getTime()
+    ? parseUtcDate(order.served_at).getTime()
     : order.status === "served"
-      ? new Date(order.updated_at).getTime()
+      ? parseUtcDate(order.updated_at).getTime()
       : Date.now();
   
   const diffMinutes = Math.floor((end - start) / 60000);
