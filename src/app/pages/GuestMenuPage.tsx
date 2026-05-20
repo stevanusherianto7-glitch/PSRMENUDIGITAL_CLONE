@@ -17,7 +17,51 @@ import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useThemeStore } from "../hooks/useThemeStore";
 
-type View = "menu" | "cart" | "status";
+type View = "menu" | "cart" | "status" | "gallery";
+
+interface EventPhoto {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  image: string;
+  description: string;
+}
+
+const EVENT_PHOTOS: EventPhoto[] = [
+  {
+    id: "event-1",
+    title: "Jamuan Pernikahan Premium",
+    date: "12 Mei 2026",
+    category: "Wedding",
+    image: "/imports/event_wedding.png",
+    description: "Merayakan hari bahagia bersama keluarga tercinta dengan konsep prasmanan premium dan dekorasi adat Jawa modern yang anggun."
+  },
+  {
+    id: "event-2",
+    title: "Gathering & Rapat Korporat",
+    date: "28 April 2026",
+    category: "Corporate",
+    image: "/imports/event_gathering.png",
+    description: "Jamuan makan siang prasmanan premium dan kopi rehat berkualitas untuk kegiatan rapat kerja instansi dan forum korporat."
+  },
+  {
+    id: "event-3",
+    title: "Ulang Tahun & Kumpul Keluarga",
+    date: "05 April 2026",
+    category: "Birthday",
+    image: "/imports/event_birthday.png",
+    description: "Momen hangat kumpul keluarga besar merayakan ulang tahun dengan hidangan lezat racikan khusus koki andalan kami."
+  },
+  {
+    id: "event-4",
+    title: "Weekend Live Music Session",
+    date: "Maret - Mei 2026",
+    category: "Music Event",
+    image: "/imports/event_livemusic.png",
+    description: "Keseruan akhir pekan di area taman outdoor menikmati alunan live acoustic music ditemani hidangan santai bersama sahabat."
+  }
+];
 
 function OptimizedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const [loaded, setLoaded] = useState(false);
@@ -60,6 +104,7 @@ export default function GuestMenuPage() {
   const [tableError, setTableError] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [resetting, setResetting] = useState(false);
+  const [selectedEventImage, setSelectedEventImage] = useState<string | null>(null);
 
   const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -673,6 +718,32 @@ export default function GuestMenuPage() {
         </div>
       </header>
 
+      {/* Tab Switcher: Buku Menu vs Galeri Resto */}
+      {view !== "cart" && view !== "status" && (
+        <div className="flex px-4 pt-4 pb-2 gap-2 bg-background flex-shrink-0">
+          <button
+            onClick={() => setView("menu")}
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
+              view === "menu"
+                ? "bg-primary/10 border-primary/30 text-primary shadow-[0_2px_12px_rgba(249,115,22,0.15)] scale-[1.01]"
+                : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            }`}
+          >
+            📖 Buku Menu
+          </button>
+          <button
+            onClick={() => setView("gallery")}
+            className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-2xl border text-center transition-all duration-300 ${
+              view === "gallery"
+                ? "bg-primary/10 border-primary/30 text-primary shadow-[0_2px_12px_rgba(249,115,22,0.15)] scale-[1.01]"
+                : "bg-white/[0.02] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            }`}
+          >
+            📸 Galeri Resto
+          </button>
+        </div>
+      )}
+
       {/* Menu View */}
       {view === "menu" && (
         <div>
@@ -734,6 +805,45 @@ export default function GuestMenuPage() {
                 );
               })
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Event Gallery View */}
+      {view === "gallery" && (
+        <div className="p-4 pb-24 overflow-y-auto flex-1">
+          <div className="mb-4">
+            <h2 className="text-base font-black uppercase tracking-widest text-foreground font-poppins flex items-center gap-2">
+              <Sparkles size={16} className="text-primary animate-pulse" />
+              Momen Spesial Kami
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Dokumentasi berbagai kegiatan dan perayaan berharga yang pernah diselenggarakan di {BRAND_NAME}.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {EVENT_PHOTOS.map((evt) => (
+              <div 
+                key={evt.id}
+                onClick={() => setSelectedEventImage(evt.image)}
+                className="bg-card border border-border/60 rounded-2xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all duration-300 group shadow-md"
+              >
+                <div className="aspect-[16/9] overflow-hidden relative">
+                  <OptimizedImage src={evt.image} alt={evt.title} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
+                  <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-[9px] font-black uppercase tracking-widest text-white px-2.5 py-1.5 rounded-full border border-white/10">
+                    {evt.category}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors font-poppins">{evt.title}</h3>
+                    <span className="text-[10px] text-muted-foreground font-semibold">{evt.date}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{evt.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -1040,6 +1150,43 @@ export default function GuestMenuPage() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Image Zoom Modal (Lightbox) */}
+      {selectedEventImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+          onClick={() => setSelectedEventImage(null)}
+        >
+          <div 
+            className="relative w-full max-w-lg rounded-2xl overflow-hidden bg-card border border-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setSelectedEventImage(null)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/60 text-white hover:bg-black/80 flex items-center justify-center transition-all border border-white/10"
+              title="Tutup"
+            >
+              <X size={16} />
+            </button>
+            <div className="aspect-video w-full overflow-hidden">
+              <img src={selectedEventImage} alt="Event Zoom" className="w-full h-full object-contain bg-black" />
+            </div>
+            {(() => {
+              const matched = EVENT_PHOTOS.find(e => e.image === selectedEventImage);
+              if (!matched) return null;
+              return (
+                <div className="p-5 border-t border-border bg-card">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="font-black text-sm text-foreground uppercase tracking-wider font-poppins">{matched.title}</h3>
+                    <span className="text-[9px] bg-primary/10 border border-primary/20 text-primary px-2.5 py-1 rounded-full font-black uppercase tracking-widest">{matched.category}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{matched.description}</p>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
