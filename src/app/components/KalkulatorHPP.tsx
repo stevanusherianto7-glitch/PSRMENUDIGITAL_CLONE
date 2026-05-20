@@ -289,11 +289,11 @@ export const KalkulatorHPP = () => {
               <div className="relative z-10 space-y-8">
                 <div>
                   <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">Total Biaya Operasional (Batch)</p>
-                  <h3 className="text-4xl font-black font-poppins tracking-tighter text-white">{rp(Math.round(totalHpp))}</h3>
+                  <h3 className="text-2xl font-black font-poppins tracking-tight text-white">{rp(Math.round(totalHpp))}</h3>
                 </div>
                 <div className="pt-8 border-t border-white/10">
                   <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">HPP / Porsi</p>
-                  <h2 className="text-5xl font-black text-yellow-300 font-poppins tracking-tighter">{rp(hppPerPortion)}</h2>
+                  <h2 className="text-3xl font-black text-yellow-300 font-poppins tracking-tight">{rp(hppPerPortion)}</h2>
                   <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest mt-3">Kalkulasi Riwayat Real-Time</p>
                 </div>
               </div>
@@ -328,7 +328,7 @@ export const KalkulatorHPP = () => {
               <div className="p-6 bg-secondary/80 rounded-3xl border border-border space-y-2">
                 <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Rekomendasi Harga Jual</p>
                 <div className="flex items-center justify-between">
-                  <h4 className="text-3xl font-black text-foreground font-poppins tracking-tighter">{rp(recommendedSellingPrice)}</h4>
+                  <h4 className="text-xl font-black text-foreground font-poppins tracking-tight">{rp(recommendedSellingPrice)}</h4>
                   <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black text-xs">
                     <ArrowUpRight size={16} />
                   </div>
