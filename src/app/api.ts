@@ -219,7 +219,7 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     .select()
     .single();
 
-  let dataResult = data;
+  const dataResult = data;
   let errorResult = error;
 
   if (errorResult) {
