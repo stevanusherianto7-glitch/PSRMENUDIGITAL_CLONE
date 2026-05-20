@@ -147,6 +147,13 @@ export default function GuestMenuPage() {
       const active = orders.filter(o => {
         if (clearedIds.includes(o.id)) return false;
         if (o.status === "cancelled") return false;
+
+        // Batasi pesanan tamu maksimal 30 menit sejak dibuat
+        const orderTime = new Date(o.created_at).getTime();
+        if ((Date.now() - orderTime) > 30 * 60 * 1000) {
+          return false;
+        }
+
         if (o.status === "served") {
           const servedTime = new Date(o.served_at || o.updated_at).getTime();
           return (Date.now() - servedTime) < 15 * 60 * 1000; // 15 menit
