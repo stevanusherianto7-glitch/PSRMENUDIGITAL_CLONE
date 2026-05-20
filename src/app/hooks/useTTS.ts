@@ -18,6 +18,7 @@ import { toast } from "sonner";
 const globalKnownIds = new Set<string>();
 const scheduledIds = new Set<string>();
 let firstLoadDone = false; // Flag modul-level agar first load hanya terjadi SEKALI per tab
+const recentAnnouncements = new Map<string, number>();
 
 interface QueueItem {
   text: string;
@@ -187,6 +188,24 @@ async function startQueueProcessor() {
 export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
   const speak = useCallback((text: string) => {
     if (!enabled) return;
+
+    const now = Date.now();
+
+    // Bersihkan entri lama (> 30 detik) untuk mencegah kebocoran memori
+    for (const [key, val] of recentAnnouncements.entries()) {
+      if (now - val > 30000) {
+        recentAnnouncements.delete(key);
+      }
+    }
+
+    // Deduplikasi: Abaikan jika teks yang sama persis disuarakan dalam 6 detik terakhir
+    const lastSpoken = recentAnnouncements.get(text);
+    if (lastSpoken && (now - lastSpoken < 6000)) {
+      console.log("[TTS] Mencegah pengumuman ganda untuk teks:", text);
+      return;
+    }
+    recentAnnouncements.set(text, now);
+
     toast("🔊 Notifikasi suara masuk antrean...", { icon: '🤖', duration: 2500 });
     ttsQueue.push({ text, enabled });
     startQueueProcessor();
