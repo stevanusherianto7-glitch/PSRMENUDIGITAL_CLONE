@@ -1129,19 +1129,10 @@ export default function GuestMenuPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    setBookingSuccess(false);
-                    setBookingName("");
-                    setBookingPhone("");
-                    setBookingNotes("");
-                    setLastBooking(null);
-                  }}
-                  className="w-full py-3 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-wider hover:bg-orange-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-poppins"
-                >
-                  Buat Reservasi Baru
-                </button>
+              <div className="pt-2 text-center">
+                <p className="text-[10px] text-muted-foreground/80 font-medium italic">
+                  * Anda dapat kembali memesan menu makanan atau minuman melalui menu navigasi di bagian bawah layar.
+                </p>
               </div>
             </div>
           ) : (
