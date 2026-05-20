@@ -79,6 +79,8 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
   const [formDescription, setFormDescription] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState("");
 
   // --- Load Event Photos ---
   const loadEventPhotos = useCallback(async () => {
@@ -217,6 +219,38 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
       resetForm();
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // --- Save Title Inline ---
+  const handleInlineSaveTitle = async (photo: EventPhoto) => {
+    if (!tempTitle.trim()) return;
+    
+    const payload = {
+      title: tempTitle,
+      date: photo.date,
+      category: photo.category,
+      image: photo.image,
+      description: photo.description
+    };
+
+    try {
+      const { error } = await supabase
+        .from("event_gallery")
+        .update({ title: tempTitle })
+        .eq("id", photo.id);
+
+      if (error) throw error;
+      await loadEventPhotos();
+      setEditingTitleId(null);
+    } catch (err) {
+      console.warn("Failed to update title in Supabase, updating locally:", err);
+      const updatedList = eventPhotos.map(p => 
+        p.id === photo.id ? { ...p, title: tempTitle } : p
+      );
+      setEventPhotos(updatedList);
+      localStorage.setItem("local_event_gallery", JSON.stringify(updatedList));
+      setEditingTitleId(null);
     }
   };
 
@@ -444,8 +478,59 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
                   </div>
                   
                   <div className="p-4 flex-1 flex flex-col gap-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-1 font-poppins">{photo.title}</h4>
+                    <div className="flex items-center justify-between gap-2 w-full">
+                      {editingTitleId === photo.id ? (
+                        <div className="flex items-center gap-1 flex-1" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="text"
+                            value={tempTitle}
+                            onChange={(e) => setTempTitle(e.target.value)}
+                            className="bg-secondary border border-primary text-foreground rounded px-1.5 py-0.5 text-[11px] font-semibold flex-1 focus:outline-none focus:ring-1 focus:ring-primary"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleInlineSaveTitle(photo);
+                              if (e.key === "Escape") setEditingTitleId(null);
+                            }}
+                          />
+                          <button
+                            onClick={() => handleInlineSaveTitle(photo)}
+                            className="text-emerald-500 hover:text-emerald-400 p-0.5"
+                            title="Simpan"
+                          >
+                            <Save size={12} />
+                          </button>
+                          <button
+                            onClick={() => setEditingTitleId(null)}
+                            className="text-red-500 hover:text-red-400 p-0.5"
+                            title="Batal"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 flex-1 group/title">
+                          <h4 
+                            onClick={() => {
+                              setEditingTitleId(photo.id);
+                              setTempTitle(photo.title);
+                            }}
+                            className="font-bold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-1 font-poppins cursor-pointer hover:underline"
+                            title="Klik untuk ubah cepat"
+                          >
+                            {photo.title}
+                          </h4>
+                          <button
+                            onClick={() => {
+                              setEditingTitleId(photo.id);
+                              setTempTitle(photo.title);
+                            }}
+                            className="text-muted-foreground opacity-0 group-hover/title:opacity-100 transition-opacity hover:text-primary"
+                            title="Edit Judul"
+                          >
+                            <Edit2 size={9} />
+                          </button>
+                        </div>
+                      )}
                       <span className="text-[9px] text-muted-foreground font-black whitespace-nowrap uppercase tracking-wider">{photo.date}</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground line-clamp-3 leading-relaxed flex-1">{photo.description}</p>
