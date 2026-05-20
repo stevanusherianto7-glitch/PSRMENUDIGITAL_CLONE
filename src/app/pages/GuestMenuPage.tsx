@@ -1129,7 +1129,7 @@ export default function GuestMenuPage() {
                 )}
               </div>
 
-              <div className="pt-3 text-center flex flex-col items-center gap-3">
+              <div className="pt-2 text-center flex flex-col items-center">
                 <button
                   type="button"
                   onClick={() => {
@@ -1165,9 +1165,6 @@ export default function GuestMenuPage() {
                     Kembali
                   </p>
                 </button>
-                <p className="text-[10px] text-muted-foreground/80 font-medium italic mt-1">
-                  * Anda dapat kembali memesan menu makanan atau minuman melalui menu navigasi di bagian bawah layar.
-                </p>
               </div>
             </div>
           ) : (
