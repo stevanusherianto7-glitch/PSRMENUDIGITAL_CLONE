@@ -131,10 +131,6 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                      }`}>
-                      {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
-                    </span>
                     {(() => {
                       const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
                       const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];

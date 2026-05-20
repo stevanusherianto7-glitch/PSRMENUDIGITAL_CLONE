@@ -65,6 +65,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         setCart(targetOrder.items);
         setSelectedTable(targetOrder.tableId || "");
         setCurrentPayingOrderId(targetOrder.id);
+        setOrderMode((targetOrder.orderMode || "dine-in") as "dine-in" | "take-away");
         setIsCartOpen(true);
         toast.success(`Memuat bill ${targetOrder.tableId ? 'Meja ' + targetOrder.tableId : 'Take Away'}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
         if (onClearAutoSelect) onClearAutoSelect();
@@ -457,6 +458,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   setCart(order.items);
                   setSelectedTable(order.tableId || "");
                   setCurrentPayingOrderId(order.id);
+                  setOrderMode((order.orderMode || "dine-in") as "dine-in" | "take-away");
                   setIsCartOpen(true);
                   toast.success(`Memuat bill Meja ${order.tableId}`, { duration: 800, position: 'bottom-center', style: { fontSize: '10px', fontWeight: 'bold' } });
                 }}
@@ -472,10 +474,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                   </div>
 
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border uppercase tracking-tighter ${order.type === "guest" ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400" : order.type === "waiter" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-purple-500/10 border-purple-500/20 text-purple-400"
-                      }`}>
-                      {order.type === "guest" ? "Scan" : order.type === "waiter" ? "Waiter" : "Kasir"}
-                    </span>
                     {(() => {
                       const mode = (order.orderMode || "dine-in") as keyof typeof orderModeConfig;
                       const mcfg = orderModeConfig[mode] || orderModeConfig["dine-in"];
@@ -598,17 +596,11 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
               </div>
             )}
 
-            <div className="flex gap-3">
-              {(["dine-in", "take-away"] as const).map(m => {
-                const isActive = orderMode === m;
-                return (
-                  <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-[#fcfbfa] border-[#dfd3c3] text-[#a76d33] hover:bg-[#f3ece2]"
-                      }`}>
-                    {m === "dine-in" ? "Dine In" : "Take Away"}
-                  </button>
-                );
-              })}
+            <div className="flex items-center justify-between bg-[#ece3d5]/40 border border-[#dfd3c3] rounded-2xl px-5 py-3.5">
+              <span className="text-[9px] font-black text-[#a76d33] uppercase tracking-[0.2em]">Tipe Layanan</span>
+              <span className="text-xs font-black text-primary uppercase tracking-widest font-poppins">
+                {orderMode === "dine-in" ? "Dine In" : "Take Away"}
+              </span>
             </div>
           </div>
 
