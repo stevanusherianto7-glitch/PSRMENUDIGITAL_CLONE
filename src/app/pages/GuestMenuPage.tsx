@@ -107,6 +107,8 @@ export default function GuestMenuPage() {
   const [resetting, setResetting] = useState(false);
   const [selectedEventImage, setSelectedEventImage] = useState<string | null>(null);
   const [eventPhotos, setEventPhotos] = useState<EventPhoto[]>(EVENT_PHOTOS);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [manualTableId, setManualTableId] = useState("");
 
   // --- Booking Form States ---
   const [bookingName, setBookingName] = useState("");
@@ -284,7 +286,21 @@ export default function GuestMenuPage() {
 
       // Safety timeout of 2000ms to prevent hanging on database/offline issues
       const safetyTimeout = setTimeout(() => {
-        console.warn("[DEBUG] loadMenu safety timeout triggered! Falling back to SEED_MENU.");
+        console.warn("[DEBUG] loadMenu safety timeout triggered! Falling back to cached or seed menu.");
+        const cached = localStorage.getItem("pawon_offline_menu");
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setMenuItems(parsed);
+              setIsOfflineMode(true);
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.error("Failed to parse cached menu in timeout", err);
+          }
+        }
         setMenuItems(SEED_MENU.filter(m => m.available));
         setLoading(false);
       }, 2000);
@@ -327,12 +343,29 @@ export default function GuestMenuPage() {
           const finalMenu = [...merged, ...extras].filter(m => m.available);
           console.log("[DEBUG] Setting menu items from database merge. count:", finalMenu.length);
           setMenuItems(finalMenu);
+          setIsOfflineMode(false);
+          // Store menu in local offline cache
+          localStorage.setItem("pawon_offline_menu", JSON.stringify(finalMenu));
         } else {
           console.log("[DEBUG] Data is empty, setting seed menu...");
           setMenuItems(SEED_MENU.filter(m => m.available));
         }
       } catch (e) {
         console.error("[DEBUG] loadMenu caught exception:", e);
+        // Fallback to offline cache
+        const cached = localStorage.getItem("pawon_offline_menu");
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setMenuItems(parsed);
+              setIsOfflineMode(true);
+              return;
+            }
+          } catch (err) {
+            console.error("Failed to parse cached menu in catch block", err);
+          }
+        }
         setMenuItems(SEED_MENU.filter(m => m.available));
       } finally {
         console.log("[DEBUG] loadMenu finally reached, setting loading false...");
@@ -673,19 +706,44 @@ export default function GuestMenuPage() {
 
   if (tableError || !tableId || !tableId.trim()) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center max-w-sm">
-          <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h2 className="text-lg font-bold text-foreground mb-2">QR Code Tidak Valid</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Maaf, kode QR yang Anda scan tidak memiliki informasi meja. Silakan scan QR code yang valid dari meja.
+      <div className="min-h-screen bg-[#23120b] flex items-center justify-center p-4">
+        {/* Dotted grid background overlay */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#a76d33_1px,transparent_1px)] [background-size:16px_16px]" />
+        
+        <div className="bg-card w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-8 border border-[#a76d33]/20 relative z-10 text-center">
+          <div className="w-16 h-16 rounded-full border border-red-500/20 bg-red-500/5 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-3">QR Code Tidak Valid</h2>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Maaf, kode QR yang Anda scan tidak memiliki informasi meja. Silakan scan QR code yang valid atau masukkan nomor meja Anda secara manual di bawah ini.
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors"
-          >
-            Coba Lagi
-          </button>
+
+          <div className="border-t border-border pt-6 text-left">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              Masukkan Nomor Meja Manual:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Contoh: 5, 12, VIP-1"
+                value={manualTableId}
+                onChange={(e) => setManualTableId(e.target.value)}
+                className="flex-1 px-3 py-2 border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#a76d33]"
+              />
+              <button
+                onClick={() => {
+                  if (manualTableId.trim()) {
+                    window.location.hash = `#/menu/${encodeURIComponent(manualTableId.trim())}`;
+                    window.location.reload();
+                  }
+                }}
+                className="px-4 py-2 bg-[#a76d33] hover:bg-[#c28445] text-white rounded-lg text-sm font-bold transition-all active:scale-95 flex-shrink-0"
+              >
+                Masuk
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -694,6 +752,12 @@ export default function GuestMenuPage() {
   return (
     <ErrorBoundary>
     <div className="min-h-screen bg-background max-w-md mx-auto relative pb-24">
+      {isOfflineMode && (
+        <div className="bg-[#a76d33] text-white text-center py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2 animate-pulse z-40 relative">
+          <AlertCircle size={14} />
+          <span>Menampilkan Menu Offline (Koneksi Terputus/Lambat)</span>
+        </div>
+      )}
 
       {/* ── Welcome Modal ───────────────────────────────────────────── */}
       {showWelcome && (
