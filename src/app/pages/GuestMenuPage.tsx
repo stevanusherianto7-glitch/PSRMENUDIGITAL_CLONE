@@ -105,6 +105,44 @@ export default function GuestMenuPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [selectedEventImage, setSelectedEventImage] = useState<string | null>(null);
+  const [eventPhotos, setEventPhotos] = useState<EventPhoto[]>(EVENT_PHOTOS);
+
+  useEffect(() => {
+    async function fetchEventPhotos() {
+      try {
+        const { data, error } = await supabase
+          .from("event_gallery")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const mapped = data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            date: item.date,
+            category: item.category,
+            image: item.image,
+            description: item.description
+          }));
+          setEventPhotos(mapped);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch event photos from Supabase, using local fallback:", err);
+      }
+    }
+    fetchEventPhotos();
+
+    const channel = supabase.channel("event_gallery_realtime_guest")
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_gallery" }, () => {
+        fetchEventPhotos();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const filtered = menuItems.filter(m => m.category === category);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
@@ -823,7 +861,7 @@ export default function GuestMenuPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {EVENT_PHOTOS.map((evt) => (
+            {eventPhotos.map((evt) => (
               <div 
                 key={evt.id}
                 onClick={() => setSelectedEventImage(evt.image)}
@@ -1175,7 +1213,7 @@ export default function GuestMenuPage() {
               <img src={selectedEventImage} alt="Event Zoom" className="w-full h-full object-contain bg-black" />
             </div>
             {(() => {
-              const matched = EVENT_PHOTOS.find(e => e.image === selectedEventImage);
+              const matched = eventPhotos.find(e => e.image === selectedEventImage);
               if (!matched) return null;
               return (
                 <div className="p-5 border-t border-border bg-card">

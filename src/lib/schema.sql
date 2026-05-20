@@ -374,10 +374,58 @@ on conflict (id) do nothing;
 
 
 -- ─────────────────────────────────────────────────────────────
+-- 13. TABEL EVENT GALLERY (Galeri Acara Resto)
+-- ─────────────────────────────────────────────────────────────
+create table if not exists public.event_gallery (
+  id          uuid        primary key default uuid_generate_v4(),
+  title       text        not null,
+  date        text        not null,
+  category    text        not null,
+  image       text        not null,
+  description text        not null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+comment on table  public.event_gallery             is 'Galeri foto dokumentasi acara di restoran';
+comment on column public.event_gallery.id          is 'Primary key UUID';
+comment on column public.event_gallery.title       is 'Judul atau nama acara';
+comment on column public.event_gallery.date        is 'Tanggal pelaksanaan acara';
+comment on column public.event_gallery.category    is 'Kategori acara (Wedding, Corporate, Birthday, dll.)';
+comment on column public.event_gallery.image       is 'URL gambar acara';
+comment on column public.event_gallery.description is 'Deskripsi singkat acara';
+
+-- Trigger untuk update updated_at
+drop trigger if exists set_event_gallery_updated_at on public.event_gallery;
+create trigger set_event_gallery_updated_at
+  before update on public.event_gallery
+  for each row execute function public.handle_updated_at();
+
+-- Disable RLS (demo mode)
+alter table public.event_gallery disable row level security;
+
+-- Enable Realtime
+do $$ begin
+  alter publication supabase_realtime add table public.event_gallery;
+exception when duplicate_object then
+  raise notice 'Table event_gallery is already in supabase_realtime publication';
+end $$;
+
+-- Seed Data Event Gallery
+insert into public.event_gallery (title, date, category, image, description)
+values
+  ('Jamuan Pernikahan Premium', '12 Mei 2026', 'Wedding', '/imports/event_wedding.png', 'Merayakan hari bahagia bersama keluarga tercinta dengan konsep prasmanan premium dan dekorasi adat Jawa modern yang anggun.'),
+  ('Gathering & Rapat Korporat', '28 April 2026', 'Corporate', '/imports/event_gathering.png', 'Jamuan makan siang prasmanan premium dan kopi rehat berkualitas untuk kegiatan rapat kerja instansi dan forum korporat.'),
+  ('Ulang Tahun & Kumpul Keluarga', '05 April 2026', 'Birthday', '/imports/event_birthday.png', 'Momen hangat kumpul keluarga besar merayakan ulang tahun dengan hidangan lezat racikan khusus koki andalan kami.'),
+  ('Weekend Live Music Session', 'Maret - Mei 2026', 'Music Event', '/imports/event_livemusic.png', 'Keseruan akhir pekan di area taman outdoor menikmati alunan live acoustic music ditemani hidangan santai bersama sahabat.')
+on conflict do nothing;
+
+
+-- ─────────────────────────────────────────────────────────────
 --  SELESAI ✓
---  Tabel  : 5 (meja, menu_items, order_menu_items, inventory, transactions)
---  Trigger: 2 (auto updated_at)
+--  Tabel  : 6 (meja, menu_items, order_menu_items, inventory, transactions, event_gallery)
+--  Trigger: 3 (auto updated_at)
 --  Indexes: 3 (created_at, method, table_id pada transactions)
---  Realtime: meja + transactions
---  Seed   : 9 meja, 10 menu, 10 inventory, 18 transaksi demo
+--  Realtime: meja + transactions + event_gallery
+--  Seed   : 9 meja, 10 menu, 10 inventory, 18 transaksi, 4 event gallery
 -- ─────────────────────────────────────────────────────────────
