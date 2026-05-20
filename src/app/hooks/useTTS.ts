@@ -16,6 +16,7 @@ import { toast } from "sonner";
  * Disimpan di level modul agar persisten selama tab terbuka.
  */
 const globalKnownIds = new Set<string>();
+const scheduledIds = new Set<string>();
 let firstLoadDone = false; // Flag modul-level agar first load hanya terjadi SEKALI per tab
 
 interface QueueItem {
@@ -258,58 +259,75 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     if (orders.length === 0) return;
 
-    // Cari order baru
-    const now = Date.now();
-    const newOrders = orders.filter(o => {
-      if (globalKnownIds.has(o.id)) return false;
+    // Cari kandidat order baru (yang belum pernah diumumkan di tab ini dan belum dijadwalkan)
+    const candidates = orders.filter(o => !globalKnownIds.has(o.id) && !scheduledIds.has(o.id));
+    if (candidates.length === 0) return;
 
-      // Cross-tab check
-      try {
-        const lockData = localStorage.getItem(`tts_lock_${o.id}`);
-        if (lockData) {
-          const lockTime = parseInt(lockData, 10);
-          if (now - lockTime < 30000) {
-            globalKnownIds.add(o.id);
-            return false;
+    // Tandai sebagai dijadwalkan agar tidak dijadwalkan ulang oleh pemicu useEffect berikutnya
+    candidates.forEach(o => scheduledIds.add(o.id));
+
+    // Tambahkan delay acak (100 - 300ms) untuk mencegah tab melakukan pengecekan/klaim secara bersamaan
+    const randomDelay = Math.floor(Math.random() * 200) + 100;
+
+    const timeoutId = setTimeout(() => {
+      const now = Date.now();
+      const newOrdersToAnnounce: Order[] = [];
+
+      candidates.forEach(o => {
+        // Hapus dari status dijadwalkan karena timeout sedang dieksekusi
+        scheduledIds.delete(o.id);
+        
+        // Cek kembali memori dan localStorage setelah delay acak
+        if (globalKnownIds.has(o.id)) return;
+
+        try {
+          const lockData = localStorage.getItem(`tts_lock_${o.id}`);
+          if (lockData) {
+            const lockTime = parseInt(lockData, 10);
+            if (now - lockTime < 30000) {
+              // Sudah di-lock oleh tab lain
+              globalKnownIds.add(o.id);
+              return;
+            }
           }
-          localStorage.removeItem(`tts_lock_${o.id}`);
-        }
-      } catch (_) { /* ignore */ }
-
-      return true;
-    });
-
-    if (newOrders.length === 0) return;
-
-    console.log("[TTS] Detected new orders, scheduling queueing:", newOrders.map(o => o.id));
-
-    newOrders.forEach(o => {
-      globalKnownIds.add(o.id);
-      try {
-        localStorage.setItem(`tts_lock_${o.id}`, String(now));
-      } catch (_) { /* ignore */ }
-    });
-
-    // Masukkan pesanan baru langsung ke antrean
-    newOrders.forEach(order => {
-      announceOrder(order);
-      // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
-      if (printService.getIsConnected()) {
-         printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
-      }
-    });
-
-    // Bersihkan lock keys setelah 60 detik
-    const cleanupId = setTimeout(() => {
-      newOrders.forEach(o => {
-        try { 
-          localStorage.removeItem(`tts_lock_${o.id}`); 
         } catch (_) { /* ignore */ }
+
+        // Jika lolos pengecekan, klaim order ini
+        globalKnownIds.add(o.id);
+        try {
+          localStorage.setItem(`tts_lock_${o.id}`, String(now));
+        } catch (_) { /* ignore */ }
+
+        newOrdersToAnnounce.push(o);
       });
-    }, 60000);
+
+      if (newOrdersToAnnounce.length === 0) return;
+
+      console.log("[TTS] Claimed new orders after back-off delay:", newOrdersToAnnounce.map(o => o.id));
+
+      newOrdersToAnnounce.forEach(order => {
+        announceOrder(order);
+        // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
+        if (printService.getIsConnected()) {
+           printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
+        }
+      });
+
+      // Bersihkan lock keys setelah 60 detik
+      setTimeout(() => {
+        newOrdersToAnnounce.forEach(o => {
+          try { 
+            localStorage.removeItem(`tts_lock_${o.id}`); 
+          } catch (_) { /* ignore */ }
+        });
+      }, 60000);
+
+    }, randomDelay);
 
     return () => {
-      clearTimeout(cleanupId);
+      clearTimeout(timeoutId);
+      // Jika di-cleanup sebelum timeout berjalan, hapus dari scheduledIds agar bisa dijadwalkan ulang
+      candidates.forEach(o => scheduledIds.delete(o.id));
     };
   }, [orders, announceOrder, isLoaded, enabled]);
 
