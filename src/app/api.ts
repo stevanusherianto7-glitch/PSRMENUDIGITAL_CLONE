@@ -207,11 +207,11 @@ export async function createOrder(payload: {
     
     if (isMissingColumnError && payload.idempotencyKey) {
       console.warn("[ROBUST FALLBACK] Kolom 'idempotency_key' belum ada di DB. Retry insert tanpa kolom tersebut...");
-      delete order.idempotency_key;
+      const { idempotency_key: _, ...retryOrder } = order;
       
       const { data: retryData, error: retryError } = await supabase
         .from("orders")
-        .insert(order)
+        .insert(retryOrder)
         .select()
         .single();
       
