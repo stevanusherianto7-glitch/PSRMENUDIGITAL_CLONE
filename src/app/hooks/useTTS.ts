@@ -4,7 +4,7 @@
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN GAGALNYA NOTIFIKASI SUARA DI DAPUR/KASIR. ⚠️
  */
 
-import { useRef, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { Capacitor } from "@capacitor/core";
 import type { Order } from "../types";
@@ -13,13 +13,19 @@ import { toast } from "sonner";
 
 /**
  * globalKnownIds — Set ID order yang sudah diketahui (pernah dilihat) oleh tab ini.
- * Disimpan di level modul agar persisten selama tab terbuka, kebal dari unmount/remount React.
- * 
- * PENTING: Set ini HANYA berisi ID order yang sudah ada saat halaman pertama kali di-load.
- * Order baru yang masuk SETELAH first load TIDAK boleh dimasukkan ke sini sampai setelah diumumkan.
+ * Disimpan di level modul agar persisten selama tab terbuka.
  */
 const globalKnownIds = new Set<string>();
 let firstLoadDone = false; // Flag modul-level agar first load hanya terjadi SEKALI per tab
+
+interface QueueItem {
+  text: string;
+  enabled: boolean;
+}
+
+// Antrean TTS tingkat modul untuk menjamin pengumuman sekuensial tanpa kehilangan state
+const ttsQueue: QueueItem[] = [];
+let isProcessingQueue = false;
 
 /**
  * playNotifBeep — Notifikasi suara beep menggunakan Web Audio API.
@@ -42,53 +48,41 @@ function playNotifBeep() {
   } catch (_) { /* ignore */ }
 }
 
-/**
- * useTTS — Text-to-Speech untuk notifikasi pesanan masuk.
- * Otomatis membacakan pesanan baru yang belum pernah diumumkan.
- */
-export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
-  const timeoutsRef = useRef<number[]>([]);
+async function executeSpeakNative(text: string): Promise<void> {
+  try {
+    await TextToSpeech.speak({
+      text: text,
+      lang: "id-ID",
+      rate: 0.95,
+      pitch: 1.15,
+      volume: 1.0,
+      category: "ambient",
+    });
+  } catch (e) {
+    console.error("Native TTS error:", e);
+  }
+}
 
-  const speak = useCallback(async (text: string) => {
-    if (!enabled) return;
-
-    // 1. Jalankan di Native (Android/iOS)
-    if (Capacitor.isNativePlatform()) {
-      try {
-        await TextToSpeech.speak({
-          text: text,
-          lang: "id-ID",
-          rate: 0.95,
-          pitch: 1.15,
-          volume: 1.0,
-          category: "ambient",
-        });
-      } catch (e) {
-        console.error("Native TTS error:", e);
-      }
-      return;
-    }
-
-    // 2. Fallback untuk Browser/Windows
+function executeSpeakWeb(text: string): Promise<void> {
+  return new Promise<void>((resolve) => {
     if (!("speechSynthesis" in window)) {
-      // Terakhir: play beep jika tidak ada TTS sama sekali
       playNotifBeep();
+      resolve();
       return;
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
-    utterance.rate = 0.95;  // Tempo tenang dan jelas untuk announcer dapur/kasir
-    utterance.pitch = 1.15; // Pitch sedikit tinggi → kesan suara wanita natural
+    utterance.rate = 0.95;  // Tempo tenang dan jelas
+    utterance.pitch = 1.15; // Pitch sedikit tinggi → suara wanita natural
     utterance.volume = 1;
 
-    // Pilih suara bahasa Indonesia — PRIORITAS: suara wanita (Gadis/Google)
+    // Pilih suara bahasa Indonesia
     const voices = window.speechSynthesis.getVoices();
     const idVoices = voices.filter(
       v => v.lang === "id-ID" || v.lang.startsWith("id")
     );
     
-    // 1. Utamakan suara wanita Indonesia (Gadis di Edge, Google di Chrome)
     const femaleVoice = idVoices.find(v => 
       v.name.includes("Gadis") || 
       v.name.includes("Google") || 
@@ -98,25 +92,98 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     if (femaleVoice) {
       utterance.voice = femaleVoice;
     } else if (idVoices.length > 0) {
-      // 2. Fallback: suara Indonesia lainnya (termasuk Andika jika hanya itu yang ada)
       utterance.voice = idVoices[0];
     }
 
-    // Error handler: jika TTS gagal, play beep sebagai fallback
-    utterance.onerror = (e) => {
-      // Abaikan error jika sengaja di-cancel (karena ada notif antrian berikutnya)
-      if (e.error === 'interrupted' || e.error === 'canceled') return;
-      console.warn("TTS utterance error, playing beep fallback", e);
-      playNotifBeep();
+    let isResolved = false;
+    const finish = () => {
+      if (isResolved) return;
+      isResolved = true;
+      resolve();
     };
 
-    toast("🔊 Memutar notifikasi suara...", { icon: '🤖', duration: 3000 });
+    utterance.onend = () => {
+      finish();
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'interrupted' && e.error !== 'canceled') {
+        console.warn("TTS utterance error, playing beep fallback", e);
+        playNotifBeep();
+      }
+      finish();
+    };
+
+    // Safety net: jika web speech API macet (bug Chrome), paksa lanjut setelah 25 detik
+    const safetyTimer = setTimeout(() => {
+      console.warn("TTS safety net triggered (speech took too long or stuck)");
+      finish();
+    }, 25000);
+
     window.speechSynthesis.speak(utterance);
+
+    // Overwrite callback untuk membersihkan safety timer
+    const origOnEnd = utterance.onend;
+    utterance.onend = (ev) => {
+      clearTimeout(safetyTimer);
+      origOnEnd?.call(utterance, ev);
+    };
+
+    const origOnError = utterance.onerror;
+    utterance.onerror = (ev) => {
+      clearTimeout(safetyTimer);
+      origOnError?.call(utterance, ev);
+    };
+  });
+}
+
+async function startQueueProcessor() {
+  if (isProcessingQueue) return;
+  isProcessingQueue = true;
+
+  while (ttsQueue.length > 0) {
+    const item = ttsQueue.shift();
+    if (!item) continue;
+
+    if (!item.enabled) {
+      // Kosongkan antrean jika TTS dinonaktifkan
+      ttsQueue.length = 0;
+      break;
+    }
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await executeSpeakNative(item.text);
+      } else {
+        await executeSpeakWeb(item.text);
+      }
+    } catch (err) {
+      console.error("[TTS Queue] Speak error:", err);
+    }
+
+    // Jeda 2 detik setelah pengumuman selesai sebelum memulai pengumuman berikutnya
+    await new Promise(res => setTimeout(res, 2000));
+  }
+
+  isProcessingQueue = false;
+}
+
+/**
+ * useTTS — Text-to-Speech untuk notifikasi pesanan masuk.
+ * Otomatis membacakan pesanan baru yang belum pernah diumumkan.
+ */
+export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
+  const speak = useCallback((text: string) => {
+    if (!enabled) return;
+    toast("🔊 Notifikasi suara masuk antrean...", { icon: '🤖', duration: 2500 });
+    ttsQueue.push({ text, enabled });
+    startQueueProcessor();
   }, [enabled]);
 
-  // Hentikan semua suara jika fitur dimatikan
+  // Bersihkan antrean jika dimatikan
   useEffect(() => {
     if (!enabled) {
+      ttsQueue.length = 0;
       if (Capacitor.isNativePlatform()) {
         TextToSpeech.stop().catch(() => {});
       } else if ("speechSynthesis" in window) {
@@ -161,16 +228,16 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     ].filter(Boolean);
     
     const fullText = parts.join(". ");
-    console.log("[TTS] Announcing order:", order.id, fullText);
+    console.log("[TTS] Queueing order announcement:", order.id, fullText);
     speak(fullText);
   }, [speak]);
 
   // Detect pesanan baru ketika orders berubah
   useEffect(() => {
-    if (!isLoaded) return; // Tunggu sampai data awal selesai dimuat
-    if (!enabled) return;  // Jangan proses jika TTS dimatikan
+    if (!isLoaded) return;
+    if (!enabled) return;
 
-    // FIRST LOAD: Tandai semua order yang sudah ada — jangan diumumkan
+    // FIRST LOAD: Tandai semua order yang sudah ada
     if (!firstLoadDone) {
       console.log("[TTS] First load - marking", orders.length, "existing orders as known");
       orders.forEach(o => globalKnownIds.add(o.id));
@@ -180,34 +247,31 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     if (orders.length === 0) return;
 
-    // Cari order baru yang BELUM ADA di globalKnownIds DAN belum di-lock oleh tab lain
+    // Cari order baru
     const now = Date.now();
     const newOrders = orders.filter(o => {
       if (globalKnownIds.has(o.id)) return false;
 
-      // Cross-tab check: cek apakah tab lain sudah mengklaim order ini (lock 30 detik)
+      // Cross-tab check
       try {
         const lockData = localStorage.getItem(`tts_lock_${o.id}`);
         if (lockData) {
           const lockTime = parseInt(lockData, 10);
           if (now - lockTime < 30000) {
-            // Lock masih aktif (< 30 detik) → tab lain sudah menangani
             globalKnownIds.add(o.id);
             return false;
           }
-          // Lock sudah expired → hapus dan izinkan
           localStorage.removeItem(`tts_lock_${o.id}`);
         }
-      } catch (_) { /* localStorage mungkin tidak tersedia */ }
+      } catch (_) { /* ignore */ }
 
       return true;
     });
 
     if (newOrders.length === 0) return;
 
-    console.log("[TTS] Detected", newOrders.length, "NEW orders:", newOrders.map(o => o.id));
+    console.log("[TTS] Detected new orders, scheduling queueing:", newOrders.map(o => o.id));
 
-    // Tandai semua order baru di memori + kunci di localStorage (cross-tab lock 30 detik)
     newOrders.forEach(o => {
       globalKnownIds.add(o.id);
       try {
@@ -215,34 +279,26 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       } catch (_) { /* ignore */ }
     });
 
-    // Umumkan pesanan secara berurutan dengan jeda 8 detik antar pesanan
-    newOrders.forEach((order, index) => {
-      const announceTimeoutId = window.setTimeout(() => {
-        announceOrder(order);
-        // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
-        if (printService.getIsConnected()) {
-           printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
-        }
-      }, index * 8000);
-      timeoutsRef.current.push(announceTimeoutId);
+    // Masukkan pesanan baru langsung ke antrean
+    newOrders.forEach(order => {
+      announceOrder(order);
+      // AUTO PRINT KITCHEN TICKET JIKA PRINTER TERHUBUNG
+      if (printService.getIsConnected()) {
+         printService.printKitchen(order).catch(e => console.error("Auto print failed:", e));
+      }
     });
 
-    // Bersihkan lock keys setelah 60 detik agar localStorage tidak membengkak
-    const cleanupId = window.setTimeout(() => {
+    // Bersihkan lock keys setelah 60 detik
+    const cleanupId = setTimeout(() => {
       newOrders.forEach(o => {
         try { 
           localStorage.removeItem(`tts_lock_${o.id}`); 
-        } catch (err) {
-          console.warn("Failed to remove tts_lock from localStorage:", err);
-        }
+        } catch (_) { /* ignore */ }
       });
     }, 60000);
-    timeoutsRef.current.push(cleanupId);
 
     return () => {
-      // Bersihkan semua timeout jika dependencies berubah atau unmount
-      timeoutsRef.current.forEach(window.clearTimeout);
-      timeoutsRef.current = [];
+      clearTimeout(cleanupId);
     };
   }, [orders, announceOrder, isLoaded, enabled]);
 
@@ -252,9 +308,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 /** Panggil sekali untuk preload daftar suara browser */
 export function preloadVoices() {
   if (!Capacitor.isNativePlatform() && "speechSynthesis" in window) {
-    // Kosongkan antrian yang mungkin macet dari sesi sebelumnya
     window.speechSynthesis.cancel();
-    
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = () => {
       window.speechSynthesis.getVoices();
