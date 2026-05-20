@@ -55,7 +55,7 @@ import type {
 } from "../types";
 
 // ─── Vercel URL untuk QR Code tamu ────────────────────────────────────────────
-export const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
+export const GUEST_BASE_URL = (import.meta.env.VITE_GUEST_BASE_URL || "https://psrmenudigital.vercel.app").replace(/['"]/g, "");
 
 export function getDailyVerificationPIN() {
   const today = new Date();
