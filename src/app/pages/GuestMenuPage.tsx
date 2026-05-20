@@ -302,7 +302,7 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     loadMyOrders();
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (autoRefresh && view === "status") {
       interval = setInterval(loadMyOrders, 5000);
     }
