@@ -294,7 +294,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         tax,
         total,
         method: payMethod,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        order_id: currentPayingOrderId || undefined
       };
 
       // 1. Simpan Transaksi & Detail ke Database (Latar Belakang)

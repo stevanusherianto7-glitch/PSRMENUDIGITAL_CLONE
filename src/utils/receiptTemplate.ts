@@ -56,7 +56,13 @@ export const ReceiptTemplate = {
       .text(`Jam: ${new Date(tx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`)
       .newline()
       .text(`No : ${tx.id.toUpperCase().slice(-8)}`)
-      .newline()
+      .newline();
+
+    if (tx.order_id) {
+      builder = builder.text(`Order: ${tx.order_id.toUpperCase()}`).newline();
+    }
+
+    builder = builder
       .text(`Kasir: Verena`)
       .newline()
       .text('--------------------------------') 
@@ -135,7 +141,7 @@ export const ReceiptTemplate = {
       .newline()
       .text(`Jam  : ${new Date().toLocaleTimeString('id-ID')}`)
       .newline()
-      .text(`Order: #${order.id.slice(-5).toUpperCase()}`)
+      .text(`Order: ${order.id.toUpperCase()}`)
       .newline()
       .text('--------------------------------')
       .newline();

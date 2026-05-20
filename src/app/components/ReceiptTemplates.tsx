@@ -69,7 +69,7 @@ export function KitchenReceipt({ order }: KitchenReceiptProps) {
           <div className="text-xs mb-1">
             <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
             <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
-            <div>No: {order.id.slice(-5).toUpperCase()}</div>
+            <div>No: {order.id.toUpperCase()}</div>
             <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
           </div>
           <div className="border-b border-dashed mb-1"></div>
@@ -95,7 +95,7 @@ export function KitchenReceipt({ order }: KitchenReceiptProps) {
             <div className="text-xs mb-1">
               <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
               <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
-              <div>No: {order.id.slice(-5).toUpperCase()}</div>
+              <div>No: {order.id.toUpperCase()}</div>
               <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
             </div>
           )}
@@ -136,7 +136,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
       <div className="text-center text-xs mb-0.5">Jl. Pertanian No. 57</div>
       <div className="text-center text-xs mb-0.5">Lebak Bulus, Jakarta Selatan</div>
       <div className="text-center text-xs mb-1">WA: 0895-3763-48626</div>
-      <div className="text-center text-xs mb-2 font-semibold">Order #{tx.id}</div>
+      <div className="text-center text-xs mb-2 font-semibold">Order {tx.order_id ? tx.order_id : `#${tx.id}`}</div>
       
       <div className="border-b border-dashed mb-1"></div>
       
@@ -144,6 +144,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
         <div>Tgl: {new Date(tx.created_at).toLocaleDateString("id-ID")}</div>
         <div>Jam: {new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</div>
         <div>Bill: {tx.id.toUpperCase()}</div>
+        {tx.order_id && <div>Order: {tx.order_id.toUpperCase()}</div>}
         <div>Kasir: Verena</div>
       </div>
       

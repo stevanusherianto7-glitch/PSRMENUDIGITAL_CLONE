@@ -121,6 +121,8 @@ export interface Transaction {
   method: string;
   /** ISO timestamp when transaction was created */
   created_at: string;
+  /** Reference order identifier */
+  order_id?: string;
 }
 
 /**
