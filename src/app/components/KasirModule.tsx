@@ -210,6 +210,16 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
     }
   ];
 
+  const activeServedOrders = (orders && orders.length > 0 ? orders : mockOrders)
+    .filter(o => o.status === "served" && !processedOrderIds.includes(o.id));
+
+  useEffect(() => {
+    if (activeServedOrders.length === 0 && !paid) {
+      setCart([]);
+      setCurrentPayingOrderId(null);
+      localStorage.removeItem("pawon_cart");
+    }
+  }, [activeServedOrders.length, paid]);
 
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
 
@@ -423,11 +433,23 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
         {/* Grid of Active Bills */}
         <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 pb-24 p-2 custom-scrollbar content-start">
-          {(orders && orders.length > 0 ? orders : mockOrders)
-            .filter(o => o.status === "served" && !processedOrderIds.includes(o.id))
-            .map(order => {
-            const cfg = orderStatusConfig[order.status];
-            return (
+          {(() => {
+            if (activeServedOrders.length === 0) {
+              return (
+                <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground gap-4 bg-card/20 border border-dashed border-border/40 rounded-3xl p-8 animate-in fade-in duration-500">
+                  <div className="w-16 h-16 bg-secondary/50 rounded-full border border-border/40 flex items-center justify-center shadow-inner">
+                    <CheckCircle2 size={24} className="text-muted-foreground/45" />
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="font-black text-xs uppercase tracking-[0.2em] text-foreground/75">Semua Tagihan Selesai</p>
+                    <p className="text-[10px] text-muted-foreground font-semibold">Tidak ada antrean pembayaran yang perlu diproses.</p>
+                  </div>
+                </div>
+              );
+            }
+            return activeServedOrders.map(order => {
+              const cfg = orderStatusConfig[order.status];
+              return (
               <div
                 role="button"
                 key={order.id}
@@ -499,8 +521,9 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 </div>
               </div>
             );
-          })}
-        </div>
+          });
+        })()}
+      </div>
       </div>
 
       {/* Floating Action Button: Lanjut Bayar (Only visible on mobile/tablet) */}
@@ -531,21 +554,21 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
       {/* Checkout Drawer / Sidebar */}
       {cart.length > 0 && (
-        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-zinc-950/90 border-l border-white/10 backdrop-blur-3xl shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
-          } lg:relative lg:translate-x-0 lg:shadow-none lg:border lg:border-white/10 lg:rounded-[32px] lg:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500`}>
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+        <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-[#f4efe9] border-l border-[#dfd3c3] shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
+          } lg:relative lg:translate-x-0 lg:shadow-none lg:border lg:border-[#dfd3c3] lg:rounded-[32px] lg:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500 text-[#4e3629]`}>
+        <div className="p-6 border-b border-[#dfd3c3] flex items-center justify-between bg-[#ece3d5]">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/20 rounded-2xl shadow-lg shadow-primary/10">
-              <ShoppingCart size={20} className="text-primary" />
+            <div className="p-3 bg-[#e3d7c5] rounded-2xl shadow-sm">
+              <ShoppingCart size={20} className="text-[#a76d33]" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Pengelola Tagihan</h3>
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Siap diproses pembayaran</p>
+              <h3 className="font-black text-sm text-[#4e3629] uppercase tracking-widest font-poppins">Pengelola Tagihan</h3>
+              <p className="text-[9px] text-[#a76d33] font-bold uppercase tracking-tighter mt-1">Siap diproses pembayaran</p>
             </div>
           </div>
           <button
             onClick={() => setIsCartOpen(false)}
-            className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all lg:hidden"
+            className="p-2 hover:bg-[#e3d7c5] rounded-xl text-[#a76d33] hover:text-[#4e3629] transition-all lg:hidden"
             title="Tutup"
           >
             <X size={20} />
@@ -553,22 +576,22 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         </div>
 
         <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar">
-          <div className="p-6 border-b border-border bg-transparent space-y-4">
+          <div className="p-6 border-b border-[#dfd3c3] bg-transparent space-y-4">
             {orderMode === "dine-in" && (
               <div>
-                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2 block ml-1">Meja Pelayanan</label>
+                <label className="text-[9px] font-black text-[#a76d33] uppercase tracking-[0.2em] mb-2 block ml-1">Meja Pelayanan</label>
                 <div className="relative group">
                   <select
                     value={selectedTable}
                     onChange={(e) => setSelectedTable(e.target.value)}
-                    className="w-full bg-secondary border border-border rounded-2xl px-5 py-3 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+                    className="w-full bg-[#fcfbfa] border border-[#dfd3c3] rounded-2xl px-5 py-3 text-xs font-black text-[#4e3629] focus:outline-none focus:ring-2 focus:ring-[#a76d33]/20 focus:border-[#a76d33] transition-all appearance-none cursor-pointer"
                   >
-                    <option value="" disabled className="bg-card">-- PILIH NOMOR MEJA --</option>
+                    <option value="" disabled className="bg-[#fcfbfa]">-- PILIH NOMOR MEJA --</option>
                     {tables.map(t => (
-                      <option key={t.id} value={t.id} className="bg-card">MEJA {t.id}</option>
+                      <option key={t.id} value={t.id} className="bg-[#fcfbfa]">MEJA {t.id}</option>
                     ))}
                   </select>
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-[#a76d33]">
                     <Clock size={14} />
                   </div>
                 </div>
@@ -580,7 +603,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 const isActive = orderMode === m;
                 return (
                   <button key={m} onClick={() => setOrderMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
+                    className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${isActive ? "bg-primary border-primary text-white shadow-lg shadow-primary/20" : "bg-[#fcfbfa] border-[#dfd3c3] text-[#a76d33] hover:bg-[#f3ece2]"
                       }`}>
                     {m === "dine-in" ? "Dine In" : "Take Away"}
                   </button>
@@ -595,20 +618,20 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 <CheckCircle2 size={40} className="text-green-500" />
               </div>
               <div className="space-y-2">
-                <h4 className="font-black text-2xl text-foreground uppercase tracking-tighter">Transaksi Berhasil</h4>
-                <p className="text-xs text-muted-foreground font-medium">Struk telah dimasukkan ke antrean cetak</p>
+                <h4 className="font-black text-2xl text-[#4e3629] uppercase tracking-tighter">Transaksi Berhasil</h4>
+                <p className="text-xs text-[#a76d33] font-medium">Struk telah dimasukkan ke antrean cetak</p>
               </div>
 
               {lastTxId && (
-                <div className="bg-secondary px-6 py-3 rounded-2xl border border-border">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Kode Transaksi</p>
+                <div className="bg-[#ece3d5] px-6 py-3 rounded-2xl border border-[#dfd3c3]">
+                  <p className="text-[9px] font-black text-[#a76d33] uppercase tracking-[0.2em] mb-1">Kode Transaksi</p>
                   <p className="text-xs font-mono font-black text-primary tracking-widest">{lastTxId}</p>
                 </div>
               )}
 
               <div className="w-full flex flex-col gap-5 pt-4">
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-left ml-1">Layanan Cetak Ulang</p>
+                  <p className="text-[10px] font-black text-[#a76d33] uppercase tracking-widest text-left ml-1">Layanan Cetak Ulang</p>
                   <div className="grid grid-cols-1 gap-2">
                     <button type="button" onClick={(e) => handlePrintReceipt(e)} className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-primary text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
                       <Printer size={18} /> Struk Pelanggan
@@ -617,7 +640,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                       <button type="button" onClick={(e) => handlePrintKitchenReceipt(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-orange-700 transition-all">
                         <ChefHat size={16} /> Struk Dapur
                       </button>
-                      <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
+                      <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#a76d33] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#8b5a2b] transition-all">
                         <Save size={16} /> Laporan Penutupan
                       </button>
                     </div>
@@ -625,14 +648,14 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 </div>
 
                 <div className="flex items-center gap-4 pt-2">
-                  <div className="h-[1px] flex-1 bg-white/5"></div>
-                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Ekspor Dokumen Digital</span>
-                  <div className="h-[1px] flex-1 bg-white/5"></div>
+                  <div className="h-[1px] flex-1 bg-[#dfd3c3]"></div>
+                  <span className="text-[9px] font-black text-[#a76d33] uppercase tracking-widest">Ekspor Dokumen Digital</span>
+                  <div className="h-[1px] flex-1 bg-[#dfd3c3]"></div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 opacity-60">
-                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:bg-secondary transition-all">PDF Pelanggan</button>
-                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-border text-[9px] font-black text-muted-foreground uppercase tracking-widest hover:bg-secondary transition-all">PDF Utama</button>
+                <div className="grid grid-cols-2 gap-3 opacity-85">
+                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">PDF Pelanggan</button>
+                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">PDF Utama</button>
                 </div>
               </div>
 
@@ -652,15 +675,15 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             <>
               <div className="flex-1 p-6 space-y-4">
                 {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-6">
-                    <div className="w-20 h-20 bg-secondary rounded-full border-2 border-dashed border-border flex items-center justify-center">
+                  <div className="flex flex-col items-center justify-center h-full text-[#a76d33] gap-6">
+                    <div className="w-20 h-20 bg-[#ece3d5] rounded-full border-2 border-dashed border-[#dfd3c3] flex items-center justify-center">
                       <ShoppingCart size={32} className="opacity-20" />
                     </div>
-                    <p className="font-black text-xs uppercase tracking-[0.3em] opacity-30">Keranjang Kosong</p>
+                    <p className="font-black text-xs uppercase tracking-[0.3em] opacity-35">Keranjang Kosong</p>
                   </div>
                 ) : cart.map(c => (
-                  <div key={c.id} className="flex items-center gap-4 bg-secondary/50 border border-border rounded-3xl p-3 group hover:border-primary/30 transition-all duration-500">
-                    <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-border">
+                  <div key={c.id} className="flex items-center gap-4 bg-white/70 border border-[#dfd3c3] rounded-3xl p-3 group hover:border-[#a76d33]/50 transition-all duration-500">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 border border-[#dfd3c3]">
                       <img
                         src={
                           (menuItems.find(m => m.id === c.id) || 
@@ -675,21 +698,19 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black text-foreground leading-tight uppercase tracking-tight line-clamp-1">{c.name}</p>
+                      <p className="text-xs font-black text-[#4e3629] leading-tight uppercase tracking-tight line-clamp-1">{c.name}</p>
                       <p className="text-[10px] text-primary font-black mt-1 font-mono tracking-tighter">{rp(c.price)}</p>
                     </div>
-                    <div className="flex items-center gap-3 bg-secondary border border-border rounded-xl px-3 py-1.5">
-                      <button onClick={() => updateQty(c.id, -1)} title="Kurangi" className="text-muted-foreground hover:text-red-500 transition-colors"><Minus size={14} /></button>
-                      <span className="text-xs font-black w-4 text-center text-foreground">{c.qty}</span>
-                      <button onClick={() => updateQty(c.id, 1)} title="Tambah" className="text-muted-foreground hover:text-primary transition-colors"><Plus size={14} /></button>
+                    <div className="flex items-center justify-center bg-white/90 border border-[#dfd3c3] rounded-xl px-3.5 py-1.5 shadow-sm">
+                      <span className="text-xs font-black text-[#4e3629]">{c.qty} Porsi</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-6 border-t border-border bg-secondary/30 space-y-5 rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.1)]">
+              <div className="p-6 border-t border-[#dfd3c3] bg-[#ece3d5]/50 space-y-5 rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.03)]">
                 <div className="space-y-4">
-                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full h-12 flex items-center justify-between px-5 rounded-2xl bg-secondary border border-border text-[10px] font-black text-muted-foreground hover:text-foreground transition-all group">
+                  <button onClick={() => setIsPromoModalOpen(true)} className="w-full h-12 flex items-center justify-between px-5 rounded-2xl bg-[#fcfbfa] border border-[#dfd3c3] text-[10px] font-black text-[#a76d33] hover:text-[#4e3629] transition-all group">
                     <div className="flex items-center gap-3">
                       <Tag size={14} className="text-primary group-hover:scale-110 transition-transform" />
                       <span className="uppercase tracking-widest">{selectedPromo ? selectedPromo.name : "Terapkan Voucher"}</span>
@@ -697,28 +718,28 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                     <Plus size={14} />
                   </button>
 
-                  <div className="space-y-2 bg-secondary p-5 rounded-3xl border border-border">
-                    <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-widest"><span>Total Kotor</span><span>{rp(subtotal)}</span></div>
-                    {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-400 font-black italic uppercase tracking-widest"><span>Potongan Promo</span><span>-{rp(discountAmount)}</span></div>}
-                    <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-widest"><span>Pajak (10%)</span><span>{rp(tax)}</span></div>
-                    <div className="flex justify-between items-center border-t border-border pt-4 mt-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">TOTAL</span>
+                  <div className="space-y-2 bg-[#fcfbfa] p-5 rounded-3xl border border-[#dfd3c3]">
+                    <div className="flex justify-between text-[10px] text-[#a76d33] font-bold uppercase tracking-widest"><span>Total Kotor</span><span>{rp(subtotal)}</span></div>
+                    {discountAmount > 0 && <div className="flex justify-between text-[10px] text-red-500 font-black italic uppercase tracking-widest"><span>Potongan Promo</span><span>-{rp(discountAmount)}</span></div>}
+                    <div className="flex justify-between text-[10px] text-[#a76d33] font-bold uppercase tracking-widest"><span>Pajak (10%)</span><span>{rp(tax)}</span></div>
+                    <div className="flex justify-between items-center border-t border-[#dfd3c3] pt-4 mt-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#4e3629]">TOTAL</span>
                       <span className="text-base font-black text-primary font-['Poppins'] tracking-tighter">{rp(total)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Metode Pembayaran</p>
+                  <p className="text-[9px] font-black text-[#a76d33] uppercase tracking-[0.3em] text-center">Metode Pembayaran</p>
                   <div className="grid grid-cols-4 gap-2">
                     {payMethods.map(m => (
                       <button
                         key={m.id}
                         onClick={() => setPayMethod(m.id)}
-                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all duration-300 ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105 glow-primary" : "bg-secondary border-border text-muted-foreground hover:bg-secondary/80"
+                        className={`flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all duration-300 ${payMethod === m.id ? "bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-105 glow-primary" : "bg-[#fcfbfa] border-[#dfd3c3] text-[#a76d33] hover:bg-[#f3ece2]"
                           }`}
                       >
-                        <div className={`${payMethod === m.id ? "text-white" : "text-muted-foreground"}`}>{m.icon}</div>
+                        <div className={`${payMethod === m.id ? "text-white" : "text-[#a76d33]"}`}>{m.icon}</div>
                         <span className="text-[8px] font-black uppercase tracking-tighter">{m.id}</span>
                       </button>
                     ))}
@@ -743,49 +764,46 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
       {/* Payment Confirmation Dialog */}
       {showPayConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowPayConfirm(false)}>
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-5 border-b border-white/5 text-center bg-white/[0.01]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowPayConfirm(false)}>
+          <div className="bg-[#f4efe9] border border-[#dfd3c3] rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_0_50px_rgba(78,54,41,0.15)] animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-[#dfd3c3] text-center bg-[#ece3d5]/30">
               <div className="w-14 h-14 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <AlertTriangle size={24} className="text-primary animate-pulse" />
               </div>
-              <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Konfirmasi Pembayaran</h3>
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Pastikan seluruh data pesanan telah sesuai</p>
+              <h3 className="font-black text-sm text-[#4e3629] uppercase tracking-widest font-poppins">Konfirmasi Pembayaran</h3>
+              <p className="text-[9px] text-[#a76d33] font-bold uppercase tracking-tighter mt-1">Pastikan seluruh data pesanan telah sesuai</p>
             </div>
             
             <div className="px-6 py-5">
-              <div className="bg-black/40 border border-white/5 p-4 rounded-2xl relative space-y-3 overflow-hidden shadow-inner">
-                {/* Hologram gradient subtle overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-                
+              <div className="bg-[#ece3d5]/50 border border-[#dfd3c3] p-4 rounded-2xl relative space-y-3 overflow-hidden">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Total Bayar</span>
+                  <span className="text-[9px] text-[#a76d33] font-black uppercase tracking-widest">Total Bayar</span>
                   <span className="text-sm font-black text-primary font-['Poppins'] tracking-tighter">{rp(total)}</span>
                 </div>
                 
-                <div className="border-t border-dashed border-white/10 my-1" />
+                <div className="border-t border-dashed border-[#dfd3c3] my-1" />
 
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Metode</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{payMethod}</span>
+                  <span className="text-[#a76d33] font-bold uppercase tracking-widest">Metode</span>
+                  <span className="font-black text-[#4e3629] uppercase tracking-wider">{payMethod}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Layanan</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
+                  <span className="text-[#a76d33] font-bold uppercase tracking-widest">Layanan</span>
+                  <span className="font-black text-[#4e3629] uppercase tracking-wider">{orderMode === "take-away" ? "Take Away" : `Meja ${selectedTable || "-"}`}</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-muted-foreground font-bold uppercase tracking-widest">Total Item</span>
-                  <span className="font-black text-foreground uppercase tracking-wider">{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
+                  <span className="text-[#a76d33] font-bold uppercase tracking-widest">Total Item</span>
+                  <span className="font-black text-[#4e3629] uppercase tracking-wider">{cart.reduce((s, c) => s + c.qty, 0)} Porsi</span>
                 </div>
 
-                <div className="border-b border-dashed border-white/10 my-1" />
+                <div className="border-b border-dashed border-[#dfd3c3] my-1" />
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-white/5 flex gap-3 bg-white/[0.01]">
+            <div className="px-6 py-4 border-t border-[#dfd3c3] flex gap-3 bg-[#ece3d5]/10">
               <button
                 onClick={() => setShowPayConfirm(false)}
-                className="flex-1 py-3.5 rounded-xl border border-white/10 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-white/5 hover:border-white/20 transition-all duration-300"
+                className="flex-1 py-3.5 rounded-xl border border-[#dfd3c3] text-xs font-black uppercase tracking-wider text-[#a76d33] hover:text-[#4e3629] hover:bg-[#ece3d5] transition-all duration-300"
               >
                 Batal
               </button>
@@ -826,22 +844,22 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
 
       {/* Reservations Management Modal */}
       {showReservationsModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowReservationsModal(false)}>
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-[28px] w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowReservationsModal(false)}>
+          <div className="bg-[#f4efe9] border border-[#dfd3c3] rounded-[28px] w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(78,54,41,0.15)] animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-[#dfd3c3] flex items-center justify-between bg-[#ece3d5]/30">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
                   <CalendarCheck size={18} className="text-primary animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Daftar Reservasi Pending</h3>
-                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Konfirmasi pengajuan meja &amp; acara tamu</p>
+                  <h3 className="font-black text-sm text-[#4e3629] uppercase tracking-widest font-poppins">Daftar Reservasi Pending</h3>
+                  <p className="text-[9px] text-[#a76d33] font-bold uppercase tracking-tighter mt-1">Konfirmasi pengajuan meja &amp; acara tamu</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowReservationsModal(false)}
                 title="Tutup"
-                className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all"
+                className="p-2 hover:bg-[#e3d7c5] rounded-xl text-[#a76d33] hover:text-[#4e3629] transition-all"
               >
                 <X size={18} />
               </button>
@@ -850,41 +868,41 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             <div className="p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
               {pendingReservations.length === 0 ? (
                 <div className="text-center py-12 space-y-3">
-                  <div className="w-12 h-12 bg-secondary/50 rounded-full border border-border/40 flex items-center justify-center mx-auto">
-                    <CheckCircle2 size={20} className="text-muted-foreground/60" />
+                  <div className="w-12 h-12 bg-[#ece3d5]/50 rounded-full border border-[#dfd3c3] flex items-center justify-center mx-auto">
+                    <CheckCircle2 size={20} className="text-[#a76d33]" />
                   </div>
-                  <p className="text-xs text-muted-foreground font-semibold">Tidak ada reservasi pending saat ini.</p>
+                  <p className="text-xs text-[#a76d33] font-semibold">Tidak ada reservasi pending saat ini.</p>
                 </div>
               ) : (
                 pendingReservations.map((res) => (
-                  <div key={res.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-3 relative hover:border-primary/20 transition-all duration-300 animate-in slide-in-from-bottom-5 duration-355">
+                  <div key={res.id} className="bg-white/70 border border-[#dfd3c3] rounded-2xl p-4 space-y-3 relative hover:border-[#a76d33]/50 transition-all duration-300 animate-in slide-in-from-bottom-5 duration-355">
                     <div className="flex justify-between items-start gap-2">
                       <div>
                         <span className="text-[8px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tighter bg-primary/10 border-primary/20 text-primary">
                           {res.type || "Reservasi"}
                         </span>
-                        <h4 className="font-bold text-xs text-foreground mt-1.5 uppercase font-poppins">{res.name}</h4>
-                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{res.phone}</p>
+                        <h4 className="font-bold text-xs text-[#4e3629] mt-1.5 uppercase font-poppins">{res.name}</h4>
+                        <p className="text-[10px] text-[#a76d33] font-semibold mt-0.5">{res.phone}</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] text-primary font-black font-mono block">{res.date}</span>
-                        <span className="text-[9px] text-muted-foreground font-semibold block">{res.time} WIB</span>
+                        <span className="text-[9px] text-[#a76d33] font-semibold block">{res.time} WIB</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-black/40 border border-white/5 rounded-xl p-2.5">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-[#ece3d5]/50 border border-[#dfd3c3] rounded-xl p-2.5">
+                      <div className="flex items-center gap-1.5 text-[#4e3629]">
                         <Users size={12} className="text-primary flex-shrink-0" />
-                        <span>Kapasitas: <strong className="text-foreground">{res.guests} orang</strong></span>
+                        <span>Kapasitas: <strong className="text-[#4e3629]">{res.guests} orang</strong></span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <div className="flex items-center gap-1.5 text-[#4e3629]">
                         <Clock size={12} className="text-primary flex-shrink-0" />
-                        <span>Status: <strong className="text-yellow-400 capitalize">{res.status}</strong></span>
+                        <span>Status: <strong className="text-yellow-600 capitalize">{res.status}</strong></span>
                       </div>
                     </div>
 
                     {res.notes && (
-                      <div className="text-[10px] text-muted-foreground bg-secondary/30 p-2.5 rounded-xl border border-white/5">
+                      <div className="text-[10px] text-[#4e3629] bg-[#fcfbfa] p-2.5 rounded-xl border border-[#dfd3c3]">
                         <span className="font-black text-[8px] uppercase tracking-wider text-primary block mb-0.5">Catatan Khusus:</span>
                         <span className="italic leading-relaxed">"{res.notes}"</span>
                       </div>

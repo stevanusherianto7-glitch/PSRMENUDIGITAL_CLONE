@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PhotoUploader } from "./PhotoUploader";
 import { 
   Printer, Download, ExternalLink, QrCode, 
   Edit2, Trash2, Plus, Sparkles, Calendar, 
@@ -628,14 +629,12 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">URL Gambar Acara</label>
-                <input 
-                  type="text"
-                  placeholder="https://images.unsplash.com/... atau /imports/event_wedding.png"
-                  value={formImage}
-                  onChange={(e) => setFormImage(e.target.value)}
-                  className="w-full bg-[#1e1e24] border border-white/10 text-white rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-mono text-[11px]"
-                  required
+                <PhotoUploader 
+                  value={formImage} 
+                  onChange={setFormImage} 
+                  bucket="menu-photos" 
+                  folder="events" 
+                  label="Gambar Acara" 
                 />
                 
                 {/* Preset Defaults Quick Select */}

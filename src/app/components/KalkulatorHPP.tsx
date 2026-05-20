@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../lib/supabase";
-import { Trash2, Plus, Calculator, RefreshCw, Info, ArrowUpRight, Percent, DollarSign } from 'lucide-react';
+import { Trash2, Plus, Calculator, RefreshCw, Info, ArrowUpRight, Percent, DollarSign, Package } from 'lucide-react';
 
 interface Ingredient {
   id: string;

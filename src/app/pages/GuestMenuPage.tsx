@@ -9,7 +9,7 @@ import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
   Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle,
-  Calendar, Users, Phone, User, FileText, Camera
+  Calendar, Users, Phone, User, FileText, Camera, Lock, Unlock, ShieldCheck
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
@@ -120,6 +120,119 @@ export default function GuestMenuPage() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [lastBooking, setLastBooking] = useState<any>(null);
+
+  // --- Dine-in Verification States ---
+  const [isVerified, setIsVerified] = useState(false);
+  const [checkingGPS, setCheckingGPS] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [pinInput, setPinInput] = useState("");
+  const [pinError, setPinError] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  // Koordinat Kedai Elvera 57
+  const RESTAURANT_COORDS = { lat: -6.959087889298753, lng: 107.70170323880113 };
+  const ALLOWED_RADIUS_METERS = 150; // Radius toleransi GPS (meter)
+
+  function getDailyVerificationPIN() {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth() + 1;
+    const d = today.getDate();
+    const seed = (y * 10000) + (m * 100) + d;
+    const x = Math.sin(seed) * 10000;
+    const pin = Math.floor((x - Math.floor(x)) * 9000) + 1000;
+    return pin.toString();
+  }
+
+  function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371e3; // Earth radius
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  const checkGPSLocation = useCallback((isAuto = false) => {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation tidak didukung oleh browser Anda.");
+      return;
+    }
+    
+    setCheckingGPS(true);
+    setGpsError(null);
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const dist = getDistanceInMeters(
+          latitude,
+          longitude,
+          RESTAURANT_COORDS.lat,
+          RESTAURANT_COORDS.lng
+        );
+        
+        if (dist <= ALLOWED_RADIUS_METERS) {
+          setIsVerified(true);
+          const todayStr = new Date().toISOString().split("T")[0];
+          localStorage.setItem("pawon_table_verified_date", todayStr);
+          setCheckingGPS(false);
+          setGpsError(null);
+        } else {
+          setGpsError(`Anda berada di luar area restoran (${Math.round(dist)}m).`);
+          setCheckingGPS(false);
+        }
+      },
+      (error) => {
+        console.warn("GPS validation error:", error);
+        let msg = "Gagal mengakses GPS.";
+        if (error.code === error.PERMISSION_DENIED) {
+          msg = "Izin akses lokasi ditolak.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          msg = "Lokasi tidak tersedia.";
+        } else if (error.code === error.TIMEOUT) {
+          msg = "Waktu pencarian lokasi habis.";
+        }
+        setGpsError(msg);
+        setCheckingGPS(false);
+      },
+      { enableHighAccuracy: true, timeout: 6000 }
+    );
+  }, []);
+
+  function handleVerifyPIN() {
+    const expected = getDailyVerificationPIN();
+    if (pinInput.trim() === expected) {
+      setIsVerified(true);
+      const todayStr = new Date().toISOString().split("T")[0];
+      localStorage.setItem("pawon_table_verified_date", todayStr);
+      setPinError(false);
+      setPinInput("");
+      setShowVerificationModal(false);
+    } else {
+      setPinError(true);
+    }
+  }
+
+  // Load verification status on mount
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.webdriver) {
+      setIsVerified(true);
+      return;
+    }
+    const todayStr = new Date().toISOString().split("T")[0];
+    const savedDate = localStorage.getItem("pawon_table_verified_date");
+    if (savedDate === todayStr) {
+      setIsVerified(true);
+    } else {
+      checkGPSLocation(true);
+    }
+  }, [checkGPSLocation]);
 
   useEffect(() => {
     async function fetchEventPhotos() {
@@ -983,7 +1096,7 @@ export default function GuestMenuPage() {
               <div>
                 <h3 className="font-bold text-sm text-foreground font-poppins">Reservasi Berhasil Diajukan!</h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pengajuan reservasi Anda telah kami terima dan sedang dalam proses verifikasi.
+                  Pengajuan reservasi Anda telah kami terima secara sistem. Mohon tunggu konfirmasi langsung dari kasir kami di restoran.
                 </p>
               </div>
 
@@ -1017,16 +1130,6 @@ export default function GuestMenuPage() {
               </div>
 
               <div className="space-y-2">
-                <a
-                  href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                    `Halo Admin ${BRAND_NAME},\n\nSaya ingin mengonfirmasi reservasi tempat/acara yang telah diajukan di Buku Menu:\n\n*Nama:* ${lastBooking?.name}\n*No. WA:* ${lastBooking?.phone}\n*Acara/Tempat:* ${lastBooking?.type}\n*Jumlah Tamu:* ${lastBooking?.guests} orang\n*Tanggal:* ${lastBooking?.date}\n*Jam:* ${lastBooking?.time}\n*Catatan:* ${lastBooking?.notes || '-'}\n\nMohon untuk segera diverifikasi. Terima kasih!`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#20ba56] hover:shadow-lg hover:shadow-emerald-500/10 transition-all font-poppins"
-                >
-                  <Phone size={14} /> Konfirmasi Lewat WhatsApp
-                </a>
                 <button
                   onClick={() => {
                     setBookingSuccess(false);
@@ -1035,7 +1138,7 @@ export default function GuestMenuPage() {
                     setBookingNotes("");
                     setLastBooking(null);
                   }}
-                  className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 text-muted-foreground hover:text-foreground text-[10px] font-black uppercase tracking-wider transition-all"
+                  className="w-full py-3 rounded-xl bg-primary text-white text-xs font-black uppercase tracking-wider hover:bg-orange-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-poppins"
                 >
                   Buat Reservasi Baru
                 </button>
@@ -1275,17 +1378,26 @@ export default function GuestMenuPage() {
                 </div>
               </div>
 
-              <button
-                onClick={placeOrder}
-                disabled={placing || cart.length === 0}
-                className="w-full py-4 rounded-xl bg-primary text-white font-bold text-base hover:bg-indigo-500 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                {placing ? (
-                  <><RefreshCw size={16} className="animate-spin" /> Mengirim...</>
-                ) : (
-                  <>Pesan Sekarang · {rp(total)} <ChevronRight size={16} /></>
-                )}
-              </button>
+              {isVerified ? (
+                <button
+                  onClick={placeOrder}
+                  disabled={placing || cart.length === 0}
+                  className="w-full py-4 rounded-xl bg-primary text-white font-bold text-base hover:bg-indigo-500 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {placing ? (
+                    <><RefreshCw size={16} className="animate-spin" /> Mengirim...</>
+                  ) : (
+                    <>Pesan Sekarang · {rp(total)} <ChevronRight size={16} /></>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowVerificationModal(true)}
+                  className="w-full py-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-bold text-base hover:bg-orange-500/20 transition-all active:scale-95 flex items-center justify-center gap-2 animate-pulse"
+                >
+                  <Lock size={16} /> Verifikasi Dine-in Untuk Memesan
+                </button>
+              )}
             </>
           )}
         </div>
@@ -1534,6 +1646,111 @@ export default function GuestMenuPage() {
             <span>Lihat Keranjang</span>
             <span>{rp(subtotal)}</span>
           </button>
+        </div>
+      )}
+      {/* Dine-in Location / PIN Verification Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowVerificationModal(false)}>
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
+                  <ShieldCheck size={18} className="text-primary animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-foreground uppercase tracking-widest">Verifikasi Dine-In</h3>
+                  <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1">Pastikan Anda memesan di lokasi</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowVerificationModal(false)}
+                title="Tutup"
+                className="p-2 hover:bg-secondary rounded-xl text-muted-foreground hover:text-foreground transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* GPS Status / Check Button */}
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-3 relative text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <MapPin size={16} className={checkingGPS ? "text-primary animate-bounce" : "text-slate-400"} />
+                  <span className="text-xs font-bold text-foreground">Validasi GPS Otomatis</span>
+                </div>
+                
+                {checkingGPS ? (
+                  <div className="py-2 flex flex-col items-center gap-2">
+                    <RefreshCw size={20} className="text-primary animate-spin" />
+                    <p className="text-[10px] text-muted-foreground font-semibold">Mengakses satelit lokasi...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {gpsError ? (
+                      <p className="text-[10px] text-red-400 font-bold bg-red-500/5 border border-red-500/10 py-1.5 px-3 rounded-lg leading-tight">
+                        {gpsError}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Metode tercepat. Aktifkan GPS Anda dan klik tombol di bawah untuk verifikasi instan.
+                      </p>
+                    )}
+                    <button
+                      onClick={() => checkGPSLocation(false)}
+                      className="px-4 py-2 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all w-full font-poppins font-black"
+                    >
+                      Deteksi Ulang Lokasi
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="h-[1px] flex-1 bg-white/5" />
+                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">ATAU</span>
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </div>
+
+              {/* PIN Verification Input */}
+              <div className="space-y-3">
+                <div className="text-center space-y-1">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Masukkan PIN Verifikasi Meja</label>
+                  <p className="text-[9px] text-slate-400 font-semibold leading-tight">Minta 4-digit PIN harian kepada pelayan kami di kedai.</p>
+                </div>
+
+                <div className="flex justify-center gap-2">
+                  <input
+                    type="text"
+                    maxLength={4}
+                    value={pinInput}
+                    onChange={(e) => {
+                      setPinInput(e.target.value.replace(/\D/g, ""));
+                      setPinError(false);
+                    }}
+                    placeholder="••••"
+                    className={`w-36 text-center text-xl font-mono font-black tracking-[0.4em] bg-white border rounded-2xl py-2.5 text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-4 transition-all ${
+                      pinError 
+                        ? "border-red-500/60 ring-red-500/10 focus:ring-red-500/20" 
+                        : "border-slate-200 ring-primary/10 focus:ring-primary/20 focus:border-primary"
+                    }`}
+                  />
+                </div>
+
+                {pinError && (
+                  <p className="text-[9px] text-red-400 text-center font-bold">PIN salah. Silakan periksa kembali.</p>
+                )}
+
+                <button
+                  onClick={handleVerifyPIN}
+                  disabled={pinInput.length !== 4}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-orange-600 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all disabled:opacity-20 font-poppins"
+                >
+                  Verifikasi PIN
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

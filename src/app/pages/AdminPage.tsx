@@ -15,7 +15,7 @@ import {
   ChefHat, RefreshCw, Database, Wifi, WifiOff, Save, QrCode,
   Tag, Flame, ShoppingBag, ExternalLink, Copy,
   Volume2, VolumeX, Printer, Download, Activity, Edit2,
-  Calendar, Calculator, Briefcase
+  Calendar, Calculator, Briefcase, Key
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { supabase } from "../../lib/supabase";
@@ -56,6 +56,17 @@ import type {
 
 // ─── Vercel URL untuk QR Code tamu ────────────────────────────────────────────
 export const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
+
+export function getDailyVerificationPIN() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth() + 1;
+  const d = today.getDate();
+  const seed = (y * 10000) + (m * 100) + d;
+  const x = Math.sin(seed) * 10000;
+  const pin = Math.floor((x - Math.floor(x)) * 9000) + 1000;
+  return pin.toString();
+}
 
 export const orderModeConfig = {
   "dine-in": { label: "Dine In", color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
@@ -706,6 +717,12 @@ export default function AdminPage() {
               >
                 <Volume2 size={16} />
               </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-mono font-bold text-xs uppercase tracking-wider" title="Berikan PIN ini kepada tamu jika mereka tidak dapat melakukan validasi GPS otomatis">
+              <Key size={12} className="animate-pulse" />
+              <span className="text-[9px] uppercase font-black tracking-widest hidden sm:inline mr-1 text-slate-400">PIN MEJA:</span>
+              <span>{getDailyVerificationPIN()}</span>
             </div>
 
             <ThemeToggle />

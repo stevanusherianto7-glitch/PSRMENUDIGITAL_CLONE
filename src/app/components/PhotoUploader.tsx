@@ -5,6 +5,9 @@ import { supabase } from "../../lib/supabase";
 interface PhotoUploaderProps {
   value: string;
   onChange: (url: string) => void;
+  bucket?: string;
+  folder?: string;
+  label?: string;
 }
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
@@ -16,7 +19,13 @@ export function isUrl(s: string) {
   return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:");
 }
 
-export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
+export function PhotoUploader({ 
+  value, 
+  onChange,
+  bucket = "menu-photos",
+  folder = "menu",
+  label = "Foto Menu"
+}: PhotoUploaderProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [urlInput, setUrlInput] = useState(value && isUrl(value) ? value : "");
   const [mode, setMode] = useState<"preview" | "url" | "upload">("preview");
@@ -36,12 +45,12 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = `menu/${genId()}.${ext}`;
+      const path = `${folder}/${genId()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from("menu-photos")
+        .from(bucket)
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from("menu-photos").getPublicUrl(path);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
       onChange(data.publicUrl);
       setUrlInput(data.publicUrl);
       setMode("preview");
@@ -66,7 +75,7 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
-        <p className="text-xs font-semibold text-foreground">Foto Menu</p>
+        <p className="text-xs font-semibold text-foreground">{label}</p>
         <div className="flex gap-1 ml-auto">
           {(["preview", "upload", "url"] as const).map((m) => (
             <button
@@ -130,7 +139,7 @@ export function PhotoUploader({ value, onChange }: PhotoUploaderProps) {
               </>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} aria-label="Upload foto menu" />
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} aria-label={`Upload ${label.toLowerCase()}`} />
           {error && <p className="text-[10px] text-red-400 flex items-center gap-1"><AlertCircle size={10} />{error}</p>}
           {previewSrc && (
             <button type="button" onClick={() => setMode("preview")} className="text-[10px] text-primary hover:underline">

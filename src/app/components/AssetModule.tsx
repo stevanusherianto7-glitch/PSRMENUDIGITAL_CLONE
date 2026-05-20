@@ -116,14 +116,14 @@ export const AssetModule = () => {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-border shadow-sm">
+      <div className="flex items-center gap-2 bg-card p-2 rounded-xl border border-border shadow-sm">
         <Search size={16} className="text-muted-foreground ml-2" />
         <input
           type="text"
           placeholder="Cari nama asset..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 bg-transparent border-none outline-none text-sm p-1"
+          className="flex-1 bg-transparent border-none outline-none text-sm p-1 text-foreground"
         />
       </div>
 
@@ -132,7 +132,7 @@ export const AssetModule = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-secondary/50 text-muted-foreground text-left text-xs uppercase tracking-wider">
@@ -179,8 +179,8 @@ export const AssetModule = () => {
 
       {/* Dialog for Add/Edit */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-foreground mb-4">{currentAsset ? "Edit Asset" : "Tambah Asset"}</h3>
             <div className="space-y-4">
               <div>
@@ -198,10 +198,10 @@ export const AssetModule = () => {
                   id="asset-category"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full mt-1 p-2 border border-border rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full mt-1 p-2 border border-border rounded-lg bg-card text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {CATEGORIES.slice(1).map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat} value={cat} className="bg-card text-foreground">{cat}</option>
                   ))}
                 </select>
               </div>
@@ -221,10 +221,10 @@ export const AssetModule = () => {
                   id="asset-condition"
                   value={formData.condition}
                   onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                  className="w-full mt-1 p-2 border border-border rounded-lg bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full mt-1 p-2 border border-border rounded-lg bg-card text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {CONDITIONS.map(cond => (
-                    <option key={cond} value={cond}>{cond}</option>
+                    <option key={cond} value={cond} className="bg-card text-foreground">{cond}</option>
                   ))}
                 </select>
               </div>

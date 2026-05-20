@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ChefHat, Clock, CheckCircle2, XCircle,
   RefreshCw, LogOut, Bell, Flame, Bike, ShoppingBag,
-  AlertTriangle, Volume2, VolumeX, Utensils, Package, Trash2
+  AlertTriangle, Volume2, VolumeX, Utensils, Package, Trash2, Key
 } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
@@ -21,6 +21,17 @@ import type { Order, OrderStatus, UserSession } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 
 type Tab = "kitchen" | "bar" | "waiter";
+
+export function getDailyVerificationPIN() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth() + 1;
+  const d = today.getDate();
+  const seed = (y * 10000) + (m * 100) + d;
+  const x = Math.sin(seed) * 10000;
+  const pin = Math.floor((x - Math.floor(x)) * 9000) + 1000;
+  return pin.toString();
+}
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
   pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={14} /> },
@@ -210,6 +221,12 @@ export default function WaiterPage() {
             {session.role === "kitchen" ? "Dapur" : session.role === "waiter" ? "Pelayan" : "Manager/Owner"} · {BRAND_NAME}
           </p>
           <p className="text-xs text-muted-foreground">{session.name}</p>
+        </div>
+
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-mono font-bold text-[10px] uppercase tracking-wider" title="Berikan PIN ini kepada tamu jika mereka tidak dapat melakukan validasi GPS otomatis">
+          <Key size={11} className="animate-pulse" />
+          <span className="text-[8px] uppercase font-black tracking-widest mr-0.5 text-slate-400 hidden xs:inline">PIN:</span>
+          <span>{getDailyVerificationPIN()}</span>
         </div>
 
         {/* TTS Toggle */}
