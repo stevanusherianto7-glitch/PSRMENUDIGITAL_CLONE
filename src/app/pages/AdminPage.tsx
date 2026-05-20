@@ -228,7 +228,17 @@ export default function AdminPage() {
     utterance.lang = "id-ID";
     utterance.rate = ttsRate;
     utterance.pitch = ttsPitch;
-    const voice = availableVoices.find(v => v.name === ttsVoice);
+    
+    let voice = availableVoices.find(v => v.name === ttsVoice);
+    if (!voice) {
+      const idVoices = availableVoices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+      voice = idVoices.find(v => 
+        v.name.includes("Gadis") || 
+        v.name.includes("Google") || 
+        v.name.toLowerCase().includes("female")
+      ) || idVoices[0];
+    }
+    
     if (voice) {
       utterance.voice = voice;
     }
