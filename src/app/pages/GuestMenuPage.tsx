@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
-import { createOrder, fetchOrders, deleteOrder, updateOrder } from "../api";
+import { createOrder, fetchOrders, deleteOrder, updateOrder, getOrderDuration } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useThemeStore } from "../hooks/useThemeStore";
@@ -144,9 +144,15 @@ export default function GuestMenuPage() {
       const clearedJson = localStorage.getItem(`cleared_orders_${tableId}`);
       const clearedIds: string[] = clearedJson ? JSON.parse(clearedJson) : [];
 
-      const active = orders.filter(o =>
-        o.status !== "cancelled" && o.status !== "served" && !clearedIds.includes(o.id)
-      );
+      const active = orders.filter(o => {
+        if (clearedIds.includes(o.id)) return false;
+        if (o.status === "cancelled") return false;
+        if (o.status === "served") {
+          const servedTime = new Date(o.served_at || o.updated_at).getTime();
+          return (Date.now() - servedTime) < 15 * 60 * 1000; // 15 menit
+        }
+        return true;
+      });
       
       setMyOrders(prev => {
         // Gabungkan order yang baru saja dibuat (di memori) tapi belum terindeks oleh Supabase fetch
@@ -879,7 +885,25 @@ export default function GuestMenuPage() {
                     {/* Status Header dengan Neon Glow */}
                     <div className={`flex items-center gap-2 px-4 py-3 border-b ${cfg.bg} ${cfg.neonBorder}`}>
                       <span className={`${cfg.color} animate-pulse`}>{cfg.icon}</span>
-                      <span className={`text-sm font-bold ${cfg.color} animate-pulse`}>{cfg.label}</span>
+                      <div className="flex flex-col min-w-0">
+                        <span className={`text-sm font-bold ${cfg.color} animate-pulse`}>{cfg.label}</span>
+                        {(() => {
+                          const duration = getOrderDuration(order);
+                          if (order.status === "served") {
+                            return (
+                              <span className="text-[9px] text-green-400 font-bold uppercase tracking-wider">
+                                Disajikan dalam {duration} mnt
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="text-[9px] text-muted-foreground/75 font-medium uppercase tracking-wider">
+                                Durasi proses: {duration} mnt
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
                       <span className="ml-auto text-xs text-muted-foreground font-mono">{order.id}</span>
                     </div>
 

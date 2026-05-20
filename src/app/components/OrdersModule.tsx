@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { rp } from "../data";
 import type { Order, OrderStatus } from "../types";
 import { printService } from "../../utils/printService";
+import { getOrderDuration } from "../api";
 
 const orderModeConfig = {
   "dine-in":   { label: "Dine In",   color: "text-indigo-400",  bg: "bg-indigo-500/10",  border: "border-indigo-500/20" },
@@ -104,11 +105,19 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {filtered.map(order => {
             const cfg = orderStatusConfig[order.status];
+            const duration = getOrderDuration(order);
+            const isOvertime = order.status !== "served" && order.status !== "cancelled" && duration >= 15;
             return (
               <div 
                 key={order.id} 
                 onClick={order.status === "served" && onNavigateToKasir ? () => onNavigateToKasir(order.id) : undefined}
-                className={`bg-card border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg text-left w-full ${order.status === "pending" ? "ring-2 ring-yellow-400/30" : ""} ${order.status === "served" ? "cursor-pointer ring-2 ring-transparent hover:ring-primary/50" : ""}`}
+                className={`bg-card border rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-lg text-left w-full ${
+                  isOvertime 
+                    ? "border-red-500/50 ring-2 ring-red-500/20" 
+                    : order.status === "pending" 
+                      ? "border-yellow-500/30 ring-2 ring-yellow-400/25" 
+                      : "border-border/60"
+                } ${order.status === "served" ? "cursor-pointer ring-2 ring-transparent hover:ring-primary/50" : ""}`}
               >
                 <div className={`flex items-center gap-2 px-3 py-2.5 ${cfg.bg} border-b ${cfg.border}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -154,7 +163,30 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-3 border-t border-border/50">
-                    <span className="text-[10px] text-muted-foreground font-black font-mono bg-secondary px-1.5 py-0.5 rounded-lg">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10px] text-muted-foreground font-black font-mono bg-secondary px-1.5 py-0.5 rounded-lg">{new Date(order.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                      {(() => {
+                        if (order.status === "served") {
+                          return (
+                            <span className="text-[8px] bg-green-500/10 border border-green-500/20 text-green-400 font-black px-1.5 py-0.5 rounded-lg uppercase tracking-tighter">
+                              Selesai {duration}m
+                            </span>
+                          );
+                        } else if (order.status !== "cancelled") {
+                          const badgeClass = isOvertime
+                            ? "bg-red-500/10 border border-red-500/20 text-red-400 animate-pulse font-extrabold"
+                            : duration >= 10
+                              ? "bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-bold"
+                              : "bg-primary/10 border border-primary/20 text-primary font-bold";
+                          return (
+                            <span className={`text-[8px] px-1.5 py-0.5 rounded-lg uppercase tracking-tighter ${badgeClass}`}>
+                              Proses {duration}m
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                     <span className="text-green-500 font-black text-sm">{rp(order.total)}</span>
                   </div>
                   {order.status !== "served" && order.status !== "cancelled" && (

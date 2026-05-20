@@ -93,6 +93,8 @@ export interface Order {
   created_at: string;
   /** ISO timestamp when order was last updated */
   updated_at: string;
+  /** ISO timestamp when order was served to customer */
+  served_at?: string;
 }
 
 /**

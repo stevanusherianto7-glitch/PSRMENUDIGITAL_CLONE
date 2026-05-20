@@ -13,7 +13,7 @@ import {
 
 // Menggunakan string path untuk logo agar tidak error di Vite
 import { rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
-import { fetchOrders, updateOrder, deleteOrder } from "../api";
+import { fetchOrders, updateOrder, deleteOrder, getOrderDuration } from "../api";
 import { supabase } from "../../lib/supabase";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import { printService } from "../../utils/printService";
@@ -117,7 +117,11 @@ export default function WaiterPage() {
     setUpdating(order.id);
     try {
       // 2. Perform backend database update
-      const updated = await updateOrder(order.id, { status: newStatus });
+      const patch: Partial<Order> = { status: newStatus };
+      if (newStatus === "served") {
+        patch.served_at = new Date().toISOString();
+      }
+      const updated = await updateOrder(order.id, patch);
       
       // 3. Sync the final updated order object if it is still in the active list
       if (newStatus !== "served" && newStatus !== "cancelled") {
@@ -337,9 +341,22 @@ export default function WaiterPage() {
                       </span>
                     )}
                     <div className="ml-auto flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock size={10} /> {elapsed(order.created_at)}
-                      </span>
+                      {(() => {
+                        const duration = getOrderDuration(order);
+                        const isOvertime = duration >= 15;
+                        const durationColor = isOvertime
+                          ? "text-red-400 font-extrabold animate-pulse"
+                          : duration >= 10
+                            ? "text-yellow-400 font-bold"
+                            : "text-green-400 font-semibold";
+                        return (
+                          <span className={`text-xs flex items-center gap-1.5 ${durationColor}`}>
+                            <Clock size={11} className={isOvertime ? "text-red-400 animate-spin" : ""} />
+                            <span>{duration} mnt</span>
+                            <span className="text-[10px] text-muted-foreground">({elapsed(order.created_at)})</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
