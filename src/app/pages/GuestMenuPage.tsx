@@ -112,7 +112,7 @@ export default function GuestMenuPage() {
   const [bookingName, setBookingName] = useState("");
   const [bookingPhone, setBookingPhone] = useState("");
   const [bookingType, setBookingType] = useState("Meja Makan");
-  const [bookingGuests, setBookingGuests] = useState(2);
+  const [bookingGuests, setBookingGuests] = useState("2");
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("");
   const [bookingNotes, setBookingNotes] = useState("");
@@ -1060,7 +1060,7 @@ export default function GuestMenuPage() {
                   placeholder="Masukkan nama lengkap Anda"
                   value={bookingName}
                   onChange={(e) => setBookingName(e.target.value)}
-                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                  className="w-full bg-white border border-slate-300 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
                   required
                 />
               </div>
@@ -1075,7 +1075,7 @@ export default function GuestMenuPage() {
                   placeholder="Contoh: 081234567890"
                   value={bookingPhone}
                   onChange={(e) => setBookingPhone(e.target.value)}
-                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-mono font-semibold"
+                  className="w-full bg-white border border-slate-300 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono font-semibold"
                   required
                 />
               </div>
@@ -1089,7 +1089,7 @@ export default function GuestMenuPage() {
                   <select
                     value={bookingType}
                     onChange={(e) => setBookingType(e.target.value)}
-                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    className="w-full bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
                   >
                     <option value="Meja Makan Biasa">Meja Makan Biasa</option>
                     <option value="Pesta Ulang Tahun">Pesta Ulang Tahun</option>
@@ -1108,8 +1108,8 @@ export default function GuestMenuPage() {
                     type="number"
                     min="1"
                     value={bookingGuests}
-                    onChange={(e) => setBookingGuests(Number(e.target.value))}
-                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    onChange={(e) => setBookingGuests(e.target.value)}
+                    className="w-full bg-white border border-slate-300 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
                     required
                   />
                 </div>
@@ -1126,7 +1126,7 @@ export default function GuestMenuPage() {
                     min={new Date().toISOString().split("T")[0]}
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    className="w-full bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
                     required
                   />
                 </div>
@@ -1139,7 +1139,7 @@ export default function GuestMenuPage() {
                     type="time"
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
-                    className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-semibold"
+                    className="w-full bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-semibold"
                     required
                   />
                 </div>
@@ -1155,7 +1155,7 @@ export default function GuestMenuPage() {
                   placeholder="Contoh: Butuh meja di dekat area musik live, request menu diet gluten-free, dekorasi kecil ultah, dll."
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
-                  className="w-full bg-[#1e1e24] border border-border text-foreground rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary transition-all font-medium leading-relaxed resize-none"
+                  className="w-full bg-white border border-slate-300 text-slate-800 placeholder-slate-400 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-medium leading-relaxed resize-none"
                 />
               </div>
 
