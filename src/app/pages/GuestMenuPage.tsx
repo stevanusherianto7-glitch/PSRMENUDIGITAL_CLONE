@@ -100,7 +100,7 @@ export default function GuestMenuPage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [welcomeMode, setWelcomeMode] = useState<OrderMode>("dine-in");
-  const [welcomeStep, setWelcomeStep] = useState<1 | 2>(1);
+  const [welcomeStep, setWelcomeStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -701,9 +701,63 @@ export default function GuestMenuPage() {
           <div
             className="bg-card w-full max-w-md rounded-2xl overflow-hidden mx-4 shadow-2xl"
           >
-            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+            <div className={`h-1 w-full ${welcomeStep === 1 ? 'bg-[#a76d33]' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500'}`} />
 
             {welcomeStep === 1 && (
+              <div className="bg-[#23120b] text-white p-8 relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+                {/* Dotted grid background overlay */}
+                <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#a76d33_1px,transparent_1px)] [background-size:16px_16px]" />
+                
+                <div className="relative space-y-8">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-[#a76d33] font-bold block mb-3">
+                      Sejak 2025 · Semarang
+                    </span>
+                    <h1 className="font-serif text-3xl leading-tight">
+                      Cita rasa Jawa,
+                      <br />
+                      <span className="text-[#a76d33] italic">disajikan modern.</span>
+                    </h1>
+                    <div className="w-16 h-[1.5px] bg-[#a76d33] mt-5" />
+                    <p className="text-white/70 text-xs mt-5 leading-relaxed">
+                      Platform pemesanan digital terintegrasi — dari pemesanan langsung dari meja, dapur realtime, hingga sajian tersaji hangat di meja Anda.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {[
+                      { icon: Scan, label: "QR Self-Order", desc: "Tamu pesan langsung dari meja" },
+                      { icon: ChefHat, label: "Dapur Realtime", desc: "Antrian pesanan otomatis masuk" },
+                      { icon: UtensilsCrossed, label: "Monitor Pesanan", desc: "Pantau semua transaksi live" },
+                    ].map((f, idx) => (
+                      <div key={idx} className="flex items-start gap-4 text-left">
+                        <div className="w-10 h-10 rounded-full border border-[#a76d33]/40 bg-[#a76d33]/5 flex items-center justify-center flex-shrink-0">
+                          <f.icon size={16} className="text-[#a76d33]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{f.label}</p>
+                          <p className="text-xs text-white/50 mt-0.5">{f.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-8 pt-4 border-t border-white/10 flex flex-col gap-4">
+                  <button
+                    onClick={() => setWelcomeStep(2)}
+                    className="w-full py-4 rounded-2xl bg-[#a76d33] text-white font-extrabold text-sm uppercase tracking-wider hover:bg-[#c28445] transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-orange-950/20"
+                  >
+                    Masuk Ke Menu <ChevronRight size={16} />
+                  </button>
+                  <p className="text-[10px] tracking-widest uppercase text-white/30 text-center">
+                    © 2025 {BRAND_NAME}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {welcomeStep === 2 && (
               <div className="p-6">
                 <div className="flex flex-col items-center text-center mb-6">
                   <div className="relative mb-3 flex items-center justify-center gap-6">
@@ -799,7 +853,7 @@ export default function GuestMenuPage() {
                 </div>
 
                 <button
-                  onClick={() => setWelcomeStep(2)}
+                  onClick={() => setWelcomeStep(3)}
                   className="w-full py-4 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-indigo-500 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   Lanjut <ChevronRight size={16} />
@@ -807,7 +861,7 @@ export default function GuestMenuPage() {
               </div>
             )}
 
-            {welcomeStep === 2 && (
+            {welcomeStep === 3 && (
               <div className="p-6">
                 <div className="text-center mb-5">
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center mx-auto mb-3">
@@ -875,7 +929,7 @@ export default function GuestMenuPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setWelcomeStep(1)}
+                    onClick={() => setWelcomeStep(2)}
                     className="ml-auto text-[10px] text-primary hover:text-indigo-400 font-semibold"
                   >
                     Ubah
