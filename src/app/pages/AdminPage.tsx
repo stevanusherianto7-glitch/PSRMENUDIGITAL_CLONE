@@ -1081,6 +1081,36 @@ export default function AdminPage() {
             </div>
             
             <div className="p-6 space-y-4">
+              {/* Presets Select */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-[#4e3629] dark:text-[#f4efe9] uppercase tracking-wider">
+                  Preset Suara:
+                </label>
+                <select
+                  value={
+                    ttsVoice === "" && ttsRate === 0.95 && ttsPitch === 1.15 ? "default_female" :
+                    ttsVoice === "" && ttsRate === 1.10 && ttsPitch === 1.20 ? "fast_female" :
+                    ttsVoice === "" && ttsRate === 0.95 && ttsPitch === 0.85 ? "standard_male" :
+                    ttsVoice === "" && ttsRate === 1.00 && ttsPitch === 1.00 ? "browser_default" :
+                    "custom"
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "default_female") saveTtsSettings(0.95, 1.15, "");
+                    else if (val === "fast_female") saveTtsSettings(1.10, 1.20, "");
+                    else if (val === "standard_male") saveTtsSettings(0.95, 0.85, "");
+                    else if (val === "browser_default") saveTtsSettings(1.00, 1.00, "");
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-[#a76d33]/20 bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-[#a76d33]"
+                >
+                  <option value="default_female">Default Wanita (Kedai Elvera 57)</option>
+                  <option value="fast_female">Wanita (Cepat & Jelas)</option>
+                  <option value="standard_male">Pria Standar (Deep Voice)</option>
+                  <option value="browser_default">Default Browser (Bawaan)</option>
+                  <option value="custom">Kustom (Atur Manual)</option>
+                </select>
+              </div>
+
               {/* Voice Select */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-[#4e3629] dark:text-[#f4efe9] uppercase tracking-wider">

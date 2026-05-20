@@ -147,6 +147,30 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                     window.speechSynthesis.cancel();
                     const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
                     utterance.lang = "id-ID";
+                    
+                    const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
+                    const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
+                    const preferredVoiceName = localStorage.getItem("pawon_tts_voice_name") || "";
+                    
+                    utterance.rate = rate;
+                    utterance.pitch = pitch;
+                    
+                    const voices = window.speechSynthesis.getVoices();
+                    let selectedVoice = preferredVoiceName 
+                      ? voices.find(v => v.name === preferredVoiceName)
+                      : null;
+                    if (!selectedVoice) {
+                      const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+                      selectedVoice = idVoices.find(v => 
+                        v.name.includes("Gadis") || 
+                        v.name.includes("Google") || 
+                        v.name.toLowerCase().includes("female")
+                      ) || idVoices[0];
+                    }
+                    if (selectedVoice) {
+                      utterance.voice = selectedVoice;
+                    }
+                    
                     window.speechSynthesis.speak(utterance);
                   }
                 }
