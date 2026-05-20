@@ -949,7 +949,7 @@ export default function GuestMenuPage() {
                     <span className="text-[10px] uppercase tracking-widest text-[#a76d33] font-bold block mb-3">
                       Sejak 2025 · Semarang
                     </span>
-                    <h1 className="font-serif text-3xl leading-tight text-white">
+                    <h1 className="font-display text-3xl leading-tight text-white">
                       Cita rasa Jawa,
                       <br />
                       <span className="text-[#a76d33] italic">disajikan modern.</span>
