@@ -71,9 +71,7 @@ function OptimizedImage({ src, alt, className, width = 400 }: { src: string; alt
   // High-end warm-beige themed gradient placeholder
   const placeholderSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23ece3d5"/><circle cx="50" cy="50" r="20" fill="%23a76d33" opacity="0.15"/></svg>`;
 
-  const imageUrl = src.includes("/storage/v1/object/public/")
-    ? src.replace("/storage/v1/object/public/", "/storage/v1/render/image/public/") + `?width=${width}&quality=75`
-    : src;
+  const imageUrl = src;
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#ece3d5] dark:bg-[#23120b]">
