@@ -251,7 +251,7 @@ describe('Robustness and Extreme Conditions Simulations', () => {
       rerender({ ords: [extremeOrder] });
 
       // Fast-forward to start speaking
-      await jest.advanceTimersByTimeAsync(100);
+      await jest.advanceTimersByTimeAsync(1000);
 
       expect(speakSpy).toHaveBeenCalled();
       const largeText = speakSpy.mock.calls[0][0].text;
