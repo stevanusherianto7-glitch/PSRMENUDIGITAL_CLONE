@@ -13,6 +13,10 @@ test.describe('Kedai Elvera 57 - E2E Offline Fallback Flow (Opsi A)', () => {
 
   test('should render SEED_MENU from local fallback when offline and allow order creation', async ({ page }) => {
     // 1. Bypass Welcome Screen
+    const introButton = page.locator('button:has-text("Masuk Ke Menu")');
+    if (await introButton.isVisible()) {
+      await introButton.click();
+    }
     await expect(page.locator('text=Selamat Datang di')).toBeVisible();
     await page.locator('button:has-text("Lanjut")').click();
     await page.locator('button:has-text("Mulai Pesan Sekarang!")').click();
@@ -34,7 +38,7 @@ test.describe('Kedai Elvera 57 - E2E Offline Fallback Flow (Opsi A)', () => {
 
     // 5. Verify it transitions to status screen seamlessly
     await expect(page.locator('h2:has-text("Status Pesanan")')).toBeVisible();
-    await expect(page.locator('text=Menunggu Konfirmasi').first()).toBeVisible();
+    await expect(page.locator('text=Menunggu Jaringan (Offline)').first()).toBeVisible();
   });
 });
 

@@ -59,6 +59,10 @@ test.describe('Kedai Elvera 57 - E2E Multi-User Circular Ordering Flow (Playwrig
     await page.goto(`/#/menu/${TABLE_ID}`);
 
     // Welcome modal step 1
+    const introButton = page.locator('button:has-text("Masuk Ke Menu")');
+    if (await introButton.isVisible()) {
+      await introButton.click();
+    }
     await expect(page.locator('text=Selamat Datang di')).toBeVisible();
     await page.locator('text=Dine In').first().click({ force: true });
     await page.locator('button:has-text("Lanjut")').click();
