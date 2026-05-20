@@ -1129,8 +1129,43 @@ export default function GuestMenuPage() {
                 )}
               </div>
 
-              <div className="pt-2 text-center">
-                <p className="text-[10px] text-muted-foreground/80 font-medium italic">
+              <div className="pt-3 text-center flex flex-col items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBookingSuccess(false);
+                    setBookingName("");
+                    setBookingPhone("");
+                    setBookingNotes("");
+                    setLastBooking(null);
+                    setView("menu");
+                  }}
+                  className="bg-white border border-slate-200 text-center w-40 rounded-xl h-11 relative text-slate-800 text-xs font-black uppercase tracking-wider group transition-all shadow-sm hover:shadow-md hover:border-orange-200"
+                >
+                  <div
+                    className="bg-orange-500 rounded-lg h-9 w-10 flex items-center justify-center absolute left-1 top-[3px] group-hover:w-[150px] z-10 duration-500"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 1024 1024"
+                      height="16px"
+                      width="16px"
+                    >
+                      <path
+                        d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                        fill="#ffffff"
+                      ></path>
+                      <path
+                        d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                        fill="#ffffff"
+                      ></path>
+                    </svg>
+                  </div>
+                  <p className="translate-x-3 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-0 group-hover:pointer-events-none font-poppins">
+                    Kembali
+                  </p>
+                </button>
+                <p className="text-[10px] text-muted-foreground/80 font-medium italic mt-1">
                   * Anda dapat kembali memesan menu makanan atau minuman melalui menu navigasi di bagian bawah layar.
                 </p>
               </div>
