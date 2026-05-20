@@ -3,7 +3,7 @@
  * FILE INI BERISI BUKU MENU DIGITAL TAMU (QR SCAN → PESAN → KERANJANG → STATUS).
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN TAMU TIDAK BISA MEMESAN DARI MEJA. ⚠️
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
@@ -111,6 +111,8 @@ export default function GuestMenuPage() {
   const [notes, setNotes] = useState("");
   const [orderMode, setOrderMode] = useState<OrderMode>("dine-in");
   const [placing, setPlacing] = useState(false);
+  const [orderCooldown, setOrderCooldown] = useState(false);
+  const placeOrderMutex = useRef(false);
   const [myOrders, setMyOrders] = useState<Order[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -589,13 +591,55 @@ export default function GuestMenuPage() {
     setCart(prev => prev.map(c => c.id === id ? { ...c, qty: Math.max(0, c.qty + delta) } : c).filter(c => c.qty > 0));
   }
 
+  /**
+   * generateIdempotencyKey — Membuat kunci unik berdasarkan meja + isi keranjang + jendela waktu 60 detik.
+   * Jika kunci ini sudah pernah masuk ke database, insert akan ditolak (UNIQUE constraint).
+   */
+  function generateIdempotencyKey(tId: string, cartItems: CartItem[]): string {
+    const itemsFingerprint = cartItems
+      .map(c => `${c.id}:${c.qty}`)
+      .sort()
+      .join(",");
+    const timeWindow = Math.floor(Date.now() / 60000); // jendela 60 detik
+    return `${tId}|${itemsFingerprint}|${timeWindow}`;
+  }
+
   async function placeOrder() {
+    // ── Guard 1: Mutex lock — cegah eksekusi paralel ──
+    if (placeOrderMutex.current) {
+      console.log("[ORDER GUARD] Mutex aktif, menolak klik ganda.");
+      return;
+    }
+    // ── Guard 2: Cooldown — cegah klik beruntun pasca-submit ──
+    if (orderCooldown) {
+      console.log("[ORDER GUARD] Cooldown aktif, tunggu 3 detik.");
+      return;
+    }
     if (!tableId) {
       setTableError(true);
       return;
     }
     if (cart.length === 0) return;
+
+    // ── Guard 3: Session lock — cegah multi-tab submit bersamaan ──
+    const sessionLockKey = `pawon_order_lock_${tableId}`;
+    const existingLock = sessionStorage.getItem(sessionLockKey);
+    if (existingLock) {
+      const lockAge = Date.now() - parseInt(existingLock, 10);
+      if (lockAge < 10000) { // lock berlaku 10 detik
+        console.log("[ORDER GUARD] Session lock aktif dari tab/proses lain.");
+        return;
+      }
+    }
+    sessionStorage.setItem(sessionLockKey, String(Date.now()));
+
+    // Aktifkan mutex & UI guard
+    placeOrderMutex.current = true;
     setPlacing(true);
+
+    // Generate idempotency key untuk server-side dedup
+    const idempotencyKey = generateIdempotencyKey(tableId, cart);
+
     try {
       const order = await createOrder({
         tableId,
@@ -605,6 +649,7 @@ export default function GuestMenuPage() {
         notes,
         orderMode,
         type: "guest",
+        idempotencyKey,
       });
       setMyOrders(prev => [order, ...prev]);
       
@@ -624,58 +669,72 @@ export default function GuestMenuPage() {
       setNotes("");
       setOrderMode("dine-in");
       setView("status");
-    } catch (e) {
-      console.warn("[ROBUST FALLBACK] createOrder failed (offline/network error), executing offline localStorage fallback:", e);
-      
-      // Create local fallback offline order draft
-      const fallbackOrder: Order = {
-        id: `OFFLINE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-        tableId,
-        items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category })),
-        subtotal,
-        total: total,
-        notes: notes || "",
-        orderMode,
-        status: "pending",
-        type: "guest",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setMyOrders(prev => [fallbackOrder, ...prev]);
-      
-      // Save order details to the outbox queue
-      try {
-        const outboxItem = {
-          localId: fallbackOrder.id,
+
+      // ── Cooldown 3 detik pasca-submit sukses ──
+      setOrderCooldown(true);
+      setTimeout(() => setOrderCooldown(false), 3000);
+
+    } catch (e: any) {
+      // ── Server-side dedup: jika idempotency_key sudah ada, anggap duplikat ──
+      if (e?.code === "23505" || e?.message?.includes("duplicate") || e?.message?.includes("idempotency")) {
+        console.warn("[ORDER GUARD] Server menolak: order duplikat terdeteksi (idempotency_key sudah ada).");
+        // Tidak perlu fallback, order asli sudah masuk
+      } else {
+        console.warn("[ROBUST FALLBACK] createOrder failed (offline/network error), executing offline localStorage fallback:", e);
+        
+        // Create local fallback offline order draft
+        const fallbackOrder: Order = {
+          id: `OFFLINE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
           tableId,
-          items: cart,
+          items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category })),
           subtotal,
-          total,
-          notes,
+          total: total,
+          notes: notes || "",
           orderMode,
+          status: "pending",
+          type: "guest",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
-        const currentOutbox = JSON.parse(localStorage.getItem("pawon_offline_outbox") || "[]");
-        localStorage.setItem("pawon_offline_outbox", JSON.stringify([...currentOutbox, outboxItem]));
-      } catch (err) {
-        console.warn("Failed to write to outbox queue:", err);
-      }
-      
-      // Persist fallback order locally in cache
-      try {
-        const cached = localStorage.getItem(`guest_orders_${tableId}`);
-        const parsed = cached ? JSON.parse(cached) : [];
-        localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([fallbackOrder, ...parsed]));
-      } catch (err) {
-        console.warn("Failed to write to localStorage fallback:", err);
+        
+        setMyOrders(prev => [fallbackOrder, ...prev]);
+        
+        // Save order details to the outbox queue
+        try {
+          const outboxItem = {
+            localId: fallbackOrder.id,
+            tableId,
+            items: cart,
+            subtotal,
+            total,
+            notes,
+            orderMode,
+          };
+          const currentOutbox = JSON.parse(localStorage.getItem("pawon_offline_outbox") || "[]");
+          localStorage.setItem("pawon_offline_outbox", JSON.stringify([...currentOutbox, outboxItem]));
+        } catch (err) {
+          console.warn("Failed to write to outbox queue:", err);
+        }
+        
+        // Persist fallback order locally in cache
+        try {
+          const cached = localStorage.getItem(`guest_orders_${tableId}`);
+          const parsed = cached ? JSON.parse(cached) : [];
+          localStorage.setItem(`guest_orders_${tableId}`, JSON.stringify([fallbackOrder, ...parsed]));
+        } catch (err) {
+          console.warn("Failed to write to localStorage fallback:", err);
+        }
       }
       
       setCart([]);
       setNotes("");
       setOrderMode("dine-in");
       setView("status");
+    } finally {
+      setPlacing(false);
+      placeOrderMutex.current = false;
+      sessionStorage.removeItem(sessionLockKey);
     }
-    setPlacing(false);
   }
 
   const statusConfig: Record<string, { label: string; color: string; bg: string; neonBorder: string; icon: React.ReactNode; step: number }> = {
@@ -1698,7 +1757,7 @@ export default function GuestMenuPage() {
               {isVerified ? (
                 <button
                   onClick={placeOrder}
-                  disabled={placing || cart.length === 0}
+                  disabled={placing || orderCooldown || cart.length === 0}
                   className="w-full py-4 rounded-xl bg-primary text-white font-bold text-base hover:bg-indigo-500 disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   {placing ? (

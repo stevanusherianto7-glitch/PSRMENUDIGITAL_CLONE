@@ -157,6 +157,7 @@ export async function fetchPaginatedOrders(
 
 /**
  * Create a new order.
+ * Mendukung idempotencyKey untuk mencegah insert duplikat di database (server-side dedup).
  */
 export async function createOrder(payload: {
   tableId: string;
@@ -166,8 +167,9 @@ export async function createOrder(payload: {
   notes?: string;
   orderMode: OrderMode;
   type: OrderType;
+  idempotencyKey?: string;
 }): Promise<Order> {
-  const order = {
+  const order: Record<string, any> = {
     id: generateOrderId(),
     table_id: payload.tableId, // Hanya kirim kolom snake_case yang ada di DB
     items: payload.items.map((c) => ({
@@ -187,6 +189,11 @@ export async function createOrder(payload: {
     updated_at: new Date().toISOString(),
   };
 
+  // Sertakan idempotency_key jika tersedia (server-side dedup)
+  if (payload.idempotencyKey) {
+    order.idempotency_key = payload.idempotencyKey;
+  }
+
   const { data, error } = await supabase
     .from("orders")
     .insert(order)
@@ -194,8 +201,28 @@ export async function createOrder(payload: {
     .single();
 
   if (error) {
+    // Jika error karena kolom idempotency_key belum ada di DB, retry tanpa kolom tersebut
+    const isMissingColumnError = error.message?.includes("idempotency_key") && 
+      (error.code === "PGRST204" || error.code === "42703" || error.message?.includes("column"));
+    
+    if (isMissingColumnError && payload.idempotencyKey) {
+      console.warn("[ROBUST FALLBACK] Kolom 'idempotency_key' belum ada di DB. Retry insert tanpa kolom tersebut...");
+      delete order.idempotency_key;
+      
+      const { data: retryData, error: retryError } = await supabase
+        .from("orders")
+        .insert(order)
+        .select()
+        .single();
+      
+      if (retryError) {
+        console.error("createOrder retry error:", retryError.message);
+        throw retryError;
+      }
+      return mapOrder(retryData);
+    }
+
     console.error("createOrder error:", error.message);
-    alert("Supabase Error: " + error.message);
     throw error;
   }
 
