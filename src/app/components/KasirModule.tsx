@@ -110,54 +110,68 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
   const [showReservationsModal, setShowReservationsModal] = useState(false);
 
   useEffect(() => {
-    async function fetchReservations() {
+    let activeChannel: any = null;
+
+    async function setupReservations() {
       try {
         const { data, error } = await supabase
           .from("reservations")
           .select("*")
           .order("created_at", { ascending: false });
-        if (error) throw error;
+        
+        if (error) {
+          if (error.code === "PGRST205") {
+            console.warn("[ROBUST FALLBACK] Table 'reservations' is missing in DB schema. Skipping realtime subscription.");
+            return;
+          }
+          throw error;
+        }
+        
         if (data) setReservations(data);
+
+        // Only subscribe if table exists
+        activeChannel = supabase
+          .channel("kasir-reservations-realtime")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "reservations" },
+            (payload) => {
+              if (payload.eventType === "INSERT") {
+                setReservations((prev) => [payload.new, ...prev]);
+                if (payload.new.status === "pending") {
+                  toast.info(`Reservasi Baru: ${payload.new.name} (${payload.new.type})`, {
+                    position: "top-right",
+                    duration: 5000,
+                  });
+                  if ("speechSynthesis" in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
+                    utterance.lang = "id-ID";
+                    window.speechSynthesis.speak(utterance);
+                  }
+                }
+              } else if (payload.eventType === "UPDATE") {
+                setReservations((prev) =>
+                  prev.map((r) => (r.id === payload.new.id ? payload.new : r))
+                );
+              } else if (payload.eventType === "DELETE") {
+                setReservations((prev) => prev.filter((r) => r.id === payload.old.id));
+              }
+            }
+          )
+          .subscribe();
+
       } catch (err) {
         console.warn("Failed to fetch reservations in KasirModule:", err);
       }
     }
 
-    fetchReservations();
-
-    const channel = supabase
-      .channel("kasir-reservations-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "reservations" },
-        (payload) => {
-          if (payload.eventType === "INSERT") {
-            setReservations((prev) => [payload.new, ...prev]);
-            if (payload.new.status === "pending") {
-              toast.info(`Reservasi Baru: ${payload.new.name} (${payload.new.type})`, {
-                position: "top-right",
-                duration: 5000,
-              });
-              if ("speechSynthesis" in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
-                utterance.lang = "id-ID";
-                window.speechSynthesis.speak(utterance);
-              }
-            }
-          } else if (payload.eventType === "UPDATE") {
-            setReservations((prev) =>
-              prev.map((r) => (r.id === payload.new.id ? payload.new : r))
-            );
-          } else if (payload.eventType === "DELETE") {
-            setReservations((prev) => prev.filter((r) => r.id === payload.old.id));
-          }
-        }
-      )
-      .subscribe();
+    setupReservations();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+      }
     };
   }, []);
 

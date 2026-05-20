@@ -219,11 +219,48 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     .select()
     .single();
 
-  if (error) {
-    const isTriggerError = error.code === '42703' || (error.message && error.message.includes('order_type'));
+  let dataResult = data;
+  let errorResult = error;
+
+  if (errorResult) {
+    const isMissingServedAtError = errorResult.message && errorResult.message.includes('served_at');
+    if (isMissingServedAtError) {
+      console.warn(`[ROBUST FALLBACK] Column 'served_at' is missing in remote DB schema. Retrying update without 'served_at'...`);
+      const { served_at: _, ...retryPatch } = safePatch as any;
+      
+      const { data: retryData, error: retryError } = await supabase
+        .from("orders")
+        .update({
+          ...retryPatch,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+        
+      if (!retryError) {
+        // Cache the served_at locally in pawon_orders_cache
+        try {
+          const cachedOrdersStr = localStorage.getItem("pawon_orders_cache") || "{}";
+          const cachedOrders = JSON.parse(cachedOrdersStr);
+          cachedOrders[id] = {
+            ...(cachedOrders[id] || {}),
+            ...patch,
+            updated_at: new Date().toISOString()
+          };
+          localStorage.setItem("pawon_orders_cache", JSON.stringify(cachedOrders));
+        } catch (e) {
+          console.error("[ROBUST FALLBACK] Failed to cache local served_at:", e);
+        }
+        return mapOrder(retryData);
+      }
+      errorResult = retryError;
+    }
+
+    const isTriggerError = errorResult.code === '42703' || (errorResult.message && errorResult.message.includes('order_type'));
     
     if (!isTriggerError) {
-      console.error(`updateOrder(${id}) error:`, error.message);
+      console.error(`updateOrder(${id}) error:`, errorResult.message);
     }
     
     // Check for PostgreSQL 42703 (Undefined Column / Trigger error with "order_type")
@@ -239,9 +276,12 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
           .single();
           
         if (!fetchErr && existing) {
+          // If served_at was missing from the DB schema, strip it from the merged insert payload too
+          const finalPatch = isMissingServedAtError ? (() => { const { served_at, ...rest } = safePatch as any; return rest; })() : safePatch;
+          
           const merged = {
             ...existing,
-            ...safePatch,
+            ...finalPatch,
             updated_at: new Date().toISOString()
           };
           
@@ -268,10 +308,13 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
             throw insertErr;
           }
           
-          // 4. Cache the merged order back into LocalStorage for local client-side redundancy
+          // 4. Cache the merged order back into LocalStorage
           const cachedOrdersStr = localStorage.getItem("pawon_orders_cache") || "{}";
           const cachedOrders = JSON.parse(cachedOrdersStr);
-          cachedOrders[id] = merged;
+          cachedOrders[id] = {
+            ...merged,
+            ...patch // Keep original patch with served_at in local cache
+          };
           localStorage.setItem("pawon_orders_cache", JSON.stringify(cachedOrders));
           
           console.log(`[ROBUST FALLBACK] Order ${id} status successfully persisted in remote database via atomic workaround. New status:`, inserted.status);
@@ -282,10 +325,10 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
       }
     }
     
-    throw error;
+    throw errorResult;
   }
 
-  return mapOrder(data);
+  return mapOrder(dataResult);
 }
 
 /**

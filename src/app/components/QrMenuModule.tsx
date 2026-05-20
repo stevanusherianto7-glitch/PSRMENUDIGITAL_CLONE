@@ -101,7 +101,8 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
         // Table is empty, seed it with defaults
         setEventPhotos(DEFAULT_EVENT_PHOTOS);
       }
-    } catch (err) {
+      return true;
+    } catch (err: any) {
       console.warn("Using local cache or presets for event gallery:", err);
       const saved = localStorage.getItem("local_event_gallery");
       if (saved) {
@@ -109,24 +110,35 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
       } else {
         setEventPhotos(DEFAULT_EVENT_PHOTOS);
       }
+      if (err.code === "PGRST205") {
+        return false;
+      }
+      return true;
     } finally {
       setLoadingPhotos(false);
     }
   }, []);
 
   useEffect(() => {
+    let channel: any = null;
     if (activeTab === "gallery") {
-      loadEventPhotos();
-
-      // Realtime subscription
-      const channel = supabase.channel("event_gallery_realtime_admin")
-        .on("postgres_changes", { event: "*", schema: "public", table: "event_gallery" }, () => {
-          loadEventPhotos();
-        })
-        .subscribe();
+      loadEventPhotos().then((tableExists) => {
+        if (!tableExists) {
+          console.warn("[ROBUST FALLBACK] Table 'event_gallery' is missing. Skipping realtime subscription.");
+          return;
+        }
+        // Realtime subscription
+        channel = supabase.channel("event_gallery_realtime_admin")
+          .on("postgres_changes", { event: "*", schema: "public", table: "event_gallery" }, () => {
+            loadEventPhotos();
+          })
+          .subscribe();
+      });
 
       return () => {
-        supabase.removeChannel(channel);
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
       };
     }
   }, [activeTab, loadEventPhotos]);

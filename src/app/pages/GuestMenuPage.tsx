@@ -342,14 +342,23 @@ export default function GuestMenuPage() {
   }, [checkGPSLocation, tableId]);
 
   useEffect(() => {
-    async function fetchEventPhotos() {
+    let activeChannel: any = null;
+
+    async function setupEventPhotos() {
       try {
         const { data, error } = await supabase
           .from("event_gallery")
           .select("*")
           .order("created_at", { ascending: false });
         
-        if (error) throw error;
+        if (error) {
+          if (error.code === "PGRST205") {
+            console.warn("[ROBUST FALLBACK] Table 'event_gallery' is missing in DB schema. Skipping realtime subscription.");
+            return;
+          }
+          throw error;
+        }
+
         if (data && data.length > 0) {
           const mapped = data.map((item: any) => ({
             id: item.id,
@@ -361,20 +370,25 @@ export default function GuestMenuPage() {
           }));
           setEventPhotos(mapped);
         }
+
+        // Only subscribe if table exists
+        activeChannel = supabase.channel("event_gallery_realtime_guest")
+          .on("postgres_changes", { event: "*", schema: "public", table: "event_gallery" }, () => {
+            setupEventPhotos();
+          })
+          .subscribe();
+
       } catch (err) {
         console.warn("Failed to fetch event photos from Supabase, using local fallback:", err);
       }
     }
-    fetchEventPhotos();
 
-    const channel = supabase.channel("event_gallery_realtime_guest")
-      .on("postgres_changes", { event: "*", schema: "public", table: "event_gallery" }, () => {
-        fetchEventPhotos();
-      })
-      .subscribe();
+    setupEventPhotos();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+      }
     };
   }, []);
 
