@@ -49,12 +49,14 @@ function playNotifBeep() {
 }
 
 async function executeSpeakNative(text: string): Promise<void> {
+  const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
+  const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
   try {
     await TextToSpeech.speak({
       text: text,
       lang: "id-ID",
-      rate: 0.95,
-      pitch: 1.15,
+      rate,
+      pitch,
       volume: 1.0,
       category: "ambient",
     });
@@ -71,28 +73,37 @@ function executeSpeakWeb(text: string): Promise<void> {
       return;
     }
 
+    const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
+    const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
+    const preferredVoiceName = localStorage.getItem("pawon_tts_voice_name") || "";
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "id-ID";
-    utterance.rate = 0.95;  // Tempo tenang dan jelas
-    utterance.pitch = 1.15; // Pitch sedikit tinggi → suara wanita natural
+    utterance.rate = rate;  // Tempo tenang dan jelas
+    utterance.pitch = pitch; // Pitch sedikit tinggi → suara wanita natural
     utterance.volume = 1;
 
     // Pilih suara bahasa Indonesia
     const voices = window.speechSynthesis.getVoices();
-    const idVoices = voices.filter(
-      v => v.lang === "id-ID" || v.lang.startsWith("id")
-    );
     
-    const femaleVoice = idVoices.find(v => 
-      v.name.includes("Gadis") || 
-      v.name.includes("Google") || 
-      v.name.toLowerCase().includes("female")
-    );
+    let selectedVoice = preferredVoiceName 
+      ? voices.find(v => v.name === preferredVoiceName)
+      : null;
+
+    if (!selectedVoice) {
+      const idVoices = voices.filter(
+        v => v.lang === "id-ID" || v.lang.startsWith("id")
+      );
+      
+      selectedVoice = idVoices.find(v => 
+        v.name.includes("Gadis") || 
+        v.name.includes("Google") || 
+        v.name.toLowerCase().includes("female")
+      ) || idVoices[0];
+    }
     
-    if (femaleVoice) {
-      utterance.voice = femaleVoice;
-    } else if (idVoices.length > 0) {
-      utterance.voice = idVoices[0];
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     let isResolved = false;

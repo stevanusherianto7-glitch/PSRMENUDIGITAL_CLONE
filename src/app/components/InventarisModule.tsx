@@ -155,12 +155,6 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
           const lowStock = item.stock < item.min_stock;
           return (
             <div key={item.id} className="stok-card rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]">
-              {/* Background Decoration */}
-              <div className="stok-container">
-                <div className="stok-cloud stok-front"><span className="stok-left-front"></span><span className="stok-right-front"></span></div>
-                <span className="stok-sun stok-sunshine"></span><span className="stok-sun"></span>
-                <div className="stok-cloud stok-back"><span className="stok-left-back"></span><span className="stok-right-back"></span></div>
-              </div>
               <div className="relative z-10 space-y-3">
                 <div className="flex justify-between items-start gap-4">
                   <div className="min-w-0">
@@ -211,12 +205,6 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
           const lowStock = item.stock < item.min_stock;
           return (
             <div key={item.id} className="stok-card rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
-              {/* Background Decoration */}
-              <div className="stok-container">
-                <div className="stok-cloud stok-front"><span className="stok-left-front"></span><span className="stok-right-front"></span></div>
-                <span className="stok-sun stok-sunshine"></span><span className="stok-sun"></span>
-                <div className="stok-cloud stok-back"><span className="stok-left-back"></span><span className="stok-right-back"></span></div>
-              </div>
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex justify-between items-start gap-2">

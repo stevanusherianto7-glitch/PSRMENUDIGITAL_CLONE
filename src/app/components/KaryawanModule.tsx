@@ -224,38 +224,10 @@ export const KaryawanModule = () => {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
               >
-                {/* ═══ Elemen Dekoratif Animasi (Adaptasi Awan/Matahari → Role Icon) ═══ */}
-                <div className="absolute -right-4 -top-6 w-[140px] h-[140px] flex items-center justify-center pointer-events-none select-none">
-                  {/* Lingkaran Glow (seperti matahari di kartu cuaca) */}
-                  <div 
-                    className={`absolute w-20 h-20 rounded-full bg-gradient-to-br ${style.iconBg} opacity-20`}
-                    style={{ animation: 'sdm-sunshine 3s infinite ease-in-out' }}
-                  />
-                  <div 
-                    className={`absolute w-16 h-16 rounded-full bg-gradient-to-br ${style.iconBg} opacity-30`}
-                  />
-                  {/* Emoji Role Besar (menggantikan ikon cuaca) */}
-                  <span 
-                    className="relative text-[42px] z-10"
-                    style={{ animation: 'sdm-float 4s infinite ease-in-out' }}
-                  >
-                    {style.emoji}
-                  </span>
-                </div>
-
-                {/* ═══ Elemen Bubble Dekoratif (Adaptasi Awan) ═══ */}
-                <div className="absolute pointer-events-none select-none" style={{ right: '20px', top: '90px', animation: 'sdm-clouds 8s infinite ease-in-out' }}>
-                  <div className={`inline-block w-8 h-8 rounded-full ${style.accent} opacity-10`} />
-                  <div className={`inline-block w-5 h-5 rounded-full ${style.accent} opacity-10 -ml-2`} />
-                </div>
-
                 {/* ═══ Header — Nama & ID ═══ */}
-                <div className="relative z-10 flex flex-col gap-1.5 pr-16">
+                <div className="relative z-10 flex flex-col gap-1.5 pr-4">
                   <span className="font-extrabold text-[15px] leading-tight text-slate-700 truncate" title={emp.employee_name}>
                     {emp.employee_name}
-                  </span>
-                  <span className="font-bold text-[11px] leading-tight text-slate-400 font-mono truncate">
-                    {emp.id.substring(0, 18)}...
                   </span>
                 </div>
 

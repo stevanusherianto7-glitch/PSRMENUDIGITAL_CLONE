@@ -129,7 +129,7 @@ export const KalkulatorHPP = () => {
     <div className="w-full space-y-8 animate-in fade-in duration-700">
       
       {/* Header - Edge to Edge Style */}
-      <div className="bg-gradient-to-br from-card via-card/80 to-secondary/30 backdrop-blur-2xl rounded-b-[4rem] border-b border-white/5 p-8 pb-12 shadow-2xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-card via-card/85 to-secondary/40 backdrop-blur-2xl rounded-b-[4rem] border-b border-border p-8 pb-12 shadow-2xl relative overflow-hidden">
         {/* Background Decor */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
 
@@ -139,23 +139,24 @@ export const KalkulatorHPP = () => {
               <Calculator size={28} className="animate-float" />
             </div>
             <div>
-              <h2 className="text-3xl font-black text-white tracking-tighter font-poppins leading-none">HPP MASTER</h2>
-              <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
+              <h2 className="text-3xl font-black text-foreground tracking-tighter font-poppins leading-none">MASTER HPP</h2>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                Recipe Engineering System
+                Sistem Rekayasa Resep
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.location.reload()}
-              className="p-3 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-2xl transition-all duration-300 border border-white/5 group"
+              className="p-3 text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary/80 rounded-2xl transition-all duration-300 border border-border group"
+              title="Segarkan Halaman"
             >
               <RefreshCw size={20} className="group-active:rotate-180 transition-transform duration-500" />
             </button>
             <div className="px-5 py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Supabase Node Online</span>
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Node Supabase Aktif</span>
             </div>
           </div>
         </div>
@@ -167,69 +168,70 @@ export const KalkulatorHPP = () => {
 
           {/* Left Column: Ingredients (8 Cols) */}
           <div className="lg:col-span-8 space-y-6">
-            <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border-white/5">
+            <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border border-border bg-card/60">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-6 bg-primary rounded-full" />
-                  <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Ingredient Analysis</h3>
+                  <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Analisis Bahan Baku</h3>
                 </div>
                 <button
                   onClick={handleAddIngredient}
                   className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-primary hover:text-white bg-primary/10 hover:bg-primary px-6 py-3 rounded-2xl transition-all duration-500 border border-primary/20 shadow-lg shadow-primary/10"
                 >
                   <Plus size={16} />
-                  Add Matrix
+                  Tambah Bahan
                 </button>
               </div>
 
               {/* Table Body */}
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {ingredients.map((item) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-3 items-center group bg-white/2 hover:bg-white/5 p-4 rounded-[2rem] transition-all duration-300 border border-white/5 hover:border-primary/20">
+                  <div key={item.id} className="grid grid-cols-12 gap-3 items-center group bg-secondary/30 hover:bg-secondary/50 p-4 rounded-[2rem] transition-all duration-300 border border-border hover:border-primary/20">
                     <div className="col-span-12 sm:col-span-5">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Name</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Nama Bahan</p>
                       <input
                         type="text"
-                        placeholder="INGREDIENT NAME"
+                        placeholder="NAMA BAHAN BARU"
                         value={item.name}
                         onChange={(e) => handleUpdate(item.id, 'name', e.target.value)}
-                        className="w-full px-5 py-3.5 bg-black/40 border border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-black text-white uppercase tracking-wider"
+                        className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground uppercase tracking-wider"
                       />
                     </div>
                     <div className="col-span-4 sm:col-span-2">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Price</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Harga Beli</p>
                       <input
                         type="number"
                         placeholder="0"
                         value={item.purchasePrice || ''}
                         onChange={(e) => handleUpdate(item.id, 'purchasePrice', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-black text-primary font-mono"
+                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
                       />
                     </div>
                     <div className="col-span-4 sm:col-span-2">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Conv</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Konversi</p>
                       <input
                         type="number"
                         placeholder="1000"
                         value={item.conversionValue || ''}
                         onChange={(e) => handleUpdate(item.id, 'conversionValue', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-black text-white font-mono"
+                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
                       />
                     </div>
                     <div className="col-span-3 sm:col-span-2">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Need</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Kebutuhan</p>
                       <input
                         type="number"
                         placeholder="0"
                         value={item.quantityNeeded || ''}
                         onChange={(e) => handleUpdate(item.id, 'quantityNeeded', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-black/40 border border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-black text-white font-mono"
+                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
                       />
                     </div>
                     <div className="col-span-1 text-right flex items-center justify-end pt-5 sm:pt-0">
                       <button
                         onClick={() => handleDelete(item.id)}
-                        className="p-3 text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-300 opacity-100 sm:opacity-0 group-hover:opacity-100"
+                        className="p-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-300 opacity-100 sm:opacity-0 group-hover:opacity-100"
+                        title="Hapus Bahan"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -237,31 +239,31 @@ export const KalkulatorHPP = () => {
                   </div>
                 ))}
                 {ingredients.length === 0 && (
-                  <div className="py-20 text-center space-y-4 bg-white/2 rounded-[3rem] border border-dashed border-white/5">
-                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
-                      <Plus size={32} className="text-slate-700" />
+                  <div className="py-20 text-center space-y-4 bg-secondary/20 rounded-[3rem] border border-dashed border-border">
+                    <div className="w-16 h-16 bg-secondary/50 rounded-full flex items-center justify-center mx-auto">
+                      <Plus size={32} className="text-muted-foreground" />
                     </div>
-                    <p className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">System Empty · Awaiting Data Input</p>
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Data Bahan Kosong · Silakan Tambah Bahan Baru</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Parameter Tambahan */}
-            <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border-white/5">
+            <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border border-border bg-card/60">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-1.5 h-6 bg-primary rounded-full" />
-                <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Variable Constants</h3>
+                <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Konstanta Variabel</h3>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { id: "shrinkagePercent", label: "Shrinkage %", val: shrinkagePercent, set: setShrinkagePercent, icon: Percent },
-                  { id: "laborCost", label: "Labor Cost", val: laborCost, set: setLaborCost, icon: DollarSign },
-                  { id: "overheadCost", label: "Overhead", val: overheadCost, set: setOverheadCost, icon: Info },
-                  { id: "yieldPortions", label: "Portions", val: yieldPortions, set: setYieldPortions, icon: Package },
+                  { id: "shrinkagePercent", label: "% Susut (Shrinkage)", val: shrinkagePercent, set: setShrinkagePercent, icon: Percent },
+                  { id: "laborCost", label: "Biaya Tenaga Kerja", val: laborCost, set: setLaborCost, icon: DollarSign },
+                  { id: "overheadCost", label: "Biaya Overhead", val: overheadCost, set: setOverheadCost, icon: Info },
+                  { id: "yieldPortions", label: "Jumlah Porsi (Yield)", val: yieldPortions, set: setYieldPortions, icon: Package },
                 ].map(param => (
                   <div key={param.id} className="space-y-3">
-                    <label htmlFor={param.id} className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
+                    <label htmlFor={param.id} className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
                       <param.icon size={10} className="text-primary" />
                       {param.label}
                     </label>
@@ -270,7 +272,7 @@ export const KalkulatorHPP = () => {
                       type="number"
                       value={param.val}
                       onChange={(e) => param.set(Number(e.target.value))}
-                      className="w-full px-5 py-3.5 bg-black/40 border border-white/5 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-xs font-black text-white font-mono"
+                      className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-xs font-bold text-foreground font-mono"
                     />
                   </div>
                 ))}
@@ -286,28 +288,28 @@ export const KalkulatorHPP = () => {
               <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
               <div className="relative z-10 space-y-8">
                 <div>
-                  <p className="text-[10px] text-white/60 font-black uppercase tracking-[0.2em] mb-2">Operational Cost (Batch)</p>
-                  <h3 className="text-4xl font-black font-poppins tracking-tighter">{rp(Math.round(totalHpp))}</h3>
+                  <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">Total Biaya Operasional (Batch)</p>
+                  <h3 className="text-4xl font-black font-poppins tracking-tighter text-white">{rp(Math.round(totalHpp))}</h3>
                 </div>
                 <div className="pt-8 border-t border-white/10">
-                  <p className="text-[10px] text-white/60 font-black uppercase tracking-[0.2em] mb-2">Base Cost / Portion</p>
+                  <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">HPP / Porsi</p>
                   <h2 className="text-5xl font-black text-yellow-300 font-poppins tracking-tighter">{rp(hppPerPortion)}</h2>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-3">Calculated Real-Time Matrix</p>
+                  <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest mt-3">Kalkulasi Riwayat Real-Time</p>
                 </div>
               </div>
             </div>
 
-            {/* Card 2: Pricing Strategy (Proaktif) */}
-            <div className="glass-card rounded-[2.5rem] p-8 shadow-2xl border-white/5 space-y-8">
+            {/* Card 2: Pricing Strategy */}
+            <div className="glass-card rounded-[2.5rem] p-8 shadow-2xl border border-border bg-card/60 space-y-8">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Market Strategy</h3>
-                <div className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/20 text-[9px] font-black text-emerald-400 uppercase tracking-widest">Smart Pricing</div>
+                <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Strategi Harga Pasar</h3>
+                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Harga Pintar</div>
               </div>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <label htmlFor="targetMargin" className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Profit Margin</label>
-                  <span className="text-xl font-black text-primary font-mono">{targetMargin}%</span>
+                  <label htmlFor="targetMargin" className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Margin Keuntungan</label>
+                  <span className="text-xl font-bold text-primary font-mono">{targetMargin}%</span>
                 </div>
                 <div className="relative flex items-center h-8">
                   <input
@@ -318,44 +320,44 @@ export const KalkulatorHPP = () => {
                     step="5"
                     value={targetMargin}
                     onChange={(e) => setTargetMargin(Number(e.target.value))}
-                    className="w-full h-2 bg-white/5 rounded-full appearance-none cursor-pointer accent-primary"
+                    className="w-full h-2 bg-secondary rounded-full appearance-none cursor-pointer accent-primary border border-border"
                   />
                 </div>
               </div>
 
-              <div className="p-6 bg-black/40 rounded-3xl border border-white/5 space-y-2">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Recommended Retail</p>
+              <div className="p-6 bg-secondary/80 rounded-3xl border border-border space-y-2">
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Rekomendasi Harga Jual</p>
                 <div className="flex items-center justify-between">
-                  <h4 className="text-3xl font-black text-white font-poppins tracking-tighter">{rp(recommendedSellingPrice)}</h4>
-                  <div className="flex items-center gap-1 text-emerald-400 font-black text-xs">
+                  <h4 className="text-3xl font-black text-foreground font-poppins tracking-tighter">{rp(recommendedSellingPrice)}</h4>
+                  <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black text-xs">
                     <ArrowUpRight size={16} />
                   </div>
                 </div>
-                <p className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-widest pt-2">
-                  Projected Net Profit: {rp(recommendedSellingPrice - hppPerPortion)}
+                <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest pt-2">
+                  Proyeksi Keuntungan Bersih: {rp(recommendedSellingPrice - hppPerPortion)}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-white/2 rounded-2xl border border-white/5 text-center">
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Food Cost</p>
-                  <p className="text-xs font-black text-white">{targetMargin ? 100 - targetMargin : 100}%</p>
+                <div className="p-4 bg-secondary rounded-2xl border border-border text-center">
+                  <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Food Cost</p>
+                  <p className="text-xs font-bold text-foreground">{targetMargin ? 100 - targetMargin : 100}%</p>
                 </div>
-                <div className="p-4 bg-white/2 rounded-2xl border border-white/5 text-center">
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Mark-Up</p>
-                  <p className="text-xs font-black text-white">{targetMargin}%</p>
+                <div className="p-4 bg-secondary rounded-2xl border border-border text-center">
+                  <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Mark-Up</p>
+                  <p className="text-xs font-bold text-foreground">{targetMargin}%</p>
                 </div>
               </div>
             </div>
 
             {/* Card 3: Info Mini */}
-            <div className="glass-card rounded-[2rem] p-6 shadow-xl border-white/5 flex items-center gap-5">
-              <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 shadow-inner">
+            <div className="glass-card rounded-[2rem] p-6 shadow-xl border border-border bg-card/60 flex items-center gap-5">
+              <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-500 shadow-inner flex-shrink-0">
                 <Info size={24} />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] font-black text-white uppercase tracking-widest">Engineering Tip</p>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-1">Ideal food cost for premium restaurants ranges from 28% to 35% for maximum scalability.</p>
+                <p className="text-[10px] font-black text-foreground uppercase tracking-widest">Tips Rekayasa</p>
+                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed mt-1">Food cost ideal untuk restoran premium berkisar antara 28% hingga 35% untuk memaksimalkan efisiensi keuntungan.</p>
               </div>
             </div>
 

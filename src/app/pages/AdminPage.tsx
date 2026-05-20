@@ -15,7 +15,7 @@ import {
   ChefHat, RefreshCw, Database, Wifi, WifiOff, Save, QrCode,
   Tag, Flame, ShoppingBag, ExternalLink, Copy,
   Volume2, VolumeX, Printer, Download, Activity, Edit2,
-  Calendar, Calculator, Briefcase, Key
+  Calendar, Calculator, Briefcase, Key, Settings
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { supabase } from "../../lib/supabase";
@@ -183,6 +183,57 @@ export default function AdminPage() {
   const [transaksiSubModule, setTransaksiSubModule] = useState<"summary" | "laporan">("summary");
   const [kasirSubModule, setKasirSubModule] = useState<"pos" | "promo" | "petty">("pos");
   const [autoSelectOrderId, setAutoSelectOrderId] = useState<string | null>(null);
+
+  // --- TTS Customization Settings ---
+  const [showTtsSettings, setShowTtsSettings] = useState(false);
+  const [ttsRate, setTtsRate] = useState(() => parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95"));
+  const [ttsPitch, setTtsPitch] = useState(() => parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15"));
+  const [ttsVoice, setTtsVoice] = useState(() => localStorage.getItem("pawon_tts_voice_name") || "");
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const load = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+        setAvailableVoices(idVoices.length > 0 ? idVoices : voices);
+      };
+      load();
+      window.speechSynthesis.onvoiceschanged = load;
+    }
+  }, []);
+
+  const saveTtsSettings = async (rate: number, pitch: number, voiceName: string) => {
+    localStorage.setItem("pawon_tts_rate", rate.toString());
+    localStorage.setItem("pawon_tts_pitch", pitch.toString());
+    localStorage.setItem("pawon_tts_voice_name", voiceName);
+    setTtsRate(rate);
+    setTtsPitch(pitch);
+    setTtsVoice(voiceName);
+
+    try {
+      const durationJson = JSON.stringify({ tts_rate: rate, tts_pitch: pitch, tts_voice_name: voiceName });
+      await supabase.from("meja").update({
+        duration: durationJson
+      }).eq("id", "SYSTEM_SETTINGS");
+    } catch (e) {
+      console.error("Failed to sync TTS settings to database:", e);
+    }
+  };
+
+  const testTtsSpeech = () => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance("Tes suara notifikasi sistem Kedai Elvera 57.");
+    utterance.lang = "id-ID";
+    utterance.rate = ttsRate;
+    utterance.pitch = ttsPitch;
+    const voice = availableVoices.find(v => v.name === ttsVoice);
+    if (voice) {
+      utterance.voice = voice;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
 
   // Data state
   const [tables, setTables] = useState<TableData[]>(SEED_TABLES);
@@ -359,8 +410,43 @@ export default function AdminPage() {
         const { data: mejaRows } = await supabase.from("meja").select("*");
         if (!mejaRows || mejaRows.length === 0) {
           await supabase.from("meja").insert(SEED_TABLES.map(t => ({ id: t.id, seat: t.seat, status: t.status, pax: null, total: null, duration: null, orders: null })));
+          await supabase.from("meja").insert({
+            id: "SYSTEM_SETTINGS",
+            seat: 0,
+            status: "available",
+            duration: JSON.stringify({ tts_rate: 0.95, tts_pitch: 1.15, tts_voice_name: "" })
+          });
         } else {
-          setTables(mejaRows.map((r: any) => ({ id: r.id, seat: r.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders })));
+          const actualTables = mejaRows.filter((r: any) => r.id !== "SYSTEM_SETTINGS");
+          setTables(actualTables.map((r: any) => ({ id: r.id, seat: r.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders })));
+
+          const settingsRow = mejaRows.find((r: any) => r.id === "SYSTEM_SETTINGS");
+          if (settingsRow && settingsRow.duration) {
+            try {
+              const parsed = JSON.parse(settingsRow.duration);
+              if (parsed.tts_rate !== undefined) {
+                localStorage.setItem("pawon_tts_rate", String(parsed.tts_rate));
+                setTtsRate(parsed.tts_rate);
+              }
+              if (parsed.tts_pitch !== undefined) {
+                localStorage.setItem("pawon_tts_pitch", String(parsed.tts_pitch));
+                setTtsPitch(parsed.tts_pitch);
+              }
+              if (parsed.tts_voice_name !== undefined) {
+                localStorage.setItem("pawon_tts_voice_name", parsed.tts_voice_name);
+                setTtsVoice(parsed.tts_voice_name);
+              }
+            } catch (e) {
+              console.error("Failed to parse settings row duration:", e);
+            }
+          } else if (!settingsRow) {
+            await supabase.from("meja").insert({
+              id: "SYSTEM_SETTINGS",
+              seat: 0,
+              status: "available",
+              duration: JSON.stringify({ tts_rate: 0.95, tts_pitch: 1.15, tts_voice_name: "" })
+            });
+          }
         }
 
         // Upsert semua seed: update nama/harga yang berubah, insert yang baru
@@ -421,6 +507,29 @@ export default function AdminPage() {
 
         mejaChannel = supabase.channel("meja-admin-" + Date.now())
           .on("postgres_changes", { event: "*", schema: "public", table: "meja" }, payload => {
+            if (payload.new && (payload.new as any).id === "SYSTEM_SETTINGS") {
+              try {
+                const r = payload.new as any;
+                if (r.duration) {
+                  const parsed = JSON.parse(r.duration);
+                  if (parsed.tts_rate !== undefined) {
+                    localStorage.setItem("pawon_tts_rate", String(parsed.tts_rate));
+                    setTtsRate(parsed.tts_rate);
+                  }
+                  if (parsed.tts_pitch !== undefined) {
+                    localStorage.setItem("pawon_tts_pitch", String(parsed.tts_pitch));
+                    setTtsPitch(parsed.tts_pitch);
+                  }
+                  if (parsed.tts_voice_name !== undefined) {
+                    localStorage.setItem("pawon_tts_voice_name", parsed.tts_voice_name);
+                    setTtsVoice(parsed.tts_voice_name);
+                  }
+                }
+              } catch (e) {
+                console.error("Failed to parse settings update", e);
+              }
+              return;
+            }
             if (payload.eventType === "UPDATE") {
               const r = payload.new as any;
               setTables(prev => prev.map(t => t.id === r.id ? { id: r.id, seat: r.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders } : t));
@@ -717,6 +826,14 @@ export default function AdminPage() {
               >
                 <Volume2 size={16} />
               </button>
+
+              <button
+                onClick={() => setShowTtsSettings(true)}
+                className="p-2 rounded-lg border border-border bg-secondary/50 text-muted-foreground hover:text-foreground transition-all"
+                title="Pengaturan Suara (TTS)"
+              >
+                <Settings size={16} />
+              </button>
             </div>
 
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 font-mono font-bold text-xs uppercase tracking-wider" title="Berikan PIN ini kepada tamu jika mereka tidak dapat melakukan validasi GPS otomatis">
@@ -950,6 +1067,95 @@ export default function AdminPage() {
           </ErrorBoundary>
         </main>
       </div>
+
+      {/* TTS Customization Settings Modal */}
+      {showTtsSettings && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowTtsSettings(false)}>
+          <div className="bg-[#f4efe9] dark:bg-[#1a0f0a] border border-[#a76d33]/20 rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-5 border-b border-[#a76d33]/10">
+              <div className="flex items-center gap-2 text-[#4e3629] dark:text-[#f4efe9] mb-1">
+                <Settings size={20} className="text-[#a76d33]" />
+                <h3 className="font-bold text-base">Pengaturan Suara (TTS)</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">Kustomisasi pemberitahuan suara untuk dapur & pelayan.</p>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {/* Voice Select */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-[#4e3629] dark:text-[#f4efe9] uppercase tracking-wider">
+                  Pilih Pengisi Suara:
+                </label>
+                {availableVoices.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Memuat suara sistem...</p>
+                ) : (
+                  <select
+                    value={ttsVoice}
+                    onChange={(e) => saveTtsSettings(ttsRate, ttsPitch, e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-[#a76d33]/20 bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-[#a76d33]"
+                  >
+                    <option value="">-- Gunakan Suara Default --</option>
+                    {availableVoices.map((v, i) => (
+                      <option key={i} value={v.name}>
+                        {v.name} ({v.lang})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Speech Rate (Speed) */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center text-xs font-bold text-[#4e3629] dark:text-[#f4efe9] uppercase tracking-wider">
+                  <span>Kecepatan Bicara:</span>
+                  <span className="text-[#a76d33]">{ttsRate.toFixed(2)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.0"
+                  step="0.05"
+                  value={ttsRate}
+                  onChange={(e) => saveTtsSettings(parseFloat(e.target.value), ttsPitch, ttsVoice)}
+                  className="w-full accent-[#a76d33]"
+                />
+              </div>
+
+              {/* Pitch */}
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-center text-xs font-bold text-[#4e3629] dark:text-[#f4efe9] uppercase tracking-wider">
+                  <span>Tinggi Nada (Pitch):</span>
+                  <span className="text-[#a76d33]">{ttsPitch.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2.0"
+                  step="0.05"
+                  value={ttsPitch}
+                  onChange={(e) => saveTtsSettings(ttsRate, parseFloat(e.target.value), ttsVoice)}
+                  className="w-full accent-[#a76d33]"
+                />
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-muted/40 border-t border-[#a76d33]/10 flex gap-3">
+              <button
+                onClick={testTtsSpeech}
+                className="flex-1 py-2.5 rounded-xl border border-[#a76d33]/30 hover:bg-[#a76d33]/10 text-xs font-bold text-[#a76d33] transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Volume2 size={14} /> Tes Suara
+              </button>
+              <button
+                onClick={() => setShowTtsSettings(false)}
+                className="flex-1 py-2.5 rounded-xl bg-[#a76d33] hover:bg-[#c28445] text-white text-xs font-bold transition-all active:scale-95 flex items-center justify-center"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

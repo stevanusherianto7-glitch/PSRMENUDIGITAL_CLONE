@@ -10,13 +10,64 @@ interface PhotoUploaderProps {
   label?: string;
 }
 
-// ─── Helper ────────────────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────────
 export function genId() {
   return "m" + Date.now().toString(36);
 }
 
 export function isUrl(s: string) {
   return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:");
+}
+
+function compressImage(file: File, maxW = 1000, maxH = 1000): Promise<Blob> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxW) {
+            height = Math.round((height * maxW) / width);
+            width = maxW;
+          }
+        } else {
+          if (height > maxH) {
+            width = Math.round((width * maxH) / height);
+            height = maxH;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file); // fallback
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              resolve(file);
+            }
+          },
+          "image/jpeg",
+          0.75
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
 }
 
 export function PhotoUploader({ 
@@ -40,15 +91,19 @@ export function PhotoUploader({
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setError("Ukuran file maksimal 5 MB"); return; }
     setError("");
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const compressedBlob = await compressImage(file);
+      const ext = "jpg"; // Convert to jpg
       const path = `${folder}/${genId()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from(bucket)
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, compressedBlob, { 
+          upsert: true, 
+          contentType: "image/jpeg",
+          cacheControl: "3600"
+        });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from(bucket).getPublicUrl(path);
       onChange(data.publicUrl);

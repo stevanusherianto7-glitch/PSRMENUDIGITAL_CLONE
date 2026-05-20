@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ChefHat, Clock, CheckCircle2, XCircle,
   RefreshCw, LogOut, Bell, Flame, Bike, ShoppingBag,
-  AlertTriangle, Volume2, VolumeX, Utensils, Package, Trash2, Key
+  AlertTriangle, Volume2, VolumeX, Utensils, Package, Trash2, Key, Settings
 } from "lucide-react";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
@@ -56,6 +56,54 @@ export default function WaiterPage() {
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
+
+  // Load and subscribe to database-backed TTS settings
+  useEffect(() => {
+    let settingsChannel: ReturnType<typeof supabase.channel> | null = null;
+    
+    async function syncTtsSettings() {
+      try {
+        const { data, error } = await supabase
+          .from("meja")
+          .select("duration")
+          .eq("id", "SYSTEM_SETTINGS")
+          .single();
+        if (!error && data && data.duration) {
+          const parsed = JSON.parse(data.duration);
+          if (parsed.tts_rate !== undefined) localStorage.setItem("pawon_tts_rate", String(parsed.tts_rate));
+          if (parsed.tts_pitch !== undefined) localStorage.setItem("pawon_tts_pitch", String(parsed.tts_pitch));
+          if (parsed.tts_voice_name !== undefined) localStorage.setItem("pawon_tts_voice_name", parsed.tts_voice_name);
+        }
+      } catch (e) {
+        console.warn("Offline or failed to sync database TTS settings, using localStorage fallback:", e);
+      }
+
+      // Subscribe to real-time updates for SYSTEM_SETTINGS
+      settingsChannel = supabase.channel("waiter-settings-" + Date.now())
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "meja", filter: "id=eq.SYSTEM_SETTINGS" }, payload => {
+          try {
+            const r = payload.new as any;
+            if (r && r.duration) {
+              const parsed = JSON.parse(r.duration);
+              if (parsed.tts_rate !== undefined) localStorage.setItem("pawon_tts_rate", String(parsed.tts_rate));
+              if (parsed.tts_pitch !== undefined) localStorage.setItem("pawon_tts_pitch", String(parsed.tts_pitch));
+              if (parsed.tts_voice_name !== undefined) localStorage.setItem("pawon_tts_voice_name", parsed.tts_voice_name);
+            }
+          } catch (e) {
+            console.error("Realtime settings sync error:", e);
+          }
+        })
+        .subscribe();
+    }
+
+    syncTtsSettings();
+
+    return () => {
+      if (settingsChannel) {
+        supabase.removeChannel(settingsChannel);
+      }
+    };
+  }, []);
 
   // ─── TTS — panggil setiap kali 'orders' berubah ───────────────────────────
   const { speak } = useTTS(orders, ttsEnabled, !loading);
@@ -241,6 +289,7 @@ export default function WaiterPage() {
           {ttsEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
           <span className="hidden sm:inline">{ttsEnabled ? "Suara On" : "Suara Off"}</span>
         </button>
+
 
         <button onClick={loadOrders} className="text-muted-foreground hover:text-foreground transition-colors p-2" aria-label="Segarkan pesanan">
           <RefreshCw size={15} />
@@ -513,7 +562,7 @@ export default function WaiterPage() {
 
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/ backdrop-blur-sm p-4" onClick={() => setShowResetConfirm(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 dark:bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowResetConfirm(false)}>
           <div className="bg-card border border-border rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
             <div className="px-6 py-5 border-b border-border text-center">
               <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
