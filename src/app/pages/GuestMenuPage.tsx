@@ -66,20 +66,25 @@ const EVENT_PHOTOS: EventPhoto[] = [
 
 function OptimizedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
   
+  // High-end warm-beige themed gradient placeholder
+  const placeholderSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23ece3d5"/><circle cx="50" cy="50" r="20" fill="%23a76d33" opacity="0.15"/></svg>`;
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-secondary/40">
-      {!loaded && (
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/30 via-secondary/60 to-secondary/30 animate-pulse" />
+    <div className="relative w-full h-full overflow-hidden bg-[#ece3d5] dark:bg-[#23120b]">
+      {!loaded && !error && (
+        <div className="absolute inset-0 bg-gradient-to-r from-[#ece3d5]/50 via-[#a76d33]/10 to-[#ece3d5]/50 animate-pulse z-10" />
       )}
       <img
-        src={src}
+        src={error ? placeholderSvg : src}
         alt={alt}
         loading="lazy"
         decoding="async"
         onLoad={() => setLoaded(true)}
-        className={`${className} transition-all duration-500 ease-out ${
-          loaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
+        onError={() => setError(true)}
+        className={`${className} transition-all duration-700 ease-out ${
+          loaded ? "opacity-100 scale-100 blur-0" : "opacity-30 scale-95 blur-sm"
         }`}
       />
     </div>
@@ -91,7 +96,15 @@ export default function GuestMenuPage() {
   const { tableId } = useParams<{ tableId: string }>();
   const [menuItems, setMenuItems] = useState<MenuItem[]>(SEED_MENU);
   const [category, setCategory] = useState("Makanan");
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (tableId) {
+      try {
+        const cached = localStorage.getItem(`guest_cart_draft_${tableId}`);
+        if (cached) return JSON.parse(cached);
+      } catch (_) { /* ignore */ }
+    }
+    return [];
+  });
   const [view, setView] = useState<View>("menu");
   const [notes, setNotes] = useState("");
   const [orderMode, setOrderMode] = useState<OrderMode>("dine-in");
@@ -109,6 +122,7 @@ export default function GuestMenuPage() {
   const [eventPhotos, setEventPhotos] = useState<EventPhoto[]>(EVENT_PHOTOS);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [manualTableId, setManualTableId] = useState("");
+  const [tableSpoofError, setTableSpoofError] = useState(false);
 
   // --- Booking Form States ---
   const [bookingName, setBookingName] = useState("");
@@ -182,7 +196,9 @@ export default function GuestMenuPage() {
         if (dist <= ALLOWED_RADIUS_METERS) {
           setIsVerified(true);
           const todayStr = new Date().toISOString().split("T")[0];
-          localStorage.setItem("pawon_table_verified_date", todayStr);
+          if (tableId) {
+            localStorage.setItem(`pawon_table_verified_date_${tableId}`, todayStr);
+          }
           setCheckingGPS(false);
           setGpsError(null);
         } else {
@@ -205,14 +221,16 @@ export default function GuestMenuPage() {
       },
       { enableHighAccuracy: true, timeout: 6000 }
     );
-  }, []);
+  }, [tableId]);
 
   function handleVerifyPIN() {
     const expected = getDailyVerificationPIN();
     if (pinInput.trim() === expected) {
       setIsVerified(true);
       const todayStr = new Date().toISOString().split("T")[0];
-      localStorage.setItem("pawon_table_verified_date", todayStr);
+      if (tableId) {
+        localStorage.setItem(`pawon_table_verified_date_${tableId}`, todayStr);
+      }
       setPinError(false);
       setPinInput("");
       setShowVerificationModal(false);
@@ -221,20 +239,104 @@ export default function GuestMenuPage() {
     }
   }
 
+  // Lock active table in sessionStorage to prevent spoofing
+  useEffect(() => {
+    if (!tableId) return;
+    const activeTable = sessionStorage.getItem("active_table_session");
+    if (!activeTable) {
+      sessionStorage.setItem("active_table_session", tableId);
+    } else if (activeTable !== tableId) {
+      console.warn(`[SECURITY] Table ID mismatch: URL has ${tableId}, but active session is locked to ${activeTable}`);
+      setTableSpoofError(true);
+    }
+  }, [tableId]);
+
+  // Persist cart items to localStorage draft
+  useEffect(() => {
+    if (tableId) {
+      localStorage.setItem(`guest_cart_draft_${tableId}`, JSON.stringify(cart));
+    }
+  }, [cart, tableId]);
+
+  // Background synchronization for offline outbox orders
+  const syncOfflineOutbox = useCallback(async () => {
+    const cached = localStorage.getItem("pawon_offline_outbox");
+    if (!cached) return;
+    try {
+      const outbox = JSON.parse(cached);
+      if (!Array.isArray(outbox) || outbox.length === 0) return;
+
+      console.log(`[DEBUG] Attempting to sync ${outbox.length} offline orders...`);
+      const successIds: string[] = [];
+
+      for (const item of outbox) {
+        try {
+          const realOrder = await createOrder({
+            tableId: item.tableId,
+            items: item.items,
+            subtotal: item.subtotal,
+            total: item.total,
+            notes: item.notes,
+            orderMode: item.orderMode,
+            type: "guest",
+          });
+          console.log(`[DEBUG] Successfully synced offline order ${item.localId} -> real ID ${realOrder.id}`);
+          successIds.push(item.localId);
+
+          // Update guest_orders_${tableId} in localStorage
+          const cachedOrders = localStorage.getItem(`guest_orders_${item.tableId}`);
+          if (cachedOrders) {
+            const parsedOrders = JSON.parse(cachedOrders);
+            if (Array.isArray(parsedOrders)) {
+              const updated = parsedOrders.map(o => o.id === item.localId ? realOrder : o);
+              localStorage.setItem(`guest_orders_${item.tableId}`, JSON.stringify(updated));
+            }
+          }
+
+          // Update local state if currently viewing status for this table
+          setMyOrders(prev => prev.map(o => o.id === item.localId ? realOrder : o));
+        } catch (err) {
+          console.error(`[DEBUG] Failed to sync offline order ${item.localId}:`, err);
+        }
+      }
+
+      const remaining = outbox.filter(item => !successIds.includes(item.localId));
+      if (remaining.length > 0) {
+        localStorage.setItem("pawon_offline_outbox", JSON.stringify(remaining));
+      } else {
+        localStorage.removeItem("pawon_offline_outbox");
+      }
+    } catch (e) {
+      console.error("Error in syncOfflineOutbox:", e);
+    }
+  }, []);
+
+  // Trigger sync on mount, online transition, and polling interval
+  useEffect(() => {
+    syncOfflineOutbox();
+    window.addEventListener("online", syncOfflineOutbox);
+    const timer = setInterval(syncOfflineOutbox, 10000);
+    return () => {
+      window.removeEventListener("online", syncOfflineOutbox);
+      clearInterval(timer);
+    };
+  }, [syncOfflineOutbox]);
+
   // Load verification status on mount
   useEffect(() => {
     if (typeof navigator !== "undefined" && navigator.webdriver) {
       setIsVerified(true);
       return;
     }
+    if (!tableId) return;
     const todayStr = new Date().toISOString().split("T")[0];
-    const savedDate = localStorage.getItem("pawon_table_verified_date");
+    const savedDate = localStorage.getItem(`pawon_table_verified_date_${tableId}`);
     if (savedDate === todayStr) {
       setIsVerified(true);
     } else {
       checkGPSLocation(true);
     }
-  }, [checkGPSLocation]);
+  }, [checkGPSLocation, tableId]);
 
   useEffect(() => {
     async function fetchEventPhotos() {
@@ -499,6 +601,9 @@ export default function GuestMenuPage() {
       }
 
       setCart([]);
+      if (tableId) {
+        localStorage.removeItem(`guest_cart_draft_${tableId}`);
+      }
       setNotes("");
       setOrderMode("dine-in");
       setView("status");
@@ -521,6 +626,23 @@ export default function GuestMenuPage() {
       };
       
       setMyOrders(prev => [fallbackOrder, ...prev]);
+      
+      // Save order details to the outbox queue
+      try {
+        const outboxItem = {
+          localId: fallbackOrder.id,
+          tableId,
+          items: cart,
+          subtotal,
+          total,
+          notes,
+          orderMode,
+        };
+        const currentOutbox = JSON.parse(localStorage.getItem("pawon_offline_outbox") || "[]");
+        localStorage.setItem("pawon_offline_outbox", JSON.stringify([...currentOutbox, outboxItem]));
+      } catch (err) {
+        console.warn("Failed to write to outbox queue:", err);
+      }
       
       // Persist fallback order locally in cache
       try {
@@ -744,6 +866,39 @@ export default function GuestMenuPage() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (tableSpoofError) {
+    const activeTable = sessionStorage.getItem("active_table_session") || "";
+    return (
+      <div className="min-h-screen bg-[#23120b] flex items-center justify-center p-4">
+        {/* Dotted grid background overlay */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#a76d33_1px,transparent_1px)] [background-size:16px_16px]" />
+        
+        <div className="bg-card w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-8 border border-[#a76d33]/20 relative z-10 text-center">
+          <div className="w-16 h-16 rounded-full border border-orange-500/20 bg-orange-500/5 flex items-center justify-center mx-auto mb-6">
+            <Lock className="h-8 w-8 text-orange-500" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground mb-3">Deteksi Perubahan Meja (Spoofing)</h2>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Anda terdaftar di <strong>Meja {activeTable}</strong> pada sesi ini. Untuk keamanan, Anda tidak dapat mengakses meja lain secara bersamaan.
+          </p>
+
+          <button
+            onClick={() => {
+              sessionStorage.clear();
+              if (tableId) {
+                localStorage.removeItem(`pawon_table_verified_date_${tableId}`);
+              }
+              window.location.reload();
+            }}
+            className="w-full py-3 bg-[#a76d33] hover:bg-[#c28445] text-white rounded-lg text-sm font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            Reset Sesi & Masuk Meja Baru
+          </button>
         </div>
       </div>
     );
@@ -1583,7 +1738,17 @@ export default function GuestMenuPage() {
           ) : (
             <div className="space-y-4">
               {myOrders.map(order => {
-                const cfg = statusConfig[order.status] || statusConfig.pending;
+                const isOfflineOrder = order.id.startsWith("OFFLINE-");
+                const cfg = isOfflineOrder 
+                  ? {
+                      label: "Menunggu Jaringan (Offline)",
+                      color: "text-amber-500 dark:drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]",
+                      bg: "bg-amber-500/10 border-amber-500/30",
+                      neonBorder: "dark:shadow-[0_0_20px_rgba(245,158,11,0.2)] border-b border-b-amber-500/30",
+                      icon: <RefreshCw size={16} className="text-amber-500 animate-spin" />,
+                      step: 1
+                    }
+                  : (statusConfig[order.status] || statusConfig.pending);
                 return (
                   <div key={order.id} className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                     {/* Status Header dengan Neon Glow */}
