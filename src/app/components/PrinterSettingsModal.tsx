@@ -315,7 +315,7 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
               ) : (
                 <Printer size={14} />
               )}
-              CETAK STRUK TES
+              TES CETAK STRUK
             </button>
           </div>
         </div>
