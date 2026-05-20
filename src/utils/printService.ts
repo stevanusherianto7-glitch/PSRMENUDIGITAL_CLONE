@@ -64,6 +64,13 @@ class PrintService {
         }
 
         if (targetAddress) {
+          if (targetAddress === 'rawbt-intent') {
+            this.setConnected(true);
+            this.connectedAddress = 'rawbt-intent';
+            console.log("[PrintService] RawBT intent route restored.");
+            return;
+          }
+
           console.log(`[PrintService] Found target printer: ${targetAddress}. Auto-connecting...`);
           
           if (this.isConnected && this.connectedAddress !== targetAddress) {
@@ -178,6 +185,10 @@ class PrintService {
 
   private async checkRealtimeConnection() {
     if (typeof bluetoothSerial !== 'undefined' && this.isConnected) {
+      if (this.connectedAddress === 'rawbt-intent') {
+        // RawBT intent is stateless, always assume healthy
+        return;
+      }
       bluetoothSerial.isConnected(
         () => {
           // connection still healthy
@@ -268,7 +279,10 @@ class PrintService {
       });
     }
     // JIKA DI BROWSER: PAKSA MUNCUL (Agar Tahan Banting)
-    return [{ id: 'web-serial', name: 'Gunakan Web Serial (Pilih Port Manual)', address: 'web-serial' }];
+    return [
+      { id: 'rawbt-intent', name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent' },
+      { id: 'web-serial', name: 'Gunakan Web Serial (Pilih Port Manual)', address: 'web-serial' }
+    ];
   }
 
   /**
@@ -276,6 +290,17 @@ class PrintService {
    */
   async connect(address: string): Promise<boolean> {
     try {
+      // 1. RawBT Web Intent Route (Android PWA)
+      if (address === 'rawbt-intent') {
+        this.setConnected(true);
+        this.connectedAddress = 'rawbt-intent';
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem("connectedPrinterAddress", 'rawbt-intent');
+        }
+        toast.success("Mode RawBT Web Intent diaktifkan.");
+        return true;
+      }
+
       // Web Serial (Chrome/Edge/Desktop)
       if (address === 'web-serial' || (typeof bluetoothSerial === 'undefined')) {
         const port = await (navigator as any).serial.requestPort();
@@ -348,6 +373,33 @@ class PrintService {
       } else {
         const dynamicAddress = isBluetooth ? await this.findPairedRPPAddress() : null;
         targetAddress = dynamicAddress || this.DEFAULT_MAC;
+      }
+    }
+
+    // 0. CHECK RAWBT INTENT ROUTE
+    if (targetAddress === 'rawbt-intent') {
+      try {
+        let binary = "";
+        const len = data.byteLength;
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(data[i]);
+        }
+        const base64Data = typeof btoa !== 'undefined' 
+          ? btoa(binary) 
+          : Buffer.from(data).toString('base64');
+        const encodedData = encodeURIComponent(base64Data);
+        const intentUrl = `intent:base64,${encodedData}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+        
+        console.log("[PrintService] Printing via RawBT intent...");
+        if (typeof window !== 'undefined') {
+          window.location.href = intentUrl;
+          toast.success("Membuka RawBT untuk mencetak...");
+        }
+        return;
+      } catch (err) {
+        console.error("RawBT Intent Print Error:", err);
+        toast.error("Gagal cetak via RawBT: " + (err as Error).message);
+        throw err;
       }
     }
 
@@ -518,8 +570,11 @@ class PrintService {
           }
         );
       } else {
-        // Mock untuk desktop testing
-        resolve([{ name: this.DEFAULT_NAME, address: this.DEFAULT_MAC, id: "1" }]);
+        // Mock untuk desktop testing / browser PWA
+        resolve([
+          { name: this.DEFAULT_NAME, address: this.DEFAULT_MAC, id: "1" },
+          { name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent', id: 'rawbt-intent' }
+        ]);
       }
     });
   }
