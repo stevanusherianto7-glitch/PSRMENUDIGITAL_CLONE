@@ -13,13 +13,22 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   const [scanning, setScanning] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [connectedAddress, setConnectedAddress] = useState<string | null>(
-    printService.getIsConnected() ? localStorage.getItem("connectedPrinterAddress") : null
+    printService.getConnectedAddress()
   );
   const [printing, setPrinting] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
 
   useEffect(() => {
     checkBluetooth();
+
+    // Subscribe ke perubahan status koneksi untuk sinkronisasi UI real-time
+    const unsubscribe = printService.onConnectionChange((connected) => {
+      setConnectedAddress(connected ? printService.getConnectedAddress() : null);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
