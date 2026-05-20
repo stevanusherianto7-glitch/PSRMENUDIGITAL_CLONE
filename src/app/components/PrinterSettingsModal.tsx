@@ -24,13 +24,22 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
 
   useEffect(() => {
     if (devices.length > 0 && !selectedDevice) {
-      // Prioritaskan RPP02N jika ada di daftar
-      const defaultMac = printService.getDefaultMac();
-      const rpp02n = devices.find(d => d.address === defaultMac);
-      if (rpp02n) {
-        setSelectedDevice(rpp02n.address);
+      // 1. Prioritaskan alamat printer yang tersimpan di localStorage jika ada di list
+      const savedAddress = localStorage.getItem("connectedPrinterAddress");
+      const savedDevice = devices.find(d => d.address === savedAddress);
+      if (savedDevice) {
+        setSelectedDevice(savedDevice.address);
       } else {
-        setSelectedDevice(devices[0].address);
+        // 2. Prioritaskan RPP02N / RPP jika ada di daftar
+        const rppDevice = devices.find(d => 
+          d.name && (d.name.toUpperCase().includes('RPP02N') || d.name.toUpperCase().includes('RPP'))
+        );
+        if (rppDevice) {
+          setSelectedDevice(rppDevice.address);
+        } else {
+          // 3. Fallback ke perangkat pertama di daftar
+          setSelectedDevice(devices[0].address);
+        }
       }
     }
   }, [devices, selectedDevice]);

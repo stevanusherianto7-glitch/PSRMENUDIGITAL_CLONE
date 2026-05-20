@@ -27,6 +27,7 @@ export interface BluetoothDevice {
 
 class PrintService {
   private isConnected: boolean = false;
+  private connectedAddress: string | null = null;
   private serialPort: any = null;
   private serialWriter: any = null;
   private connectionListeners: Set<(connected: boolean) => void> = new Set();
@@ -38,8 +39,111 @@ class PrintService {
 
   constructor() {
     this.autoReconnectWebSerial();
+    this.autoReconnectBluetooth();
     this.startConnectionHeartbeat();
     this.setupWebSerialHotplugListeners();
+  }
+
+  private async autoReconnectBluetooth() {
+    const isBluetooth = typeof bluetoothSerial !== 'undefined';
+    if (!isBluetooth) return;
+
+    // Tunggu 3 detik setelah startup agar Bluetooth Stack siap
+    setTimeout(async () => {
+      try {
+        const enabled = await this.isBluetoothEnabled();
+        if (!enabled) {
+          console.log("[PrintService] Bluetooth is disabled. Skipping auto-reconnect.");
+          return;
+        }
+
+        let targetAddress = typeof localStorage !== 'undefined' ? localStorage.getItem("connectedPrinterAddress") : null;
+        if (!targetAddress) {
+          console.log("[PrintService] No saved printer address. Scanning paired devices for RPP02N...");
+          targetAddress = await this.findPairedRPPAddress();
+        }
+
+        if (targetAddress) {
+          console.log(`[PrintService] Found target printer: ${targetAddress}. Auto-connecting...`);
+          
+          if (this.isConnected && this.connectedAddress !== targetAddress) {
+            const bt = (window as any).bluetoothSerial || (typeof bluetoothSerial !== 'undefined' ? bluetoothSerial : null);
+            if (bt) {
+              await new Promise((resolve) => {
+                bt.disconnect(() => resolve(true), () => resolve(true));
+              });
+            }
+            this.setConnected(false);
+            this.connectedAddress = null;
+          }
+
+          bluetoothSerial.connectInsecure(
+            targetAddress,
+            () => {
+              this.setConnected(true);
+              this.connectedAddress = targetAddress;
+              if (typeof localStorage !== 'undefined') {
+                localStorage.setItem("connectedPrinterAddress", targetAddress!);
+              }
+              console.log("[PrintService] Bluetooth printer auto-connected successfully on startup.");
+            },
+            (err) => {
+              console.warn("[PrintService] Bluetooth auto-connect on startup failed:", err);
+            }
+          );
+        }
+      } catch (err) {
+        console.warn("[PrintService] Background auto-connect error:", err);
+      }
+    }, 3000);
+  }
+
+  /** Mencari MAC address RPP02N/Thermal printer secara dinamis dari daftar paired devices */
+  private async findPairedRPPAddress(): Promise<string | null> {
+    if (typeof bluetoothSerial === 'undefined') return null;
+    return new Promise((resolve) => {
+      const listTimeout = setTimeout(() => resolve(null), 2000);
+      bluetoothSerial.list(
+        (devices) => {
+          clearTimeout(listTimeout);
+          if (!devices || devices.length === 0) {
+            resolve(null);
+            return;
+          }
+          
+          // 1. Prioritas Utama: Nama printer mengandung 'RPP02N' atau 'RPP'
+          let found = devices.find((d: any) => 
+            d.name && (d.name.toUpperCase().includes('RPP02N') || d.name.toUpperCase().includes('RPP'))
+          );
+          if (found) {
+            resolve(found.address);
+            return;
+          }
+
+          // 2. Prioritas Kedua: Kata kunci thermal printer umum lainnya
+          const keywords = ['THERMAL', 'PRINTER', '58MM', '58PRINTER', 'MTP', 'POS', 'BT-PRINTER'];
+          found = devices.find((d: any) => 
+            d.name && keywords.some(kw => d.name.toUpperCase().includes(kw))
+          );
+          if (found) {
+            resolve(found.address);
+            return;
+          }
+
+          // 3. Fallback: Gunakan device pertama dari list paired jika ada
+          if (devices[0] && devices[0].address) {
+            resolve(devices[0].address);
+            return;
+          }
+
+          resolve(null);
+        },
+        () => {
+          clearTimeout(listTimeout);
+          resolve(null);
+        }
+      );
+    });
   }
 
   private setupWebSerialHotplugListeners() {
@@ -106,6 +210,7 @@ class PrintService {
           this.serialPort = port;
           this.serialWriter = port.writable.getWriter();
           this.setConnected(true);
+          this.connectedAddress = 'web-serial';
           console.log("[PrintService] Auto-reconnected to Web Serial printer.");
         }
       } catch (e) {
@@ -115,6 +220,7 @@ class PrintService {
   }
 
   public getIsConnected() { return this.isConnected; }
+  public getConnectedAddress() { return this.connectedAddress; }
   public getDefaultMac() { return this.DEFAULT_MAC; }
 
   /** Subscribe untuk perubahan status koneksi printer */
@@ -177,6 +283,7 @@ class PrintService {
         this.serialPort = port;
         this.serialWriter = port.writable.getWriter();
         this.setConnected(true);
+        this.connectedAddress = 'web-serial';
         toast.success("Printer Serial terhubung.");
         return true;
       }
@@ -193,6 +300,7 @@ class PrintService {
         // Set timeout manual untuk koneksi agar tidak hang selamanya
         const connectionTimeout = setTimeout(() => {
           this.setConnected(false);
+          this.connectedAddress = null;
           toast.error("Koneksi timeout. Pastikan printer nyala.");
           resolve(false);
         }, 15000);
@@ -201,12 +309,14 @@ class PrintService {
           () => {
             clearTimeout(connectionTimeout);
             this.setConnected(true);
+            this.connectedAddress = address;
             toast.success("Printer Bluetooth terhubung.");
             resolve(true);
           }, 
           (err) => {
             clearTimeout(connectionTimeout);
             this.setConnected(false);
+            this.connectedAddress = null;
             toast.error("Gagal koneksi: " + err);
             resolve(false);
           }
@@ -223,11 +333,23 @@ class PrintService {
    * Kirim Data ke Printer dengan alur: Connect -> Write -> Disconnect
    * Dilengkapi sistem Auto-Retry (Maksimal 3x) agar tahan banting (Robust) terhadap koneksi tidak stabil.
    */
-  async printRaw(data: Uint8Array, address: string = this.DEFAULT_MAC): Promise<void> {
+  async printRaw(data: Uint8Array, address?: string): Promise<void> {
     const cleanBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
     const isBluetooth = typeof bluetoothSerial !== 'undefined';
     const MAX_RETRIES = 3;
     let attempt = 0;
+
+    // Resolve target address secara dinamis
+    let targetAddress = address;
+    if (!targetAddress || targetAddress === this.DEFAULT_MAC) {
+      const savedAddress = typeof localStorage !== 'undefined' ? localStorage.getItem("connectedPrinterAddress") : null;
+      if (savedAddress) {
+        targetAddress = savedAddress;
+      } else {
+        const dynamicAddress = isBluetooth ? await this.findPairedRPPAddress() : null;
+        targetAddress = dynamicAddress || this.DEFAULT_MAC;
+      }
+    }
 
     while (attempt < MAX_RETRIES) {
       try {
@@ -239,14 +361,27 @@ class PrintService {
 
         // 1. BUKA SOKET (Connect)
         if (isBluetooth) {
-          if (!this.isConnected) {
+          if (!this.isConnected || this.connectedAddress !== targetAddress) {
+            // Jika status terhubung tapi ke alamat yang berbeda, putuskan dulu
+            if (this.isConnected) {
+              const bt = (window as any).bluetoothSerial || (typeof bluetoothSerial !== 'undefined' ? bluetoothSerial : null);
+              if (bt) {
+                await new Promise((resolve) => {
+                  bt.disconnect(() => resolve(true), () => resolve(true));
+                });
+              }
+              this.setConnected(false);
+              this.connectedAddress = null;
+            }
+
             await new Promise((resolve, reject) => {
-              bluetoothSerial.connectInsecure(address,
+              bluetoothSerial.connectInsecure(targetAddress,
                 () => resolve(true),
                 (err) => reject(new Error("Gagal membuka soket: " + err))
               );
             });
             this.setConnected(true);
+            this.connectedAddress = targetAddress;
           }
         } else if (typeof navigator !== 'undefined' && 'serial' in navigator) {
           // Web Serial fallback
@@ -255,6 +390,7 @@ class PrintService {
             await port.open({ baudRate: 9600 });
             this.serialPort = port;
             this.serialWriter = port.writable.getWriter();
+            this.connectedAddress = 'web-serial';
           }
           this.setConnected(true);
         }
@@ -283,8 +419,12 @@ class PrintService {
         
         // JIKA GAGAL, baru kita tutup port (disconnect) untuk mereset state sebelum mencoba lagi
         if (isBluetooth) {
-          bluetoothSerial.disconnect(() => {}, () => {});
+          const bt = (window as any).bluetoothSerial || (typeof bluetoothSerial !== 'undefined' ? bluetoothSerial : null);
+          if (bt) {
+            bt.disconnect(() => {}, () => {});
+          }
           this.setConnected(false);
+          this.connectedAddress = null;
         }
         
         // Jika sudah mentok 3 kali, lemparkan error ke UI
@@ -519,6 +659,7 @@ class PrintService {
       console.error('Disconnect error:', err);
     } finally {
       this.setConnected(false);
+      this.connectedAddress = null;
     }
   }
 }
