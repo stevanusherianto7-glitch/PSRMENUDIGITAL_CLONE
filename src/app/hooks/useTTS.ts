@@ -217,7 +217,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     const source = order.type === "guest" ? "dari tamu" : order.type === "waiter" ? "dari pelayan" : "dari kasir";
     const tableId = order.tableId || order.table_id || "?";
     const mode = order.orderMode === "take-away" || order.order_mode === "take-away" ? ", dibungkus" : ", makan di tempat";
-    const chefNote = order.notes ? `Catatan untuk shef: ${order.notes}` : "";
+    const chefNote = order.notes ? `Catatan untuk shef: ${order.notes.replace(/chef/gi, "shef")}` : "";
     
     const hasFood = order.items.some(i => i.category === "Makanan" || i.category === "Snack");
     const hasDrinks = order.items.some(i => i.category === "Minuman");
