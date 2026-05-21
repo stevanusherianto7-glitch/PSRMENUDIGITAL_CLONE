@@ -585,6 +585,10 @@ export function exportHPPReport(
     </html>
   `;
 
+  // Save original title and set temporary title for PDF filename determination
+  const originalTitle = document.title;
+  const cleanRecipe = recipeName && recipeName.trim() ? recipeName.trim().toUpperCase() : 'RESEP BARU';
+
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
   iframe.style.right = '0';
@@ -600,9 +604,16 @@ export function exportHPPReport(
     doc.write(html);
     doc.close();
 
+    // Set document title temporarily to affect print dialog filename
+    document.title = `Kalkulasi HPP ${brandName} - ${cleanRecipe}`;
+
     setTimeout(() => {
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
+
+      // Restore original title immediately after triggering print dialog
+      document.title = originalTitle;
+
       setTimeout(() => {
         document.body.removeChild(iframe);
       }, 1000);
