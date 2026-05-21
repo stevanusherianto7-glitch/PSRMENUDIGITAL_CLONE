@@ -592,7 +592,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       {/* Checkout Drawer / Sidebar */}
       {cart.length > 0 && (
         <div className={`fixed inset-y-0 right-0 h-full w-full sm:w-[400px] lg:w-[420px] bg-[#f4efe9] border-l border-[#dfd3c3] shadow-2xl z-[60] transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCartOpen ? "translate-x-0" : "translate-x-full"
-          } lg:relative lg:translate-x-0 lg:shadow-none lg:border lg:border-[#dfd3c3] lg:rounded-[32px] lg:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500 text-[#4e3629]`}>
+          } lg:relative lg:translate-x-0 lg:shadow-none lg:border lg:border-[#dfd3c3] lg:rounded-[32px] lg:overflow-hidden lg:z-10 flex flex-col h-[calc(100vh-160px)] animate-in slide-in-from-right duration-500 text-[#4e3629]`}>
         <div className="p-6 border-b border-[#dfd3c3] flex items-center justify-between bg-[#ece3d5]">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-[#e3d7c5] rounded-2xl shadow-sm">
