@@ -136,7 +136,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
       <div className="text-center text-xs mb-0.5">Ruko Beryl Commercial, Summarecon</div>
       <div className="text-center text-xs mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
       <div className="text-center text-xs mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
-      <div className="text-center text-xs mb-1">WA: 0895-3763-48626</div>
+      <div className="text-center text-xs mb-1">WA: 0823-2033-6007</div>
       <div className="text-center text-xs mb-2 font-semibold">Order {tx.order_id ? tx.order_id : `#${tx.id}`}</div>
       
       <div className="border-b border-dashed mb-1"></div>
@@ -289,8 +289,10 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
           <span>{data.totalItem}</span>
         </div>
       </div>
-      <div className="text-center text-[8pt] mt-3 border-t border-dashed pt-1">
-        End of Shift Report
+      <div className="text-center text-[7pt] mt-3 border-t border-dashed pt-1.5 space-y-0.5 select-none text-muted-foreground leading-tight">
+        <div>Diterbitkan Oleh:</div>
+        <div className="font-bold text-[8pt] text-foreground">POSGO - Self Order & POS App</div>
+        <div>POSGO-hub.com</div>
       </div>
     </div>
   );
