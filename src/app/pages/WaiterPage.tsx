@@ -3,7 +3,7 @@
  * FILE INI BERISI MODUL DAPUR/WAITER/BAR DENGAN TTS REALTIME DAN STATUS ORDER MANAGEMENT.
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN PESANAN TIDAK TERPROSES ATAU TTS MATI. ⚠️
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChefHat, Clock, CheckCircle2, XCircle,
@@ -56,6 +56,7 @@ export default function WaiterPage() {
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [selectedBatchMenu, setSelectedBatchMenu] = useState<string | null>(null);
 
   // Load and subscribe to database-backed TTS settings
   useEffect(() => {
@@ -252,6 +253,49 @@ export default function WaiterPage() {
   const waiterOrders = orders.filter(o => o.status === "ready");
   const displayOrders = tab === "kitchen" ? kitchenOrders : tab === "bar" ? barOrders : waiterOrders;
 
+  // Menghitung akumulasi menu untuk tab dapur/bar saat ini
+  const activeItemsSummary = useMemo(() => {
+    if (tab !== "kitchen" && tab !== "bar") return [];
+    
+    const summaryMap: Record<string, {
+      name: string;
+      totalQty: number;
+      tables: Array<{ tableId: string; qty: number; orderId: string }>;
+    }> = {};
+
+    displayOrders.forEach(order => {
+      order.items.forEach(item => {
+        const isKitchenItem = tab === "kitchen" && (item.category === "Makanan" || item.category === "Snack");
+        const isBarItem = tab === "bar" && item.category === "Minuman";
+        
+        if (isKitchenItem || isBarItem) {
+          if (!summaryMap[item.name]) {
+            summaryMap[item.name] = {
+              name: item.name,
+              totalQty: 0,
+              tables: []
+            };
+          }
+          summaryMap[item.name].totalQty += item.qty;
+          summaryMap[item.name].tables.push({
+            tableId: order.tableId,
+            qty: item.qty,
+            orderId: order.id
+          });
+        }
+      });
+    });
+
+    return Object.values(summaryMap).sort((a, b) => b.totalQty - a.totalQty);
+  }, [displayOrders, tab]);
+
+  // Reset fokus jika menu yang dipilih sudah tidak ada di antrean
+  useEffect(() => {
+    if (selectedBatchMenu && !activeItemsSummary.some(s => s.name === selectedBatchMenu)) {
+      setSelectedBatchMenu(null);
+    }
+  }, [activeItemsSummary, selectedBatchMenu]);
+
   function elapsed(created_at: string) {
     const diff = Math.floor((Date.now() - new Date(created_at).getTime()) / 60000);
     return diff < 1 ? "baru saja" : `${diff} menit lalu`;
@@ -340,7 +384,10 @@ export default function WaiterPage() {
           return (
             <button
               key={t.id}
-              onClick={() => setTab(t.id as Tab)}
+              onClick={() => {
+                setTab(t.id as Tab);
+                setSelectedBatchMenu(null);
+              }}
               className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-semibold border-b-2 transition-all ${tab === t.id ? `border-primary ${t.color}` : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
             >
@@ -356,6 +403,66 @@ export default function WaiterPage() {
           );
         })}
       </div>
+
+      {/* Batch Cooking Helper Panel */}
+      {(tab === "kitchen" || tab === "bar") && activeItemsSummary.length > 0 && (
+        <div className="bg-card border-b border-border p-3 flex flex-col gap-2 shrink-0 select-none animate-in slide-in-from-top duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <ChefHat size={14} className="text-orange-400" />
+              <span>Kumulasi Antrean (Batch Cooking Helper)</span>
+            </div>
+            {selectedBatchMenu && (
+              <button 
+                onClick={() => setSelectedBatchMenu(null)}
+                className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full hover:bg-amber-500/20 transition-all font-bold flex items-center gap-1 animate-in fade-in duration-200"
+              >
+                <span>Reset Fokus ({selectedBatchMenu})</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-border">
+            {activeItemsSummary.map(summary => {
+              const isSelected = selectedBatchMenu === summary.name;
+              const hasMultiple = summary.tables.length > 1;
+              return (
+                <button
+                  key={summary.name}
+                  onClick={() => setSelectedBatchMenu(isSelected ? null : summary.name)}
+                  className={`flex-shrink-0 flex flex-col gap-1 p-2.5 rounded-xl border text-left transition-all hover:scale-[1.02] ${
+                    isSelected 
+                      ? "bg-amber-500/15 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]" 
+                      : hasMultiple
+                        ? "bg-orange-500/5 border-orange-500/20 hover:border-orange-500/30 hover:bg-orange-500/10"
+                        : "bg-secondary/40 border-border hover:border-muted-foreground/20 hover:bg-secondary/60"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full gap-4">
+                    <span className={`text-xs font-bold ${isSelected ? "text-amber-400" : hasMultiple ? "text-orange-400" : "text-foreground"}`}>
+                      {summary.name}
+                    </span>
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
+                      isSelected 
+                        ? "bg-amber-500/25 text-amber-300 animate-pulse" 
+                        : hasMultiple 
+                          ? "bg-orange-500/25 text-orange-400" 
+                          : "bg-secondary text-muted-foreground"
+                    }`}>
+                      {summary.totalQty}x
+                    </span>
+                  </div>
+                  {hasMultiple && (
+                    <span className="text-[9px] text-muted-foreground font-medium">
+                      Meja: {summary.tables.map(t => `${t.tableId} (${t.qty})`).join(", ")}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <main className="flex-1 p-4 overflow-y-auto pb-16">
@@ -386,11 +493,24 @@ export default function WaiterPage() {
             {displayOrders.map(order => {
               const cfg = statusConfig[order.status];
               const isNew = Date.now() - new Date(order.created_at).getTime() < 60000;
+              
+              const containsSelectedBatch = selectedBatchMenu 
+                ? order.items.some(item => item.name === selectedBatchMenu && ((tab === "kitchen" && (item.category === "Makanan" || item.category === "Snack")) || (tab === "bar" && item.category === "Minuman")))
+                : false;
+                
+              const isFocusMode = !!selectedBatchMenu;
+              const cardHighlightClass = isFocusMode
+                ? containsSelectedBatch
+                  ? "ring-2 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02] border-amber-500 z-10 relative"
+                  : "opacity-40 grayscale-[15%] transition-all duration-300"
+                : isNew 
+                  ? "ring-1 ring-yellow-500/30" 
+                  : "";
+
               return (
                 <div
                   key={order.id}
-                  className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${cfg.border} ${isNew ? "ring-1 ring-yellow-500/30" : ""
-                    }`}
+                  className={`bg-card border rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${cfg.border} ${cardHighlightClass}`}
                 >
                   {/* Order header */}
                   <div className={`flex items-center gap-2 px-4 py-3 ${cfg.bg} border-b ${cfg.border}`}>
@@ -457,15 +577,47 @@ export default function WaiterPage() {
                       if (tab === "kitchen") return item.category === "Makanan" || item.category === "Snack";
                       if (tab === "bar") return item.category === "Minuman";
                       return true;
-                    }).map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className="w-6 h-6 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
-                          {item.qty}
-                        </span>
-                        <span className="text-foreground font-medium text-xs flex-1">{item.name}</span>
-                        <span className="text-xs text-muted-foreground">{rp(item.price * item.qty)}</span>
-                      </div>
-                    ))}
+                    }).map((item, i) => {
+                      const itemSummary = activeItemsSummary.find(s => s.name === item.name);
+                      const totalQtyActive = itemSummary ? itemSummary.totalQty : item.qty;
+                      const isMultiple = itemSummary ? itemSummary.tables.length > 1 : false;
+                      const isItemFocused = selectedBatchMenu === item.name;
+
+                      return (
+                        <div 
+                          key={i} 
+                          className={`flex items-center gap-2 p-1 rounded-lg transition-colors ${
+                            isItemFocused ? "bg-amber-500/10 text-amber-300 font-semibold" : ""
+                          }`}
+                        >
+                          <span className="w-6 h-6 bg-primary/10 border border-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
+                            {item.qty}
+                          </span>
+                          <span className="text-foreground font-medium text-xs flex-1">{item.name}</span>
+                          
+                          {/* Badge Kumulatif jika menu dipesan di meja lain */}
+                          {isMultiple && (tab === "kitchen" || tab === "bar") && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBatchMenu(isItemFocused ? null : item.name);
+                              }}
+                              className={`flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded border transition-all ${
+                                isItemFocused
+                                  ? "bg-amber-500 border-amber-500 text-black hover:bg-amber-600 shadow-sm"
+                                  : "bg-orange-500/10 border-orange-500/20 text-orange-400 hover:bg-orange-500/20"
+                              }`}
+                              title={`Ada total ${totalQtyActive} porsi ${item.name} di antrean dapur. Klik untuk sorot.`}
+                            >
+                              <Flame size={9} className={isItemFocused ? "animate-pulse" : ""} />
+                              <span>Total {totalQtyActive}x</span>
+                            </button>
+                          )}
+                          
+                          <span className="text-xs text-muted-foreground">{rp(item.price * item.qty)}</span>
+                        </div>
+                      );
+                    })}
                     {order.notes && (
                       <div className="flex items-start gap-1.5 mt-2 p-2.5 rounded-lg bg-orange-500/5 border border-orange-500/20">
                         <ChefHat size={12} className="text-orange-400 flex-shrink-0 mt-0.5" />
