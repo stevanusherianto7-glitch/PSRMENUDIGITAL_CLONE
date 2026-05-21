@@ -804,13 +804,13 @@ export function exportHPPReport(
           <tr>
             <td class="var-label">Penyusutan</td>
             <td class="var-val">${shrinkagePercent}% (Rp ${Math.round(wasteCost).toLocaleString('id-ID')})</td>
-            <td class="var-label">Tenaga Kerja (Labor)</td>
+            <td class="var-label">Gaji</td>
             <td class="var-val">Rp ${laborCost.toLocaleString('id-ID')}</td>
           </tr>
           <tr>
-            <td class="var-label">Biaya Overhead</td>
+            <td class="var-label">Overhead</td>
             <td class="var-val">Rp ${overheadCost.toLocaleString('id-ID')}</td>
-            <td class="var-label">Jumlah Porsi</td>
+            <td class="var-label">Target Porsi</td>
             <td class="var-val">${yieldPortions} Porsi</td>
           </tr>
         </tbody>

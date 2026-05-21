@@ -303,15 +303,22 @@ export const KalkulatorHPP = () => {
                     </div>
                     <div className="col-span-3 sm:col-span-2">
                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">
-                        Pemakaian{getUsageUnit(item.name) ? ` (${getUsageUnit(item.name)})` : ''}
+                        Pemakaian
                       </p>
-                      <input
-                        type="number"
-                        placeholder="0"
-                        value={item.quantityNeeded || ''}
-                        onChange={(e) => handleUpdate(item.id, 'quantityNeeded', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={item.quantityNeeded || ''}
+                          onChange={(e) => handleUpdate(item.id, 'quantityNeeded', Number(e.target.value))}
+                          className="w-full pl-4 pr-12 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
+                        />
+                        {getUsageUnit(item.name) && (
+                          <span className="absolute right-4 text-[9px] font-black text-muted-foreground uppercase tracking-wider">
+                            {getUsageUnit(item.name)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="col-span-1 text-right flex items-center justify-end pt-5 sm:pt-0">
                       <button
@@ -344,9 +351,9 @@ export const KalkulatorHPP = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
                   { id: "shrinkagePercent", label: "% Susut", val: shrinkagePercent, set: setShrinkagePercent, icon: Percent },
-                  { id: "laborCost", label: "Biaya Tenaga Kerja", val: laborCost, set: setLaborCost, icon: DollarSign },
-                  { id: "overheadCost", label: "Biaya Overhead", val: overheadCost, set: setOverheadCost, icon: Info },
-                  { id: "yieldPortions", label: "Jumlah Porsi", val: yieldPortions, set: setYieldPortions, icon: Package },
+                  { id: "laborCost", label: "gaji", val: laborCost, set: setLaborCost, icon: DollarSign },
+                  { id: "overheadCost", label: "overhead", val: overheadCost, set: setOverheadCost, icon: Info },
+                  { id: "yieldPortions", label: "target porsi", val: yieldPortions, set: setYieldPortions, icon: Package },
                 ].map(param => (
                   <div key={param.id} className="space-y-3">
                     <label htmlFor={param.id} className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
