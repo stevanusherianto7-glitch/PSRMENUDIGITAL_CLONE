@@ -274,6 +274,7 @@ export const ReceiptTemplate = {
       .newline()
       .newline()
       .text('DETAIL TRANSAKSI')
+      .newline()
       .newline();
 
     // List Items
@@ -284,6 +285,7 @@ export const ReceiptTemplate = {
     });
 
     builder = builder
+      .newline()
       .text('--------------------------------')
       .newline()
       .newline()
@@ -316,6 +318,7 @@ export const ReceiptTemplate = {
       .text(ReceiptTemplate.formatLine('TOTAL KAS', 'Rp ' + data.kasKecil.total.toLocaleString('id-ID')))
       .newline()
       .text('--------------------------------')
+      .newline()
       .newline()
       .newline()
       .raw([0x1B, 0x61, 0x01]) // Center

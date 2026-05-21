@@ -156,9 +156,9 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
       <div className="border-b border-dashed mb-1"></div>
       
       {/* Table Body */}
-      <div className="text-xs">
+      <div className="text-xs py-2">
         {tx.items.map((item, i) => (
-          <div key={i} className="flex justify-between mb-0.5">
+          <div key={i} className="flex justify-between py-1">
             <span className="w-1/3 truncate">{item.name.toUpperCase()}</span>
             <span className="w-1/12 text-right">{item.qty}</span>
             <span className="w-1/4 text-right">{item.price.toLocaleString("id-ID")}</span>
@@ -202,7 +202,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
       
       <div className="border-b border-dashed my-1"></div>
       
-      <div className="text-[8pt] text-center mt-2">
+      <div className="text-[8pt] text-center mt-6 pt-3 pb-3 select-none text-muted-foreground leading-tight">
         Dukung UMKM Indonesia<br />
         Tulang Punggung Ekonomi Nasional
       </div>
@@ -259,17 +259,17 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
       
       <div className="border-b border-dashed my-1"></div>
       
-      <div className="text-xs font-bold mt-2 mb-1">DETAIL TRANSAKSI</div>
-      <div className="text-xs space-y-1 py-1">
+      <div className="text-xs font-bold mt-3 mb-1">DETAIL TRANSAKSI</div>
+      <div className="text-xs space-y-1 py-2">
         {data.items && data.items.length > 0 ? (
           data.items.map((item, i) => (
-            <div key={i} className="flex justify-between py-0.5">
+            <div key={i} className="flex justify-between py-1">
               <span className="truncate w-3/4">{item.name.toUpperCase()}</span>
               <span className="font-medium">x {item.qty}</span>
             </div>
           ))
         ) : (
-          <div className="text-center text-muted-foreground text-[10px] py-1.5 italic">Tidak ada transaksi</div>
+          <div className="text-center text-muted-foreground text-[10px] py-2 italic">Tidak ada transaksi</div>
         )}
       </div>
       
@@ -321,7 +321,7 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
         </div>
       </div>
       
-      <div className="text-center text-[7pt] mt-6 border-t border-dashed pt-3 pb-2 space-y-0.5 select-none text-muted-foreground leading-tight">
+      <div className="text-center text-[7pt] mt-8 border-t border-dashed pt-5 pb-4 space-y-1 select-none text-muted-foreground leading-tight">
         <div>Diterbitkan Oleh:</div>
         <div className="font-bold text-[8pt] text-foreground">POSGO - Self Order & POS App</div>
         <div>POSGO-hub.com</div>
