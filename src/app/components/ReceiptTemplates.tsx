@@ -259,14 +259,18 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
       
       <div className="border-b border-dashed my-1"></div>
       
-      <div className="text-xs font-bold my-1">DETAIL TRANSAKSI</div>
-      <div className="text-xs space-y-0.5">
-        {data.items && data.items.map((item, i) => (
-          <div key={i} className="flex justify-between">
-            <span className="truncate w-3/4">{item.name.toUpperCase()}</span>
-            <span>x {item.qty}</span>
-          </div>
-        ))}
+      <div className="text-xs font-bold mt-2 mb-1">DETAIL TRANSAKSI</div>
+      <div className="text-xs space-y-1 py-1">
+        {data.items && data.items.length > 0 ? (
+          data.items.map((item, i) => (
+            <div key={i} className="flex justify-between py-0.5">
+              <span className="truncate w-3/4">{item.name.toUpperCase()}</span>
+              <span className="font-medium">x {item.qty}</span>
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-muted-foreground text-[10px] py-1.5 italic">Tidak ada transaksi</div>
+        )}
       </div>
       
       <div className="border-b border-dashed my-2"></div>
@@ -317,7 +321,7 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
         </div>
       </div>
       
-      <div className="text-center text-[7pt] mt-4 border-t border-dashed pt-2 space-y-0.5 select-none text-muted-foreground leading-tight">
+      <div className="text-center text-[7pt] mt-6 border-t border-dashed pt-3 pb-2 space-y-0.5 select-none text-muted-foreground leading-tight">
         <div>Diterbitkan Oleh:</div>
         <div className="font-bold text-[8pt] text-foreground">POSGO - Self Order & POS App</div>
         <div>POSGO-hub.com</div>
