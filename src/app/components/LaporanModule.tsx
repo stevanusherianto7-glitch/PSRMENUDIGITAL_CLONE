@@ -150,7 +150,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
 
       const realClosingData = {
         bulan: new Date().toISOString().slice(0, 7),
-        kasir: "Admin",
+        kasir: "Sansan",
         startTime: todayTransactions.length > 0
           ? new Date(Math.min(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
           : new Date().toLocaleString("id-ID"),

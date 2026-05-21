@@ -647,7 +647,7 @@ class PrintService {
   }): Promise<void> {
     const data = realData || {
       bulan: new Date().toISOString().slice(0, 7),
-      kasir: "Admin",
+      kasir: "Sansan",
       startTime: new Date().toLocaleString("id-ID"),
       endTime: new Date().toLocaleString("id-ID"),
       terjual: 0,
