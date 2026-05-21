@@ -127,9 +127,9 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold text-sm mb-0.5">Kedai Elvera 57</div>
-      <div className="text-center text-xs mb-0.5">Ruko Beryl Commercial, Summarecon</div>
-      <div className="text-center text-xs mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
-      <div className="text-center text-xs mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Ruko Beryl Commercial, Summarecon</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
       <div className="text-center text-xs mb-1">WA: 0823-2033-6007</div>
       <div className="text-center text-xs mb-2 font-semibold">Order {tx.order_id ? tx.order_id : `#${tx.id}`}</div>
       
@@ -140,7 +140,7 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
         <div>Jam: {new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}</div>
         <div>Bill: {tx.id.toUpperCase()}</div>
         {tx.order_id && <div>Order: {tx.order_id.toUpperCase()}</div>}
-        <div>Kasir: Verena</div>
+        <div>Kasir: Sansan</div>
       </div>
       
       <div className="border-b border-dashed mb-1"></div>
@@ -238,9 +238,9 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold text-sm mb-0.5">Kedai Elvera 57</div>
-      <div className="text-center text-xs mb-0.5">Ruko Beryl Commercial, Summarecon</div>
-      <div className="text-center text-xs mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
-      <div className="text-center text-xs mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Ruko Beryl Commercial, Summarecon</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
+      <div className="text-center text-[9px] leading-tight mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
       <div className="text-center text-xs mb-2">WA: 0823-2033-6007</div>
       
       <div className="border-b border-dashed mb-1"></div>

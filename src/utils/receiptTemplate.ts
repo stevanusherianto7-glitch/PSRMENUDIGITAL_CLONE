@@ -65,7 +65,7 @@ export const ReceiptTemplate = {
     }
 
     builder = builder
-      .text(`Kasir: Verena`)
+      .text(`Kasir: Sansan`)
       .newline()
       .text('--------------------------------') 
       .newline()
