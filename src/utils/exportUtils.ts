@@ -438,93 +438,304 @@ export function exportHPPReport(
     <head>
       <title>Laporan Kalkulasi HPP - ${recipeName || 'Resep Baru'}</title>
       <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px; color: #1A1A1E; background-color: #fff; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 3px solid #C8A96E; padding-bottom: 20px; }
-        .header-left h1 { color: #C8A96E; font-size: 28px; margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
-        .header-left p { color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-        .header-right { text-align: right; }
-        .header-right p { margin: 2px 0; font-size: 12px; font-weight: 700; color: #1A1A1E; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        @page {
+          size: A4 portrait;
+          margin: 20mm 15mm 20mm 15mm;
+        }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-size: 10pt;
+          line-height: 1.5;
+          color: #2D3748;
+          background-color: #ffffff;
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         
-        .recipe-info { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 16px; padding: 20px; margin-bottom: 30px; }
-        .recipe-title { font-size: 10px; text-transform: uppercase; color: #6B7280; font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; }
-        .recipe-value { font-size: 20px; font-weight: 900; color: #1A1A1E; text-transform: uppercase; }
+        .header-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 5px;
+          border: none;
+        }
+        .header-table td {
+          border: none;
+          padding: 0;
+          vertical-align: top;
+        }
+        .header-left {
+          text-align: left;
+        }
+        .brand-name {
+          font-size: 20pt;
+          font-weight: 800;
+          color: #1A202C;
+          letter-spacing: -0.5px;
+          text-transform: uppercase;
+        }
+        .doc-subtitle {
+          font-size: 9.5pt;
+          font-weight: 700;
+          color: #718096;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-top: 5px;
+        }
+        .header-right {
+          text-align: right;
+        }
+        .doc-code {
+          font-size: 9.5pt;
+          font-weight: 700;
+          color: #1A202C;
+        }
+        .doc-date {
+          font-size: 8.5pt;
+          color: #718096;
+          margin-top: 5px;
+        }
+        .header-line {
+          border-bottom: 2px solid #2D3748;
+          margin-bottom: 25px;
+          margin-top: 15px;
+          width: 100%;
+        }
 
-        .summary-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .summary-card { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 15px; text-align: center; }
-        .summary-card.highlight { background: rgba(232, 119, 34, 0.05); border-color: rgba(232, 119, 34, 0.2); }
-        .summary-label { font-size: 9px; text-transform: uppercase; color: #6B7280; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 5px; }
-        .summary-value { font-size: 16px; font-weight: 900; color: #1A1A1E; }
-        .summary-card.highlight .summary-value { color: #E87722; }
+        .metadata-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 25px;
+          background-color: #F7FAFC;
+          border: 1px solid #E2E8F0;
+        }
+        .metadata-table td {
+          padding: 10px 14px;
+          border: 1px solid #E2E8F0;
+          font-size: 9.5pt;
+        }
+        .meta-label {
+          width: 30%;
+          font-weight: 700;
+          color: #4A5568;
+          text-transform: uppercase;
+          background-color: #EDF2F7;
+          letter-spacing: 0.5px;
+        }
+        .meta-value {
+          font-weight: 800;
+          color: #1A202C;
+          letter-spacing: 0.5px;
+        }
 
-        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 30px; }
-        th { background-color: #1A1A1E; color: #fff; text-align: left; padding: 12px 15px; text-transform: uppercase; font-weight: 800; border: 1px solid #1A1A1E; }
-        td { padding: 12px 15px; border: 1px solid #E5E7EB; color: #374151; font-weight: 500; }
-        tr:nth-child(even) { background-color: #FBFBFC; }
-        .font-bold { font-weight: 800; }
+        .summary-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+        .summary-table th {
+          background-color: #2D3748;
+          color: #ffffff;
+          font-size: 8.5pt;
+          font-weight: 700;
+          text-transform: uppercase;
+          padding: 10px;
+          border: 1px solid #2D3748;
+          letter-spacing: 0.5px;
+        }
+        .summary-table td {
+          font-size: 13pt;
+          font-weight: 800;
+          color: #1A202C;
+          padding: 14px 10px;
+          border: 1px solid #E2E8F0;
+          background-color: #F7FAFC;
+        }
+        .summary-table td.highlight-val {
+          color: #DD6B20;
+          background-color: #FFFAF0;
+        }
 
-        .params-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 15px; margin-bottom: 40px; background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 15px; }
-        .param-item { display: flex; flex-direction: column; font-size: 11px; }
-        .param-label { color: #6B7280; font-weight: 700; margin-bottom: 3px; }
-        .param-value { font-weight: 800; color: #1A1A1E; }
+        .section-title {
+          font-size: 10pt;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          margin-bottom: 12px;
+          font-weight: 800;
+          color: #2D3748;
+          border-left: 3px solid #2D3748;
+          padding-left: 8px;
+        }
 
-        .footer-sig { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .sig-box { width: 200px; text-align: center; }
-        .sig-line { border-bottom: 1px solid #1A1A1E; margin-bottom: 8px; height: 80px; }
-        .sig-name { font-weight: 800; font-size: 14px; }
-        .sig-title { font-size: 12px; color: #6B7280; }
+        .details-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9pt;
+          margin-bottom: 25px;
+        }
+        .details-table th {
+          background-color: #4A5568;
+          color: #ffffff;
+          font-weight: 700;
+          text-transform: uppercase;
+          padding: 10px 12px;
+          border: 1px solid #4A5568;
+          font-size: 8pt;
+          letter-spacing: 0.5px;
+        }
+        .details-table td {
+          padding: 8px 12px;
+          border: 1px solid #E2E8F0;
+          color: #2D3748;
+        }
+        .details-table tr:nth-child(even) {
+          background-color: #F7FAFC;
+        }
+        .total-row td {
+          background-color: #EDF2F7;
+          border-top: 2px solid #4A5568;
+          font-size: 9.5pt;
+        }
 
-        @media print {
-          body { padding: 0; }
+        .variables-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9pt;
+          margin-bottom: 35px;
+        }
+        .variables-table th {
+          background-color: #718096;
+          color: #ffffff;
+          text-transform: uppercase;
+          padding: 8px 12px;
+          font-size: 8pt;
+          text-align: left;
+          border: 1px solid #718096;
+          letter-spacing: 0.5px;
+        }
+        .variables-table td {
+          padding: 8px 12px;
+          border: 1px solid #E2E8F0;
+        }
+        .var-label {
+          width: 25%;
+          font-weight: 700;
+          background-color: #EDF2F7;
+          color: #4A5568;
+        }
+        .var-val {
+          width: 25%;
+          font-weight: 600;
+          color: #1A202C;
+        }
+
+        .signature-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 30px;
+          border: none;
+        }
+        .signature-table td {
+          border: none;
+          padding: 0;
+          vertical-align: bottom;
+        }
+        .sig-note {
+          width: 55%;
+          font-size: 8pt;
+          color: #718096;
+          line-height: 1.4;
+          text-align: left;
+        }
+        .sig-space {
+          width: 15%;
+        }
+        .sig-box {
+          width: 30%;
+          text-align: center;
+        }
+        .sig-title {
+          font-size: 9pt;
+          color: #2D3748;
+          margin-bottom: 50px;
+        }
+        .sig-line {
+          border-bottom: 1px solid #2D3748;
+          width: 80%;
+          margin: 0 auto 5px auto;
+        }
+        .sig-name {
+          font-weight: 700;
+          font-size: 8.5pt;
+          color: #1A202C;
+          text-transform: uppercase;
+        }
+        .sig-brand {
+          font-size: 8pt;
+          color: #718096;
+          margin-top: 2px;
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <div class="header-left">
-          <h1>${brandName}</h1>
-          <p>Kalkulasi HPP & Proyeksi Menu Baru</p>
-        </div>
-        <div class="header-right">
-          <p>Cost of Goods Sold (COGS) Report</p>
-          <p>Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
-        </div>
-      </div>
+      <table class="header-table">
+        <tr>
+          <td class="header-left">
+            <div class="brand-name">${brandName}</div>
+            <div class="doc-subtitle">Cost of Goods Sold (COGS) Report</div>
+          </td>
+          <td class="header-right">
+            <div class="doc-code">DOC REF: HPP-${new Date().getFullYear()}${String(new Date().getMonth()+1).padStart(2,'0')}</div>
+            <div class="doc-date">Dicetak pada: ${new Date().toLocaleString('id-ID')}</div>
+          </td>
+        </tr>
+      </table>
+      <div class="header-line"></div>
 
-      <div class="recipe-info">
-        <div class="recipe-title">Nama Resep Menu Baru</div>
-        <div class="recipe-value">${recipeName || 'RESEP BARU TANPA NAMA'}</div>
-      </div>
+      <table class="metadata-table">
+        <tr>
+          <td class="meta-label">Nama Resep Menu Baru</td>
+          <td class="meta-value">${recipeName ? recipeName.trim().toUpperCase() : 'RESEP BARU TANPA NAMA'}</td>
+        </tr>
+        <tr>
+          <td class="meta-label">Metode Penghitungan</td>
+          <td class="meta-value">Standard Batch Costing & Operational Overhead Allocation</td>
+        </tr>
+      </table>
 
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="summary-label">Total HPP Batch</div>
-          <div class="summary-value">Rp ${Math.round(totalHpp).toLocaleString('id-ID')}</div>
-        </div>
-        <div class="summary-card highlight">
-          <div class="summary-label">HPP Per Porsi</div>
-          <div class="summary-value">Rp ${Math.round(hppPerPortion).toLocaleString('id-ID')}</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-label">Target Margin</div>
-          <div class="summary-value">${targetMargin}%</div>
-        </div>
-        <div class="summary-card highlight">
-          <div class="summary-label">Rekomendasi Harga Jual</div>
-          <div class="summary-value">Rp ${Math.round(recommendedSellingPrice).toLocaleString('id-ID')}</div>
-        </div>
-      </div>
-
-      <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 800; color: #1A1A1E;">Rincian Kebutuhan Bahan Baku</h3>
-      <table>
+      <div class="section-title">Ringkasan Finansial</div>
+      <table class="summary-table">
         <thead>
           <tr>
-            <th style="width: 5%">No</th>
-            <th style="width: 45%">Nama Bahan</th>
-            <th style="text-align: right; width: 15%;">Harga Beli</th>
-            <th style="text-align: center; width: 12%;">Konversi</th>
-            <th style="text-align: center; width: 11%;">Kebutuhan</th>
-            <th style="text-align: right; width: 12%;">Biaya Real</th>
+            <th style="width: 25%;">Total HPP Batch</th>
+            <th style="width: 25%;">HPP Per Porsi</th>
+            <th style="width: 25%;">Target Margin</th>
+            <th style="width: 25%;">Rekomendasi Harga Jual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Rp ${Math.round(totalHpp).toLocaleString('id-ID')}</td>
+            <td class="highlight-val">Rp ${Math.round(hppPerPortion).toLocaleString('id-ID')}</td>
+            <td>${targetMargin}%</td>
+            <td class="highlight-val">Rp ${Math.round(recommendedSellingPrice).toLocaleString('id-ID')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="section-title">Rincian Kebutuhan Bahan Baku</div>
+      <table class="details-table">
+        <thead>
+          <tr>
+            <th style="width: 5%; text-align: center;">No</th>
+            <th style="width: 45%; text-align: left;">Nama Bahan Baku</th>
+            <th style="width: 15%; text-align: right;">Harga Beli</th>
+            <th style="width: 12%; text-align: center;">Konversi</th>
+            <th style="width: 11%; text-align: center;">Kebutuhan</th>
+            <th style="width: 12%; text-align: right;">Biaya Riil</th>
           </tr>
         </thead>
         <tbody>
@@ -533,54 +744,59 @@ export function exportHPPReport(
             const realCost = item.quantityNeeded * pricePerUnit;
             return `
               <tr>
-                <td>${idx + 1}</td>
-                <td style="font-weight: 800; text-transform: uppercase;">${item.name || 'Bahan Tanpa Nama'}</td>
+                <td style="text-align: center;">${idx + 1}</td>
+                <td style="font-weight: 700; text-transform: uppercase; text-align: left;">${item.name || 'Bahan Tanpa Nama'}</td>
                 <td style="text-align: right;">Rp ${item.purchasePrice.toLocaleString('id-ID')}</td>
                 <td style="text-align: center;">${item.conversionValue}</td>
                 <td style="text-align: center;">${item.quantityNeeded}</td>
-                <td style="text-align: right; font-weight: 800;">Rp ${Math.round(realCost).toLocaleString('id-ID')}</td>
+                <td style="text-align: right; font-weight: 700;">Rp ${Math.round(realCost).toLocaleString('id-ID')}</td>
               </tr>
             `;
           }).join('')}
-          <tr style="background: #F9F9FB; font-weight: 800;">
-            <td colspan="5" style="text-align: right; font-weight: 800;">TOTAL BIAYA BAHAN BAKU (BASE HPP)</td>
-            <td style="text-align: right; font-weight: 900; color: #E87722;">Rp ${Math.round(baseHpp).toLocaleString('id-ID')}</td>
+          <tr class="total-row">
+            <td colspan="5" style="text-align: right; font-weight: 700;">TOTAL BIAYA BAHAN BAKU (BASE HPP)</td>
+            <td style="text-align: right; font-weight: 800; color: #DD6B20;">Rp ${Math.round(baseHpp).toLocaleString('id-ID')}</td>
           </tr>
         </tbody>
       </table>
 
-      <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 800; color: #1A1A1E;">Konstanta Variabel & Biaya Operasional</h3>
-      <div class="params-grid">
-        <div class="param-item">
-          <span class="param-label">Penyusutan (Shrinkage)</span>
-          <span class="param-value">${shrinkagePercent}% (Rp ${Math.round(wasteCost).toLocaleString('id-ID')})</span>
-        </div>
-        <div class="param-item">
-          <span class="param-label">Tenaga Kerja (Labor)</span>
-          <span class="param-value">Rp ${laborCost.toLocaleString('id-ID')}</span>
-        </div>
-        <div class="param-item">
-          <span class="param-label">Biaya Overhead</span>
-          <span class="param-value">Rp ${overheadCost.toLocaleString('id-ID')}</span>
-        </div>
-        <div class="param-item">
-          <span class="param-label">Jumlah Yield (Porsi)</span>
-          <span class="param-value">${yieldPortions} Porsi</span>
-        </div>
-      </div>
+      <table class="variables-table">
+        <thead>
+          <tr>
+            <th colspan="4">Konstanta Variabel & Biaya Operasional</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="var-label">Penyusutan (Shrinkage)</td>
+            <td class="var-val">${shrinkagePercent}% (Rp ${Math.round(wasteCost).toLocaleString('id-ID')})</td>
+            <td class="var-label">Tenaga Kerja (Labor)</td>
+            <td class="var-val">Rp ${laborCost.toLocaleString('id-ID')}</td>
+          </tr>
+          <tr>
+            <td class="var-label">Biaya Overhead</td>
+            <td class="var-val">Rp ${overheadCost.toLocaleString('id-ID')}</td>
+            <td class="var-label">Jumlah Yield (Porsi)</td>
+            <td class="var-val">${yieldPortions} Porsi</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div class="footer-sig">
-        <div style="font-size: 9px; color: #9CA3AF; max-width: 50%;">
-          * Laporan ini dibuat khusus untuk estimasi/rekayasa HPP menu baru pada sistem ${brandName}.<br>
-          * Hasil kalkulasi bersifat proyeksi dan dapat berubah mengikuti fluktuasi harga pasar bahan baku real-time.
-        </div>
-        <div class="sig-box">
-          <p style="margin-bottom: 5px; font-size: 11px;">Chef / Kitchen Manager</p>
-          <div class="sig-line"></div>
-          <p class="sig-name">......................................</p>
-          <p class="sig-title">${brandName} POS</p>
-        </div>
-      </div>
+      <table class="signature-table">
+        <tr>
+          <td class="sig-note">
+            * Laporan ini merupakan lembar kalkulasi proyeksi HPP resmi internal ${brandName}.<br>
+            * Estimasi biaya riil dapat berfluktuasi mengikuti kondisi harga pasar bahan baku terbaru.
+          </td>
+          <td class="sig-space"></td>
+          <td class="sig-box">
+            <div class="sig-title">Dibuat & Disetujui Oleh,</div>
+            <div class="sig-line"></div>
+            <div class="sig-name">Chef / Kitchen Manager</div>
+            <div class="sig-brand">${brandName} POS System</div>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
