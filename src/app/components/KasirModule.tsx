@@ -139,7 +139,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
     }
   ];
 
-  const activeServedOrders = (orders && orders.length > 0 ? orders : mockOrders)
+  const activeServedOrders = (orders || [])
     .filter(o => o.status === "served" && !processedOrderIds.includes(o.id));
 
   useEffect(() => {

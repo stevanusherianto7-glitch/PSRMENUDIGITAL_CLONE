@@ -20,22 +20,10 @@ const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
   const isEmpty = !data || data.every(h => h.sales === 0);
   const displayData = isEmpty
-    ? Array.from({ length: 24 }, (_, i) => {
-        let sales = 0;
-        if (i === 11) sales = 120000;
-        else if (i === 12) sales = 280000;
-        else if (i === 13) sales = 240000;
-        else if (i === 14) sales = 90000;
-        else if (i === 18) sales = 150000;
-        else if (i === 19) sales = 350000;
-        else if (i === 20) sales = 300000;
-        else if (i === 21) sales = 100000;
-        else if (i >= 8 && i <= 22) sales = 20000;
-        return {
-          hour: i.toString().padStart(2, "0") + ":00",
-          sales: sales
-        };
-      })
+    ? Array.from({ length: 24 }, (_, i) => ({
+        hour: i.toString().padStart(2, "0") + ":00",
+        sales: 0
+      }))
     : data;
 
   return (
@@ -165,14 +153,7 @@ function CategoryPieChart({ data }: { data: { name: string; value: number }[] })
 function PeakHoursBarChart({ data }: { data: { hour: string; count: number }[] }) {
   const isEmpty = !data || data.length === 0 || data.every(h => h.count === 0);
   const displayData = isEmpty
-    ? data.map(h => {
-        const hr = parseInt(h.hour);
-        let count = 0;
-        if (hr === 12 || hr === 13 || hr === 19 || hr === 20) count = 4;
-        else if (hr === 11 || hr === 14 || hr === 18 || hr === 21) count = 2;
-        else count = 0.5;
-        return { hour: h.hour, count };
-      })
+    ? data.map(h => ({ hour: h.hour, count: 0 }))
     : data;
 
   return (
@@ -334,11 +315,12 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
     };
   }, [connected, retryCount]);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayTx = transactions.filter(tx => tx.created_at.startsWith(todayStr));
-  const todaySales = connected ? todayMetrics.totalSales : todayTx.reduce((s, tx) => s + tx.total, 0);
-  const todayCount = connected ? todayMetrics.transactionCount : todayTx.length;
-  const todayAvg = connected ? todayMetrics.avgTransaction : (todayCount > 0 ? Math.round(todaySales / todayCount) : 0);
+  const todaySales = todayTx.reduce((s, tx) => s + tx.total, 0);
+  const todayCount = todayTx.length;
+  const todayAvg = todayCount > 0 ? Math.round(todaySales / todayCount) : 0;
 
   const pending = liveOrders.filter(o => o.status === "pending").length;
   const cooking = liveOrders.filter(o => o.status === "cooking").length;

@@ -89,13 +89,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
     return { name: cat, amount };
   });
   
-  // Fallback data jika belum ada transaksi (Agar Tampilan Tetap Wow)
-  const hasTx = transactions.length > 0;
-  const rawCatData = hasTx ? categorySales : [
-    { name: "Makanan", amount: 15400000 },
-    { name: "Snack", amount: 4200000 },
-    { name: "Minuman", amount: 8900000 }
-  ];
+  const rawCatData = categorySales;
 
   const totalSales = rawCatData.reduce((s, c) => s + c.amount, 0);
   const categoryData = rawCatData.map(c => ({
@@ -107,16 +101,16 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   // 2. Data Jam Ramai Transaksi (10:00 - 22:00)
   const hourlyData = Array.from({ length: 13 }, (_, i) => {
     const hour = i + 10;
-    const count = hasTx ? transactions.filter(tx => {
+    const count = transactions.filter(tx => {
       const txHour = new Date(tx.created_at).getHours();
       return txHour === hour;
-    }).length : Math.floor(Math.random() * 40) + 10; // Mock data jika kosong
+    }).length;
     return { name: `${hour}:00`, total: count };
   });
 
-  const weekTotal = transactions.reduce((s, tx) => s + tx.total, 0) || 37942000;
-  const txCount = transactions.length || 377;
-  const avgTx = txCount > 0 ? Math.round(weekTotal / txCount) : 100640;
+  const weekTotal = transactions.reduce((s, tx) => s + tx.total, 0);
+  const txCount = transactions.length;
+  const avgTx = txCount > 0 ? Math.round(weekTotal / txCount) : 0;
 
   async function handleDirectConnect() {
     toast.info("Mencoba koneksi ke RPP02N...");
