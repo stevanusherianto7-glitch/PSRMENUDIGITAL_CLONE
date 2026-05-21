@@ -33,7 +33,7 @@ export default defineConfig({
         name: 'Kedai Elvera 57 — POS & Menu Digital',
         short_name: 'PawonSalam',
         description: 'Sistem Kasir & Menu Digital Kedai Elvera 57. Sajian Otentik Khas Semarang.',
-        theme_color: '#F7F1E6',
+        theme_color: '#E87722',
         background_color: '#F7F1E6',
         display: 'standalone',
         orientation: 'any',

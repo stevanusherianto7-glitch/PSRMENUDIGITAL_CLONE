@@ -38,7 +38,7 @@ function applyTheme(resolved: ResolvedTheme) {
   // Update meta theme-color for mobile browsers
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', resolved === 'dark' ? '#0f0f14' : '#F7F1E6');
+    meta.setAttribute('content', resolved === 'dark' ? '#0f0f14' : '#E87722');
   }
   
   // Remove transition class after animation completes

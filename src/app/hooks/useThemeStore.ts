@@ -39,7 +39,7 @@ function applyThemeToDOM(theme: Theme) {
   // Update meta theme-color for mobile browsers
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute("content", theme === "dark" ? "#0F0F12" : "#F7F1E6");
+    meta.setAttribute("content", theme === "dark" ? "#0F0F12" : "#E87722");
   }
 }
 
