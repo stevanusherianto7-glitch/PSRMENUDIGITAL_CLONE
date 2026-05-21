@@ -46,7 +46,7 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
   return (
     <div className="space-y-6 mb-24">
       <div className="bg-card rounded-[2rem] shadow-xl border border-border overflow-hidden">
-        <div className="overflow-x-auto no-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-secondary/50">
