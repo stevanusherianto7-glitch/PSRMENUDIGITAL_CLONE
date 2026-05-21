@@ -417,6 +417,40 @@ export function exportInventoryPDF(
   printContent(html);
 }
 
+export function getUsageUnit(name: string): string {
+  if (!name) return '';
+  const lowerName = name.toLowerCase();
+  
+  if (/\b(kg|kilogram)\b/i.test(lowerName) || lowerName.includes('(kg)') || lowerName.includes(' kg') || lowerName.endsWith('kg')) {
+    return 'gr';
+  }
+  if (/\b(liter|ltr|l)\b/i.test(lowerName) || lowerName.includes('(liter)') || lowerName.includes('(l)') || lowerName.includes(' liter') || lowerName.endsWith('liter')) {
+    return 'ml';
+  }
+  if (/\b(pcs|buah|piece|seeds|biji|bh)\b/i.test(lowerName) || lowerName.includes('(pcs)') || lowerName.includes('(buah)') || lowerName.includes(' pcs') || lowerName.endsWith('pcs') || lowerName.includes('(bh)')) {
+    return 'pcs';
+  }
+  if (/\b(pack|bungkus|bks|sachet|sch|dus|box|kotak)\b/i.test(lowerName) || lowerName.includes('(pack)') || lowerName.includes(' pack') || lowerName.endsWith('pack') || lowerName.includes('(bungkus)') || lowerName.includes('(bks)')) {
+    return 'pack';
+  }
+  if (/\b(gram|gr|g)\b/i.test(lowerName) || lowerName.includes('(gr)') || lowerName.includes('(g)') || lowerName.includes(' gram') || lowerName.endsWith('gram')) {
+    return 'gr';
+  }
+  if (/\b(ml|mililiter)\b/i.test(lowerName) || lowerName.includes('(ml)') || lowerName.includes(' ml') || lowerName.endsWith('ml')) {
+    return 'ml';
+  }
+  
+  const match = name.match(/\(([^)]+)\)/);
+  if (match && match[1]) {
+    const unit = match[1].trim().toLowerCase();
+    if (unit === 'kg') return 'gr';
+    if (unit === 'l' || unit === 'liter' || unit === 'ltr') return 'ml';
+    return unit;
+  }
+  
+  return '';
+}
+
 export function exportHPPReport(
   brandName: string,
   recipeName: string,
@@ -702,7 +736,7 @@ export function exportHPPReport(
         </tr>
         <tr>
           <td class="meta-label">Metode Penghitungan</td>
-          <td class="meta-value">Standard Batch Costing & Operational Overhead Allocation</td>
+          <td class="meta-value">Standard Costing & Operational Overhead Allocation</td>
         </tr>
       </table>
 
@@ -710,7 +744,7 @@ export function exportHPPReport(
       <table class="summary-table">
         <thead>
           <tr>
-            <th style="width: 25%;">Total HPP Batch</th>
+            <th style="width: 25%;">Total HPP</th>
             <th style="width: 25%;">HPP Per Porsi</th>
             <th style="width: 25%;">Target Margin</th>
             <th style="width: 25%;">Rekomendasi Harga Jual</th>
@@ -748,7 +782,7 @@ export function exportHPPReport(
                 <td style="font-weight: 700; text-transform: uppercase; text-align: left;">${item.name || 'Bahan Tanpa Nama'}</td>
                 <td style="text-align: right;">Rp ${item.purchasePrice.toLocaleString('id-ID')}</td>
                 <td style="text-align: center;">${item.conversionValue}</td>
-                <td style="text-align: center;">${item.quantityNeeded}</td>
+                <td style="text-align: center;">${item.quantityNeeded} ${getUsageUnit(item.name)}</td>
                 <td style="text-align: right; font-weight: 700;">Rp ${Math.round(realCost).toLocaleString('id-ID')}</td>
               </tr>
             `;

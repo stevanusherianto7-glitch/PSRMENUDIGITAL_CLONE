@@ -11,6 +11,40 @@ interface Ingredient {
   quantityNeeded: number;
 }
 
+export function getUsageUnit(name: string): string {
+  if (!name) return '';
+  const lowerName = name.toLowerCase();
+  
+  if (/\b(kg|kilogram)\b/i.test(lowerName) || lowerName.includes('(kg)') || lowerName.includes(' kg') || lowerName.endsWith('kg')) {
+    return 'gr';
+  }
+  if (/\b(liter|ltr|l)\b/i.test(lowerName) || lowerName.includes('(liter)') || lowerName.includes('(l)') || lowerName.includes(' liter') || lowerName.endsWith('liter')) {
+    return 'ml';
+  }
+  if (/\b(pcs|buah|piece|seeds|biji|bh)\b/i.test(lowerName) || lowerName.includes('(pcs)') || lowerName.includes('(buah)') || lowerName.includes(' pcs') || lowerName.endsWith('pcs') || lowerName.includes('(bh)')) {
+    return 'pcs';
+  }
+  if (/\b(pack|bungkus|bks|sachet|sch|dus|box|kotak)\b/i.test(lowerName) || lowerName.includes('(pack)') || lowerName.includes(' pack') || lowerName.endsWith('pack') || lowerName.includes('(bungkus)') || lowerName.includes('(bks)')) {
+    return 'pack';
+  }
+  if (/\b(gram|gr|g)\b/i.test(lowerName) || lowerName.includes('(gr)') || lowerName.includes('(g)') || lowerName.includes(' gram') || lowerName.endsWith('gram')) {
+    return 'gr';
+  }
+  if (/\b(ml|mililiter)\b/i.test(lowerName) || lowerName.includes('(ml)') || lowerName.includes(' ml') || lowerName.endsWith('ml')) {
+    return 'ml';
+  }
+  
+  const match = name.match(/\(([^)]+)\)/);
+  if (match && match[1]) {
+    const unit = match[1].trim().toLowerCase();
+    if (unit === 'kg') return 'gr';
+    if (unit === 'l' || unit === 'liter' || unit === 'ltr') return 'ml';
+    return unit;
+  }
+  
+  return '';
+}
+
 function calculateHPPData(
   ingredients: Ingredient[],
   shrinkagePercent: number,
@@ -268,7 +302,9 @@ export const KalkulatorHPP = () => {
                       />
                     </div>
                     <div className="col-span-3 sm:col-span-2">
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Pemakaian</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">
+                        Pemakaian{getUsageUnit(item.name) ? ` (${getUsageUnit(item.name)})` : ''}
+                      </p>
                       <input
                         type="number"
                         placeholder="0"
@@ -338,7 +374,7 @@ export const KalkulatorHPP = () => {
               <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
               <div className="relative z-10 space-y-8">
                 <div>
-                  <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">Total Biaya Operasional (Batch)</p>
+                  <p className="text-[10px] text-white/75 font-black uppercase tracking-[0.2em] mb-2">Total Biaya Operasional</p>
                   <h3 className="text-2xl font-black font-poppins tracking-tight text-white">{rp(Math.round(totalHpp))}</h3>
                 </div>
                 <div className="pt-8 border-t border-white/10">
