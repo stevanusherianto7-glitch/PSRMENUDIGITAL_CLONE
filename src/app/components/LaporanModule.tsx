@@ -7,7 +7,7 @@
 import { useState, useRef } from "react";
 import { 
   ArrowUpRight, Database, Printer, ExternalLink, 
-  RefreshCw, X, PieChart as PieIcon, BarChart3, Clock, Download
+  RefreshCw, X, PieChart as PieIcon, BarChart3, Clock
 } from "lucide-react";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, 
@@ -18,7 +18,6 @@ import { printService } from "../../utils/printService";
 import { ClosingReceipt } from "./ReceiptTemplates";
 import { toast } from "sonner";
 import type { Transaction } from "../types";
-import { exportCategorySalesReport } from "../../utils/exportUtils";
 
 interface LaporanModuleProps {
   transactions: Transaction[];
@@ -214,15 +213,6 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
                 <p className="text-[10px] text-muted-foreground font-bold uppercase mt-0.5">Food, Snack & Drinks</p>
               </div>
             </div>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                exportCategorySalesReport(categoryData, totalSales);
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-[10px] font-black uppercase tracking-widest hover:bg-secondary/80 transition-all border border-border"
-            >
-              <Download size={12} /> PDF
-            </button>
           </div>
 
           <div className="h-[240px] w-full">
