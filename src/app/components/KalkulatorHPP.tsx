@@ -181,6 +181,17 @@ export const KalkulatorHPP = () => {
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-700">
+      {/* Hide up/down arrows for numeric inputs */}
+      <style>{`
+        .no-spin::-webkit-outer-spin-button,
+        .no-spin::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .no-spin {
+          -moz-appearance: textfield;
+        }
+      `}</style>
       
       {/* Header - Edge to Edge Style */}
       <div className="bg-gradient-to-br from-card via-card/85 to-secondary/40 backdrop-blur-2xl rounded-b-[4rem] border-b border-border p-8 pb-12 shadow-2xl relative overflow-hidden">
@@ -288,7 +299,7 @@ export const KalkulatorHPP = () => {
                         placeholder="0"
                         value={item.purchasePrice || ''}
                         onChange={(e) => handleUpdate(item.id, 'purchasePrice', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
+                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono no-spin"
                       />
                     </div>
                     <div className="col-span-4 sm:col-span-2">
@@ -298,7 +309,7 @@ export const KalkulatorHPP = () => {
                         placeholder="1000"
                         value={item.conversionValue || ''}
                         onChange={(e) => handleUpdate(item.id, 'conversionValue', Number(e.target.value))}
-                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
+                        className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono no-spin"
                       />
                     </div>
                     <div className="col-span-3 sm:col-span-2">
@@ -311,7 +322,7 @@ export const KalkulatorHPP = () => {
                           placeholder="0"
                           value={item.quantityNeeded || ''}
                           onChange={(e) => handleUpdate(item.id, 'quantityNeeded', Number(e.target.value))}
-                          className="w-full pl-4 pr-12 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono"
+                          className="w-full pl-4 pr-12 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-xs font-bold text-foreground font-mono no-spin"
                         />
                         {getUsageUnit(item.name) && (
                           <span className="absolute right-4 text-[9px] font-black text-muted-foreground uppercase tracking-wider">
@@ -365,7 +376,7 @@ export const KalkulatorHPP = () => {
                       type="number"
                       value={param.val}
                       onChange={(e) => param.set(Number(e.target.value))}
-                      className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-xs font-bold text-foreground font-mono"
+                      className="w-full px-5 py-3.5 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-xs font-bold text-foreground font-mono no-spin"
                     />
                   </div>
                 ))}
