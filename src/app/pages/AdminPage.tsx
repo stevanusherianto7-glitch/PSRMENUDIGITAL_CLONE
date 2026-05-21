@@ -1073,7 +1073,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="px-4 lg:px-0">
-                  {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
+                  {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} transactions={filteredTransactions} />}
                   {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
                   {kasirSubModule === "petty" && <PettyCashModule />}
                   {kasirSubModule === "reservasi" && <ReservasiModule reservations={reservations} onUpdateStatus={handleUpdateReservationStatus} />}

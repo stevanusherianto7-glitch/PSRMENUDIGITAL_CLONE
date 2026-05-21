@@ -156,7 +156,7 @@ test.describe('Kedai Elvera 57 - E2E Admin & POS Kasir Flow (Playwright)', () =>
     console.log('[TEST PROGRESS] Asserting transaction success...');
     await expect(page.locator('text=Transaksi Berhasil').first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=Struk Pelanggan').first()).toBeVisible();
-    await expect(page.locator('text=PDF Pelanggan').first()).toBeVisible();
+    await expect(page.locator('text=Struk PDF Pelanggan').first()).toBeVisible();
 
     // Go back to main cashier screen
     const backButton = page.locator('text=← Beranda Utama').first();

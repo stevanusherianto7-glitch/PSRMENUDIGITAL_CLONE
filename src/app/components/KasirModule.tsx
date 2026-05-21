@@ -21,7 +21,7 @@ const orderModeConfig = {
 import { createOrder, deleteOrder } from "../api";
 import { PromoModal } from "./PromoModal";
 import { PrinterSettingsModal } from "./PrinterSettingsModal";
-import { GuestReceipt, KitchenReceipt } from "./ReceiptTemplates";
+import { GuestReceipt, KitchenReceipt, ClosingReceipt } from "./ReceiptTemplates";
 import { printService } from "../../utils/printService";
 import { toast } from "sonner";
 import type { MenuItem, CartItem, Transaction, Promo, TableData, Order, OrderStatus } from "../types";
@@ -36,9 +36,10 @@ interface KasirModuleProps {
   orders: Order[];
   autoSelectOrderId?: string | null;
   onClearAutoSelect?: () => void;
+  transactions?: Transaction[];
 }
 
-export function KasirModule({ menuItems, onTransaction, promos, tables, orders, autoSelectOrderId, onClearAutoSelect }: KasirModuleProps) {
+export function KasirModule({ menuItems, onTransaction, promos, tables, orders, autoSelectOrderId, onClearAutoSelect, transactions }: KasirModuleProps) {
   const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
     pending: { label: "Antrian", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: <Clock size={12} /> },
     cooking: { label: "Dimasak", color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", icon: <Flame size={12} /> },
@@ -89,7 +90,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [currentTx, setCurrentTx] = useState<Transaction | null>(null);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
-  const [printType, setPrintType] = useState<'customer' | 'kitchen' | null>(null);
+  const [printType, setPrintType] = useState<'customer' | 'kitchen' | 'closing' | null>(null);
   const [selectedTable, setSelectedTable] = useState<string>(tables[0]?.id || "");
   const [currentPayingOrderId, setCurrentPayingOrderId] = useState<string | null>(null);
   const [printerConnected, setPrinterConnected] = useState(printService.getIsConnected());
@@ -279,7 +280,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
     }
   }
 
-  function handlePrintPDF(type: 'customer' | 'kitchen') {
+  function handlePrintPDF(type: 'customer' | 'kitchen' | 'closing') {
     setPrintType(type);
     setTimeout(() => {
       window.print();
@@ -547,7 +548,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                         <ChefHat size={16} /> Struk Dapur
                       </button>
                       <button type="button" onClick={(e) => handlePrintClosingReport(e)} className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-[#a76d33] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#8b5a2b] transition-all">
-                        <Save size={16} /> Laporan Penutupan
+                        <Save size={16} /> Laporan Closing Shift
                       </button>
                     </div>
                   </div>
@@ -560,8 +561,9 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 opacity-85">
-                   <button onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">PDF Pelanggan</button>
-                   <button onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">PDF Utama</button>
+                   <button type="button" onClick={() => handlePrintPDF('customer')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">Struk PDF Pelanggan</button>
+                   <button type="button" onClick={() => handlePrintPDF('kitchen')} className="flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">Struk PDF Dapur</button>
+                   <button type="button" onClick={() => handlePrintPDF('closing')} className="col-span-2 flex items-center justify-center gap-2 py-3 rounded-2xl border border-[#dfd3c3] text-[9px] font-black text-[#a76d33] uppercase tracking-widest hover:bg-[#ece3d5] bg-white transition-all">Struk PDF Laporan Closing Shift</button>
                 </div>
               </div>
 
@@ -747,6 +749,32 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
           <KitchenReceipt order={currentOrder} />
         </div>
       )}
+      {printType === 'closing' && (() => {
+        const todayTransactions = transactions || [];
+        const totalSales = todayTransactions.reduce((s, tx) => s + tx.total, 0);
+        const qrisSales = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
+        const tunaiSales = todayTransactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
+        const kartuSales = todayTransactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0);
+        const totalItemCount = todayTransactions.reduce((s, tx) => s + tx.items.reduce((sum, item) => sum + item.qty, 0), 0);
+
+        const closingReportData = {
+          date: new Date().toLocaleDateString("id-ID"),
+          penjualanBersih: totalSales,
+          pb1: Math.round(totalSales * 0.1),
+          qris: qrisSales,
+          tunai: tunaiSales,
+          kartu: kartuSales,
+          totalTransaksi: todayTransactions.length,
+          totalItem: totalItemCount,
+          hpp: Math.round(totalSales * 0.4),
+          labaKotor: Math.round(totalSales * 0.6)
+        };
+        return (
+          <div className="receipt-print-wrapper">
+            <ClosingReceipt data={closingReportData} />
+          </div>
+        );
+      })()}
 
     </div>
   );

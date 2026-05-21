@@ -160,6 +160,13 @@ function MetricCard({ label, value, sub, trend, trendUp, accent, loading }: {
   );
 }
 
+const getFormattedDateNoYear = () => {
+  const d = new Date();
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+};
+
 interface DashboardModuleProps {
   transactions: Transaction[];
   liveOrders: Order[];
@@ -333,7 +340,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
                 <h3 className="dash-card-title flex items-center gap-2">
                   <BarIcon size={12} className="text-indigo-400" /> Tren Penjualan
                 </h3>
-                <p className="dash-card-subtitle">{new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short" })}</p>
+                <p className="dash-card-subtitle">{getFormattedDateNoYear()}</p>
               </div>
               <span className="text-[9px] font-black text-muted-foreground bg-white/50 dark:bg-white/5 px-2 py-1 rounded-md border border-black/5 dark:border-white/10 uppercase">Live Update</span>
             </div>

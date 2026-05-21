@@ -267,27 +267,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
 
       </div>
 
-      {/* Action Row - Centered Professional Layout */}
-      <div className="flex flex-col items-center justify-center gap-4 py-8 bg-white/2 border border-white/5 rounded-[2.5rem] shadow-inner">
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            onClick={handleDirectConnect}
-            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 group"
-          >
-            <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
-            Connect RPP02N
-          </button>
-          <button
-            onClick={handlePrintThermal}
-            disabled={isPrinting}
-            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-50 shadow-lg active:scale-95"
-          >
-            {isPrinting ? <RefreshCw size={18} className="animate-spin" /> : <Printer size={18} />}
-            Terminal Closing
-          </button>
-        </div>
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Hardware Command Center</p>
-      </div>
+
 
       {/* ── Table Top Products & Payment (Simplified) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
