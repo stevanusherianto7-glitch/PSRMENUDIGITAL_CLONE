@@ -9,8 +9,7 @@ import {
   ShoppingCart, Trash2, Banknote, Smartphone,
   CreditCard, Wallet, CheckCircle2, Minus, Plus,
   ChefHat, Tag, RefreshCw, Save, ExternalLink, Copy,
-  Printer, ShoppingBag, X, Clock, Flame, XCircle, AlertTriangle,
-  Calendar, CalendarCheck, Users
+  Printer, ShoppingBag, X, Clock, Flame, XCircle, AlertTriangle
 } from "lucide-react";
 import { rp, menuCategories, APP_LOGO } from "../data";
 import { supabase } from "../../lib/supabase";
@@ -104,116 +103,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
     });
     return unsub;
   }, []);
-
-  // --- Reservations Real-time Notification States ---
-  const [reservations, setReservations] = useState<any[]>([]);
-  const [showReservationsModal, setShowReservationsModal] = useState(false);
-
-  useEffect(() => {
-    let activeChannel: any = null;
-
-    async function setupReservations() {
-      try {
-        const { data, error } = await supabase
-          .from("reservations")
-          .select("*")
-          .order("created_at", { ascending: false });
-        
-        if (error) {
-          if (error.code === "PGRST205") {
-            console.warn("[ROBUST FALLBACK] Table 'reservations' is missing in DB schema. Skipping realtime subscription.");
-            return;
-          }
-          throw error;
-        }
-        
-        if (data) setReservations(data);
-
-        // Only subscribe if table exists
-        activeChannel = supabase
-          .channel("kasir-reservations-realtime")
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "reservations" },
-            (payload) => {
-              if (payload.eventType === "INSERT") {
-                setReservations((prev) => [payload.new, ...prev]);
-                if (payload.new.status === "pending") {
-                  toast.info(`Reservasi Baru: ${payload.new.name} (${payload.new.type})`, {
-                    position: "top-right",
-                    duration: 5000,
-                  });
-                  if ("speechSynthesis" in window) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
-                    utterance.lang = "id-ID";
-                    
-                    const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
-                    const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
-                    const preferredVoiceName = localStorage.getItem("pawon_tts_voice_name") || "";
-                    
-                    utterance.rate = rate;
-                    utterance.pitch = pitch;
-                    
-                    const voices = window.speechSynthesis.getVoices();
-                    let selectedVoice = preferredVoiceName 
-                      ? voices.find(v => v.name === preferredVoiceName)
-                      : null;
-                    if (!selectedVoice) {
-                      const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
-                      selectedVoice = idVoices.find(v => 
-                        v.name.includes("Gadis") || 
-                        v.name.includes("Google") || 
-                        v.name.toLowerCase().includes("female")
-                      ) || idVoices[0];
-                    }
-                    if (selectedVoice) {
-                      utterance.voice = selectedVoice;
-                    }
-                    
-                    window.speechSynthesis.speak(utterance);
-                  }
-                }
-              } else if (payload.eventType === "UPDATE") {
-                setReservations((prev) =>
-                  prev.map((r) => (r.id === payload.new.id ? payload.new : r))
-                );
-              } else if (payload.eventType === "DELETE") {
-                setReservations((prev) => prev.filter((r) => r.id === payload.old.id));
-              }
-            }
-          )
-          .subscribe();
-
-      } catch (err) {
-        console.warn("Failed to fetch reservations in KasirModule:", err);
-      }
-    }
-
-    setupReservations();
-
-    return () => {
-      if (activeChannel) {
-        supabase.removeChannel(activeChannel);
-      }
-    };
-  }, []);
-
-  async function handleUpdateReservationStatus(id: string, newStatus: string) {
-    try {
-      const { error } = await supabase
-        .from("reservations")
-        .update({ status: newStatus })
-        .eq("id", id);
-      if (error) throw error;
-      toast.success(`Reservasi berhasil di-${newStatus === "approved" ? "setujui" : "tolak"}`);
-    } catch (err) {
-      console.error("Failed to update reservation status:", err);
-      toast.error("Gagal mengupdate status reservasi. Coba lagi.");
-    }
-  }
-
-  const pendingReservations = reservations.filter((r) => r.status === "pending");
 
   const mockOrders: Order[] = [
     {
@@ -438,20 +327,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
             Antrean Pembayaran (Siap Cetak)
           </div>
 
-          {pendingReservations.length > 0 && (
-            <button
-              onClick={() => setShowReservationsModal(true)}
-              className="px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/40 text-orange-400 font-black text-xs uppercase tracking-wider animate-glow-light flex items-center gap-2 transition-all duration-300"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-              </span>
-              <Calendar size={13} className="animate-bounce" />
-              <span>{pendingReservations.length} Reservasi Baru</span>
-            </button>
-          )}
-          
           <button
             onClick={() => setIsPrinterModalOpen(true)}
             title="Pengaturan Printer Bluetooth"
@@ -873,93 +748,6 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         </div>
       )}
 
-      {/* Reservations Management Modal */}
-      {showReservationsModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={() => setShowReservationsModal(false)}>
-          <div className="bg-[#f4efe9] border border-[#dfd3c3] rounded-[28px] w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(78,54,41,0.15)] animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-5 border-b border-[#dfd3c3] flex items-center justify-between bg-[#ece3d5]/30">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center">
-                  <CalendarCheck size={18} className="text-primary animate-pulse" />
-                </div>
-                <div>
-                  <h3 className="font-black text-sm text-[#4e3629] uppercase tracking-widest font-poppins">Daftar Reservasi Pending</h3>
-                  <p className="text-[9px] text-[#a76d33] font-bold uppercase tracking-tighter mt-1">Konfirmasi pengajuan meja &amp; acara tamu</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowReservationsModal(false)}
-                title="Tutup"
-                className="p-2 hover:bg-[#e3d7c5] rounded-xl text-[#a76d33] hover:text-[#4e3629] transition-all"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
-              {pendingReservations.length === 0 ? (
-                <div className="text-center py-12 space-y-3">
-                  <div className="w-12 h-12 bg-[#ece3d5]/50 rounded-full border border-[#dfd3c3] flex items-center justify-center mx-auto">
-                    <CheckCircle2 size={20} className="text-[#a76d33]" />
-                  </div>
-                  <p className="text-xs text-[#a76d33] font-semibold">Tidak ada reservasi pending saat ini.</p>
-                </div>
-              ) : (
-                pendingReservations.map((res) => (
-                  <div key={res.id} className="bg-white/70 border border-[#dfd3c3] rounded-2xl p-4 space-y-3 relative hover:border-[#a76d33]/50 transition-all duration-300 animate-in slide-in-from-bottom-5 duration-355">
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <span className="text-[8px] font-black px-2 py-0.5 rounded-lg border uppercase tracking-tighter bg-primary/10 border-primary/20 text-primary">
-                          {res.type || "Reservasi"}
-                        </span>
-                        <h4 className="font-bold text-xs text-[#4e3629] mt-1.5 uppercase font-poppins">{res.name}</h4>
-                        <p className="text-[10px] text-[#a76d33] font-semibold mt-0.5">{res.phone}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-primary font-black font-mono block">{res.date}</span>
-                        <span className="text-[9px] text-[#a76d33] font-semibold block">{res.time} WIB</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-[#ece3d5]/50 border border-[#dfd3c3] rounded-xl p-2.5">
-                      <div className="flex items-center gap-1.5 text-[#4e3629]">
-                        <Users size={12} className="text-primary flex-shrink-0" />
-                        <span>Kapasitas: <strong className="text-[#4e3629]">{res.guests} orang</strong></span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[#4e3629]">
-                        <Clock size={12} className="text-primary flex-shrink-0" />
-                        <span>Status: <strong className="text-yellow-600 capitalize">{res.status}</strong></span>
-                      </div>
-                    </div>
-
-                    {res.notes && (
-                      <div className="text-[10px] text-[#4e3629] bg-[#fcfbfa] p-2.5 rounded-xl border border-[#dfd3c3]">
-                        <span className="font-black text-[8px] uppercase tracking-wider text-primary block mb-0.5">Catatan Khusus:</span>
-                        <span className="italic leading-relaxed">"{res.notes}"</span>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2 pt-1.5">
-                      <button
-                        onClick={() => handleUpdateReservationStatus(res.id, "rejected")}
-                        className="flex-1 py-2 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-wider transition-all"
-                      >
-                        Tolak
-                      </button>
-                      <button
-                        onClick={() => handleUpdateReservationStatus(res.id, "approved")}
-                        className="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white text-[10px] font-black uppercase tracking-wider shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 hover:scale-[1.01] transition-all"
-                      >
-                        Setujui
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

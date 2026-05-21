@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { supabase } from "../../lib/supabase";
+import { toast } from "sonner";
 
 // Logo sekarang diambil dari APP_LOGO di data.ts (import alias: logoImg)
 
@@ -43,6 +44,7 @@ import { KalkulatorHPP } from "../components/KalkulatorHPP";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import { KaryawanModule } from "../components/KaryawanModule";
 import { AssetModule } from "../components/AssetModule";
+import { ReservasiModule } from "../components/ReservasiModule";
 import { MenuManagement } from "../components/MenuManagement";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { ErrorBoundary } from "../components/ErrorBoundary";
@@ -181,7 +183,7 @@ export default function AdminPage() {
   const [sdmSubModule, setSdmSubModule] = useState<"karyawan" | "shift">("karyawan");
   const [stokSubModule, setStokSubModule] = useState<"bahan" | "asset">("bahan");
   const [transaksiSubModule, setTransaksiSubModule] = useState<"summary" | "laporan">("summary");
-  const [kasirSubModule, setKasirSubModule] = useState<"pos" | "promo" | "petty">("pos");
+  const [kasirSubModule, setKasirSubModule] = useState<"pos" | "promo" | "petty" | "reservasi">("pos");
   const [autoSelectOrderId, setAutoSelectOrderId] = useState<string | null>(null);
 
   // --- TTS Customization Settings ---
@@ -313,6 +315,7 @@ export default function AdminPage() {
     if (!error) setInventory(prev => prev.filter(i => i.id !== id));
   }
   const [liveOrders, setLiveOrders] = useState<Order[]>([]);
+  const [reservations, setReservations] = useState<any[]>([]);
   const [connected, setConnected] = useState(false);
   const [seeding, setSeeding] = useState(false);
 
@@ -409,6 +412,7 @@ export default function AdminPage() {
     let mejaChannel: ReturnType<typeof supabase.channel> | null = null;
     let txChannel: ReturnType<typeof supabase.channel> | null = null;
     let ordersChannel: ReturnType<typeof supabase.channel> | null = null;
+    let reservationsChannel: ReturnType<typeof supabase.channel> | null = null;
 
     async function initSupabase() {
       setSeeding(true);
@@ -515,6 +519,9 @@ export default function AdminPage() {
         const { data: logRows } = await supabase.from("inventory_logs").select("*").order("created_at", { ascending: false });
         if (logRows) setInventoryLogs(logRows);
 
+        const { data: resRows } = await supabase.from("reservations").select("*").order("created_at", { ascending: false });
+        if (resRows) setReservations(resRows);
+
         mejaChannel = supabase.channel("meja-admin-" + Date.now())
           .on("postgres_changes", { event: "*", schema: "public", table: "meja" }, payload => {
             if (payload.new && (payload.new as any).id === "SYSTEM_SETTINGS") {
@@ -567,6 +574,52 @@ export default function AdminPage() {
             loadOrders();
           }).subscribe();
 
+        reservationsChannel = supabase.channel("reservations-admin-" + Date.now())
+          .on("postgres_changes", { event: "*", schema: "public", table: "reservations" }, payload => {
+            if (payload.eventType === "INSERT") {
+              setReservations(prev => [payload.new, ...prev]);
+              if (payload.new.status === "pending") {
+                toast.info(`Reservasi Baru: ${payload.new.name} (${payload.new.type})`, {
+                  position: "top-right",
+                  duration: 5000,
+                });
+                if ("speechSynthesis" in window && ttsEnabled) {
+                  window.speechSynthesis.cancel();
+                  const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
+                  utterance.lang = "id-ID";
+                  
+                  const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
+                  const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
+                  const preferredVoiceName = localStorage.getItem("pawon_tts_voice_name") || "";
+                  
+                  utterance.rate = rate;
+                  utterance.pitch = pitch;
+                  
+                  const voices = window.speechSynthesis.getVoices();
+                  let selectedVoice = preferredVoiceName 
+                    ? voices.find(v => v.name === preferredVoiceName)
+                    : null;
+                  if (!selectedVoice) {
+                    const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
+                    selectedVoice = idVoices.find(v => 
+                      v.name.includes("Gadis") || 
+                      v.name.includes("Google") || 
+                      v.name.toLowerCase().includes("female")
+                    ) || idVoices[0];
+                  }
+                  if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                  }
+                  window.speechSynthesis.speak(utterance);
+                }
+              }
+            } else if (payload.eventType === "UPDATE") {
+              setReservations(prev => prev.map(r => r.id === payload.new.id ? payload.new : r));
+            } else if (payload.eventType === "DELETE") {
+              setReservations(prev => prev.filter(r => r.id !== payload.old.id));
+            }
+          }).subscribe();
+
       } catch (err) {
         console.warn("Supabase tidak terhubung:", err);
         setConnected(false);
@@ -579,6 +632,7 @@ export default function AdminPage() {
       if (mejaChannel) supabase.removeChannel(mejaChannel);
       if (txChannel) supabase.removeChannel(txChannel);
       if (ordersChannel) supabase.removeChannel(ordersChannel);
+      if (reservationsChannel) supabase.removeChannel(reservationsChannel);
     };
   }, []);
 
@@ -612,6 +666,20 @@ export default function AdminPage() {
 
       const { error: itemsError } = await supabase.from("transaction_items").insert(itemRows);
       if (itemsError) console.error("Error saving transaction items:", itemsError);
+    }
+  }, [connected]);
+
+  const handleUpdateReservationStatus = useCallback(async (id: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .update({ status: newStatus })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success(`Reservasi berhasil di-${newStatus === 'approved' ? 'setujui' : 'tolak'}`);
+    } catch (err) {
+      console.error("Failed to update reservation status:", err);
+      toast.error("Gagal mengupdate status reservasi. Coba lagi.");
     }
   }, [connected]);
 
@@ -997,7 +1065,7 @@ export default function AdminPage() {
             {activeModule === "kasir" && (
               <div className="space-y-5">
                 <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center gap-2">
-                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 flex-wrap gap-1">
                     <button
                       onClick={() => setKasirSubModule("pos")}
                       className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${kasirSubModule === "pos" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
@@ -1016,6 +1084,15 @@ export default function AdminPage() {
                     >
                       Petty Cash
                     </button>
+                    <button
+                      onClick={() => setKasirSubModule("reservasi")}
+                      className={`px-5 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center gap-1.5 ${kasirSubModule === "reservasi" ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-slate-500 hover:text-white"}`}
+                    >
+                      Reservasi
+                      {reservations.filter(r => r.status === "pending").length > 0 && (
+                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse inline-block" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -1023,6 +1100,7 @@ export default function AdminPage() {
                   {kasirSubModule === "pos" && <KasirModule menuItems={menuItems} onTransaction={handleTransaction} promos={promos} tables={tables} orders={liveOrders} autoSelectOrderId={autoSelectOrderId} onClearAutoSelect={() => setAutoSelectOrderId(null)} />}
                   {kasirSubModule === "promo" && <PromoModule promos={promos} onTogglePromo={togglePromo} onAddPromo={addPromo} />}
                   {kasirSubModule === "petty" && <PettyCashModule />}
+                  {kasirSubModule === "reservasi" && <ReservasiModule reservations={reservations} onUpdateStatus={handleUpdateReservationStatus} />}
                 </div>
               </div>
             )}

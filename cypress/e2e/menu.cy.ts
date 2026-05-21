@@ -55,11 +55,7 @@ describe('Kedai Elvera 57 - Guest Menu & Ordering E2E Flow (Cypress Mocked-API)'
 
   it('should successfully place a Dine In order and follow the status tracking screen', () => {
     // --- 1. WELCOME MODAL STEP 1 ---
-    cy.get('body').then(($body) => {
-      if ($body.text().includes('Masuk Ke Menu')) {
-        cy.get('button').contains('Masuk Ke Menu').click();
-      }
-    });
+    cy.get('button', { timeout: 10000 }).contains('Masuk Ke Menu').should('be.visible').click();
     cy.contains('Selamat Datang di').should('be.visible');
     cy.contains('Meja A9').should('be.visible');
     cy.get('button').contains('Lanjut').click();

@@ -111,11 +111,14 @@ test.describe('Kedai Elvera 57 - E2E Multi-User Circular Ordering Flow (Playwrig
     await expect(page.locator('text=Nasi Goreng Jawa').first()).toBeVisible();
     await expect(page.locator('text=Pedas mantap chef, telurnya matang ya.').first()).toBeVisible();
 
+    // Scoped order card for Table A8 to avoid conflict with other concurrent orders
+    const orderCard = page.locator('.bg-card', { hasText: `Meja ${TABLE_ID}` }).first();
+
     // Click "Mulai Masak"
-    await page.locator('button:has-text("Mulai Masak")').first().click();
+    await orderCard.locator('button:has-text("Mulai Masak")').click();
 
     // Verify status changes to cooking and button becomes "Selesai Masak — Siap Antar"
-    const readyButton = page.locator('button:has-text("Selesai Masak")').first();
+    const readyButton = orderCard.locator('button:has-text("Selesai Masak")');
     await expect(readyButton).toBeVisible();
 
     // Click "Selesai Masak — Siap Antar"
