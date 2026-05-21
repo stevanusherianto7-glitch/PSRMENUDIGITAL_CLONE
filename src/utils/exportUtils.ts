@@ -364,21 +364,35 @@ export function exportInventoryPDF(
         <thead>
           <tr>
             <th style="width: 5%">No</th>
-            <th style="width: 35%">Nama Bahan / Item</th>
+            <th style="width: 30%">Nama Bahan / Item</th>
+            <th style="width: 15%">Divisi</th>
             <th style="width: 15%">Kategori</th>
-            <th style="width: 15%">Sisa Stok</th>
-            <th style="width: 15%">Min. Stok</th>
-            <th style="width: 15%">Kadaluarsa</th>
+            <th style="width: 12%">Sisa Stok</th>
+            <th style="width: 11%">Min. Stok</th>
+            <th style="width: 12%">Kadaluarsa</th>
           </tr>
         </thead>
         <tbody>
           ${inventory.map((item, idx) => {
             const lowStock = item.stock < item.min_stock;
+            const parts = (item.category || "").split(":");
+            let division = "Dapur";
+            let categoryName = item.category || "";
+            if (parts.length > 1) {
+              division = parts[0].trim();
+              categoryName = parts.slice(1).join(":").trim();
+            } else {
+              const lowerCat = categoryName.toLowerCase();
+              if (lowerCat === "dairy" || lowerCat === "minuman" || lowerCat === "susu" || lowerCat === "sirup") {
+                division = "Bar";
+              }
+            }
             return `
               <tr>
                 <td>${idx + 1}</td>
                 <td style="font-weight: 800">${item.name}</td>
-                <td>${item.category}</td>
+                <td><span style="padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 10px; text-transform: uppercase; ${division === 'Bar' ? 'background: rgba(59, 130, 246, 0.1); color: #2563EB;' : 'background: rgba(245, 158, 11, 0.1); color: #D97706;'}">${division}</span></td>
+                <td>${categoryName}</td>
                 <td style="${lowStock ? 'color: #B91C1C; font-weight: 800;' : ''}">${item.stock} ${item.unit}</td>
                 <td>${item.min_stock} ${item.unit}</td>
                 <td>${item.exp_date}</td>

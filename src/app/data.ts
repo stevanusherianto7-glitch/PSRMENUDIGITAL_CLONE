@@ -327,16 +327,16 @@ export const SEED_TABLES: TableData[] = [
 ];
 
 export const SEED_INVENTORY: InventoryItem[] = [
-  { id: "i1", name: "Ayam Kampung", qty: 5, unit: "kg", exp_date: addDays(today, 1), category: "Protein", method: "FIFO", stock: 5, min_stock: 8 },
-  { id: "i2", name: "Daun Salam", qty: 200, unit: "gram", exp_date: addDays(today, 0), category: "Rempah", method: "FIFO", stock: 200, min_stock: 100 },
-  { id: "i3", name: "Santan Kelapa", qty: 3, unit: "liter", exp_date: addDays(today, 2), category: "Dairy", method: "FIFO", stock: 3, min_stock: 5 },
-  { id: "i4", name: "Beras Premium", qty: 25, unit: "kg", exp_date: addDays(today, 90), category: "Pokok", method: "LIFO", stock: 25, min_stock: 10 },
-  { id: "i5", name: "Cabe Merah", qty: 2, unit: "kg", exp_date: addDays(today, 3), category: "Sayuran", method: "FIFO", stock: 2, min_stock: 3 },
-  { id: "i6", name: "Gula Merah", qty: 1, unit: "kg", exp_date: addDays(today, 40), category: "Bumbu", method: "LIFO", stock: 1, min_stock: 2 },
-  { id: "i7", name: "Tahu Putih", qty: 3, unit: "kg", exp_date: addDays(today, 1), category: "Protein", method: "FIFO", stock: 3, min_stock: 5 },
-  { id: "i8", name: "Santan UHT", qty: 6, unit: "liter", exp_date: addDays(today, 6), category: "Dairy", method: "LIFO", stock: 6, min_stock: 4 },
-  { id: "i9", name: "Kencur", qty: 500, unit: "gram", exp_date: addDays(today, 14), category: "Rempah", method: "FIFO", stock: 500, min_stock: 200 },
-  { id: "i10", name: "Kelapa Parut", qty: 1.5, unit: "kg", exp_date: addDays(today, 2), category: "Bumbu", method: "FIFO", stock: 1.5, min_stock: 2 },
+  { id: "i1", name: "Ayam Kampung", qty: 5, unit: "kg", exp_date: addDays(today, 1), category: "Dapur: Protein", method: "FIFO", stock: 5, min_stock: 8 },
+  { id: "i2", name: "Daun Salam", qty: 200, unit: "gram", exp_date: addDays(today, 0), category: "Dapur: Rempah", method: "FIFO", stock: 200, min_stock: 100 },
+  { id: "i3", name: "Santan Kelapa", qty: 3, unit: "liter", exp_date: addDays(today, 2), category: "Dapur: Bumbu", method: "FIFO", stock: 3, min_stock: 5 },
+  { id: "i4", name: "Beras Premium", qty: 25, unit: "kg", exp_date: addDays(today, 90), category: "Dapur: Pokok", method: "LIFO", stock: 25, min_stock: 10 },
+  { id: "i5", name: "Cabe Merah", qty: 2, unit: "kg", exp_date: addDays(today, 3), category: "Dapur: Sayuran", method: "FIFO", stock: 2, min_stock: 3 },
+  { id: "i6", name: "Gula Merah", qty: 1, unit: "kg", exp_date: addDays(today, 40), category: "Dapur: Bumbu", method: "LIFO", stock: 1, min_stock: 2 },
+  { id: "i7", name: "Tahu Putih", qty: 3, unit: "kg", exp_date: addDays(today, 1), category: "Dapur: Protein", method: "FIFO", stock: 3, min_stock: 5 },
+  { id: "i8", name: "Santan UHT", qty: 6, unit: "liter", exp_date: addDays(today, 6), category: "Bar: Dairy", method: "LIFO", stock: 6, min_stock: 4 },
+  { id: "i9", name: "Kencur", qty: 500, unit: "gram", exp_date: addDays(today, 14), category: "Dapur: Rempah", method: "FIFO", stock: 500, min_stock: 200 },
+  { id: "i10", name: "Kelapa Parut", qty: 1.5, unit: "kg", exp_date: addDays(today, 2), category: "Dapur: Bumbu", method: "FIFO", stock: 1.5, min_stock: 2 },
 ];
 
 export const SEED_PROMOS: Promo[] = [

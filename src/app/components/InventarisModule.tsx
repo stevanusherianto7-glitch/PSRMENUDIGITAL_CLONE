@@ -26,9 +26,27 @@ export function getExpiryStatus(expDate: string) {
   return { label: `${diff}h lagi`, color: "text-green-400", bg: "bg-green-500/10 border-green-500/20", icon: <CheckCircle2 size={12} /> };
 }
 
+export function getItemDivisionAndCategory(category: string) {
+  const parts = (category || "").split(":");
+  if (parts.length > 1) {
+    const div = parts[0].trim().toLowerCase();
+    const cat = parts.slice(1).join(":").trim();
+    return {
+      division: div === "bar" ? "bar" : "dapur",
+      categoryName: cat
+    };
+  }
+  const lowerCat = category.toLowerCase();
+  if (lowerCat === "dairy" || lowerCat === "minuman" || lowerCat === "susu" || lowerCat === "sirup") {
+    return { division: "bar", categoryName: category };
+  }
+  return { division: "dapur", categoryName: category };
+}
+
 export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }: InventarisModuleProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilterState] = useState<"all" | "critical" | "warning">("all");
+  const [activeDivision, setActiveDivision] = useState<"all" | "dapur" | "bar">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   
@@ -59,7 +77,14 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
     if (diff <= 0) return "expired"; if (diff <= 2) return "critical"; if (diff <= 7) return "warning"; return "ok";
   };
 
-  const filtered = inventory.filter(item => {
+  // Filter berdasarkan Divisi Dapur / Bar terlebih dahulu
+  const divisionFilteredInventory = inventory.filter(item => {
+    const { division } = getItemDivisionAndCategory(item.category);
+    if (activeDivision === "all") return true;
+    return division === activeDivision;
+  });
+
+  const filtered = divisionFilteredInventory.filter(item => {
     const s = getStatus(item);
     if (filter === "critical" && s !== "critical" && s !== "expired") return false;
     if (filter === "warning" && s !== "warning") return false;
@@ -73,12 +98,30 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
     return item.name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const expiredCount = inventory.filter(i => getStatus(i) === "expired").length;
-  const criticalCount = inventory.filter(i => getStatus(i) === "critical").length;
-  const warningCount = inventory.filter(i => getStatus(i) === "warning").length;
+  // Hitung stats berdasarkan divisi terpilih
+  const expiredCount = divisionFilteredInventory.filter(i => getStatus(i) === "expired").length;
+  const criticalCount = divisionFilteredInventory.filter(i => getStatus(i) === "critical").length;
+  const warningCount = divisionFilteredInventory.filter(i => getStatus(i) === "warning").length;
 
   return (
     <div className="space-y-4">
+      {/* Tab Divisi Dapur & Bar */}
+      <div className="flex gap-1 bg-secondary/40 border border-border/50 rounded-xl p-1 max-w-sm shadow-inner">
+        {(["all", "dapur", "bar"] as const).map(d => (
+          <button
+            key={d}
+            onClick={() => setActiveDivision(d)}
+            className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+              activeDivision === d
+                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+            }`}
+          >
+            {d === "all" ? "Semua" : d === "dapur" ? "Dapur" : "Bar"}
+          </button>
+        ))}
+      </div>
+
       {/* Ramped down Alert Banner */}
       {(expiredCount > 0 || criticalCount > 0) && (
         <div className="bg-red-500/5 border border-red-500/10 rounded-lg px-3 py-2 flex items-center gap-2">
@@ -97,7 +140,7 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
           { val: expiredCount, label: "Kadaluarsa", color: "text-red-500", bg: "bg-red-500/5" },
           { val: criticalCount, label: "Kritis", color: "text-orange-500", bg: "bg-orange-500/5" },
           { val: warningCount, label: "Perhatian", color: "text-yellow-500", bg: "bg-yellow-500/5" },
-          { val: inventory.length, label: "Total", color: "text-foreground", bg: "bg-secondary/30" },
+          { val: divisionFilteredInventory.length, label: "Total", color: "text-foreground", bg: "bg-secondary/30" },
         ].map(m => (
           <div key={m.label} className={`border border-border/60 rounded-xl p-2.5 flex items-center gap-3 ${m.bg}`}>
             <span className={`text-lg font-black ${m.color} font-['Poppins'] leading-none`}>{m.val}</span>
@@ -153,12 +196,18 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
         {filtered.map(item => {
           const exp = getExpiryStatus(item.exp_date);
           const lowStock = item.stock < item.min_stock;
+          const { division, categoryName } = getItemDivisionAndCategory(item.category);
           return (
             <div key={item.id} className="stok-card rounded-2xl p-4 space-y-3 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm active:scale-[0.98]">
               <div className="relative z-10 space-y-3">
                 <div className="flex justify-between items-start gap-4">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
+                    <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">
+                      <span className={`mr-1 px-1.5 py-0.5 rounded text-[8px] tracking-normal uppercase font-extrabold ${division === 'bar' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                        {division}
+                      </span>
+                      {categoryName}
+                    </p>
                     <h4 className="font-black text-sm text-foreground leading-tight truncate">{item.name}</h4>
                   </div>
                   <div className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${exp.bg} ${exp.color}`}>
@@ -203,13 +252,19 @@ export function InventarisModule({ inventory, logs, onAdd, onUpdate, onDelete }:
         {filtered.map(item => {
           const exp = getExpiryStatus(item.exp_date);
           const lowStock = item.stock < item.min_stock;
+          const { division, categoryName } = getItemDivisionAndCategory(item.category);
           return (
             <div key={item.id} className="stok-card rounded-2xl p-4 flex flex-col justify-between space-y-4 relative overflow-hidden group hover:border-primary/20 transition-all shadow-sm hover:shadow-md">
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">{item.category}</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground leading-none mb-1">
+                        <span className={`mr-1.5 px-1.5 py-0.5 rounded text-[8px] tracking-normal uppercase font-extrabold ${division === 'bar' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                          {division}
+                        </span>
+                        {categoryName}
+                      </p>
                       <h4 className="font-black text-sm text-foreground leading-tight truncate" title={item.name}>{item.name}</h4>
                       <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50 mt-0.5">{item.id}</p>
                     </div>
