@@ -18,17 +18,37 @@ const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 
 // ─── Chart helpers ─────────────────────────────────────────────────────────────
 function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] }) {
+  const isEmpty = !data || data.every(h => h.sales === 0);
+  const displayData = isEmpty
+    ? Array.from({ length: 24 }, (_, i) => {
+        let sales = 0;
+        if (i === 11) sales = 120000;
+        else if (i === 12) sales = 280000;
+        else if (i === 13) sales = 240000;
+        else if (i === 14) sales = 90000;
+        else if (i === 18) sales = 150000;
+        else if (i === 19) sales = 350000;
+        else if (i === 20) sales = 300000;
+        else if (i === 21) sales = 100000;
+        else if (i >= 8 && i <= 22) sales = 20000;
+        return {
+          hour: i.toString().padStart(2, "0") + ":00",
+          sales: sales
+        };
+      })
+    : data;
+
   return (
-    <div className="w-full h-[180px]">
+    <div className="w-full h-[180px] relative select-none">
       <ResponsiveContainer>
         <AreaChart
-          data={data}
+          data={displayData}
           margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
         >
           <defs>
             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
-              <stop offset="95%" stopColor="#6366F1" stopOpacity={0.1}/>
+              <stop offset="5%" stopColor={isEmpty ? "#94A3B8" : "#6366F1"} stopOpacity={isEmpty ? 0.15 : 0.8}/>
+              <stop offset="95%" stopColor={isEmpty ? "#94A3B8" : "#6366F1"} stopOpacity={isEmpty ? 0.01 : 0.1}/>
             </linearGradient>
             <filter id="shadow" height="200%">
               <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
@@ -39,33 +59,51 @@ function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] })
               </feMerge>
             </filter>
           </defs>
-          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
-          <YAxis stroke="#4B5563" fontSize={10} tickFormatter={(v) => `Rp${v/1000}k`} tickLine={false} axisLine={false} width={40} />
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} opacity={isEmpty ? 0.4 : 1} />
+          <YAxis stroke="#4B5563" fontSize={10} tickFormatter={(v) => `Rp${v/1000}k`} tickLine={false} axisLine={false} width={40} opacity={isEmpty ? 0.4 : 1} />
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
-            labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-            itemStyle={{ color: '#6366F1' }}
-            formatter={(value: any) => [rp(value), "Penjualan"]}
-          />
+          {!isEmpty && (
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}
+              labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+              itemStyle={{ color: '#6366F1' }}
+              formatter={(value: any) => [rp(value), "Penjualan"]}
+            />
+          )}
           <Area
             type="monotone"
             dataKey="sales"
-            stroke="#6366F1"
-            strokeWidth={4}
+            stroke={isEmpty ? "rgba(148, 163, 184, 0.3)" : "#6366F1"}
+            strokeDasharray={isEmpty ? "4 4" : "0"}
+            strokeWidth={isEmpty ? 2 : 4}
             fillOpacity={1}
             fill="url(#colorSales)"
-            filter="url(#shadow)"
+            filter={isEmpty ? undefined : "url(#shadow)"}
           />
         </AreaChart>
       </ResponsiveContainer>
+      
+      {isEmpty && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/[0.03] dark:bg-white/[0.01] backdrop-blur-[1px] rounded-lg">
+          <div className="bg-white/80 dark:bg-card/90 border border-black/5 dark:border-border/80 rounded-xl px-4 py-3 shadow-lg flex flex-col items-center gap-1.5 animate-fade-in text-center max-w-[280px]">
+            <Clock size={18} className="text-indigo-500/80 dark:text-indigo-400/80 animate-pulse" />
+            <h4 className="text-[11px] font-black tracking-wider text-foreground uppercase">Belum Ada Transaksi</h4>
+            <p className="text-[9px] text-muted-foreground leading-normal">
+              Data transaksi hari ini masih kosong. Grafik akan terisi secara otomatis dan real-time ketika pesanan diselesaikan.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function CategoryPieChart({ data }: { data: { name: string; value: number }[] }) {
+  const isEmpty = !data || data.length === 0 || data.every(c => c.value === 0);
+  const displayData = isEmpty ? [{ name: "Belum Ada Data", value: 1 }] : data;
+
   return (
-    <div className="w-full h-[180px]">
+    <div className="w-full h-[180px] relative select-none">
       <ResponsiveContainer>
         <PieChart>
           <defs>
@@ -82,51 +120,98 @@ function CategoryPieChart({ data }: { data: { name: string; value: number }[] })
             </filter>
           </defs>
           <Pie
-            data={data}
+            data={displayData}
             cx="50%"
-            cy="50%"
+            cy={isEmpty ? "50%" : "45%"}
             innerRadius={45}
             outerRadius={70}
-            paddingAngle={5}
+            paddingAngle={isEmpty ? 0 : 5}
             dataKey="value"
-            stroke="none"
-            filter="url(#pieShadow)"
+            stroke={isEmpty ? "rgba(148, 163, 184, 0.3)" : "none"}
+            filter={isEmpty ? undefined : "url(#pieShadow)"}
           >
-            {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            {displayData.map((_, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={isEmpty ? "rgba(148, 163, 184, 0.1)" : COLORS[index % COLORS.length]} 
+              />
             ))}
           </Pie>
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
-            itemStyle={{ fontSize: '10px' }}
-          />
-          <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+          {!isEmpty && (
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
+              itemStyle={{ fontSize: '10px' }}
+            />
+          )}
+          {!isEmpty && <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '5px' }} />}
         </PieChart>
       </ResponsiveContainer>
+      
+      {isEmpty && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/[0.03] dark:bg-white/[0.01] backdrop-blur-[1px] rounded-lg">
+          <div className="bg-white/80 dark:bg-card/90 border border-black/5 dark:border-border/80 rounded-xl px-4 py-3 shadow-lg flex flex-col items-center gap-1.5 animate-fade-in text-center max-w-[240px]">
+            <PieIcon size={18} className="text-emerald-500/80 dark:text-emerald-400/80 animate-pulse" />
+            <h4 className="text-[11px] font-black tracking-wider text-foreground uppercase">Menu Kosong</h4>
+            <p className="text-[9px] text-muted-foreground leading-normal">
+              Komposisi menu terlaris hari ini akan muncul setelah transaksi penjualan diproses.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function PeakHoursBarChart({ data }: { data: { hour: string; count: number }[] }) {
+  const isEmpty = !data || data.length === 0 || data.every(h => h.count === 0);
+  const displayData = isEmpty
+    ? data.map(h => {
+        const hr = parseInt(h.hour);
+        let count = 0;
+        if (hr === 12 || hr === 13 || hr === 19 || hr === 20) count = 4;
+        else if (hr === 11 || hr === 14 || hr === 18 || hr === 21) count = 2;
+        else count = 0.5;
+        return { hour: h.hour, count };
+      })
+    : data;
+
   return (
-    <div className="w-full h-[180px]">
+    <div className="w-full h-[180px] relative select-none">
       <ResponsiveContainer>
-        <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+        <BarChart data={displayData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#F59E0B" />
               <stop offset="100%" stopColor="#D97706" />
             </linearGradient>
+            <linearGradient id="barGradientEmpty" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#94A3B8" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="#94A3B8" stopOpacity={0.03} />
+            </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} />
-          <YAxis stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} width={40} />
-          <Tooltip 
-            contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
-          />
-          <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} barSize={20} />
+          <XAxis dataKey="hour" stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} opacity={isEmpty ? 0.4 : 1} />
+          <YAxis stroke="#4B5563" fontSize={10} tickLine={false} axisLine={false} width={40} opacity={isEmpty ? 0.4 : 1} />
+          {!isEmpty && (
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#111827', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '10px' }}
+            />
+          )}
+          <Bar dataKey="count" fill={isEmpty ? "url(#barGradientEmpty)" : "url(#barGradient)"} radius={[6, 6, 0, 0]} barSize={20} />
         </BarChart>
       </ResponsiveContainer>
+      
+      {isEmpty && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/[0.03] dark:bg-white/[0.01] backdrop-blur-[1px] rounded-lg">
+          <div className="bg-white/80 dark:bg-card/90 border border-black/5 dark:border-border/80 rounded-xl px-4 py-3 shadow-lg flex flex-col items-center gap-1.5 animate-fade-in text-center max-w-[240px]">
+            <Clock size={18} className="text-amber-500/80 dark:text-amber-400/80 animate-pulse" />
+            <h4 className="text-[11px] font-black tracking-wider text-foreground uppercase">Jam Sepi</h4>
+            <p className="text-[9px] text-muted-foreground leading-normal">
+              Visualisasi jam-jam ramai pelanggan akan dipetakan otomatis begitu transaksi masuk.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
