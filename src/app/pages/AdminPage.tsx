@@ -1139,9 +1139,9 @@ export default function AdminPage() {
             <div className="px-6 py-5 border-b border-[#a76d33]/10">
               <div className="flex items-center gap-2 text-[#4e3629] dark:text-[#f4efe9] mb-1">
                 <Settings size={20} className="text-[#a76d33]" />
-                <h3 className="font-bold text-base">Pengaturan Suara (TTS)</h3>
+                <h3 className="font-bold text-base">Pengaturan Sistem & Keamanan</h3>
               </div>
-              <p className="text-xs text-muted-foreground">Kustomisasi pemberitahuan suara untuk dapur & pelayan.</p>
+              <p className="text-xs text-muted-foreground">Kustomisasi pemberitahuan suara & keamanan POS.</p>
             </div>
             
             <div className="p-6 space-y-4">
@@ -1230,6 +1230,17 @@ export default function AdminPage() {
                   onChange={(e) => saveTtsSettings(ttsRate, parseFloat(e.target.value), ttsVoice)}
                   className="w-full accent-[#a76d33]"
                 />
+              </div>
+
+              {/* App Pinning / PWA Security Lock */}
+              <div className="mt-5 pt-4 border-t border-[#a76d33]/10 space-y-2 select-none">
+                <div className="flex items-center gap-2 text-[#4e3629] dark:text-[#f4efe9]">
+                  <Smartphone size={14} className="text-[#a76d33] animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Kunci Layar Tablet (App Pinning)</span>
+                </div>
+                <div className="p-3 rounded-xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20 text-[10px] text-muted-foreground leading-relaxed">
+                  Jika Anda ingin memastikan kasir tidak bisa keluar dari aplikasi PWA ini (misalnya untuk mencegah mereka membuka YouTube atau browsing web lain), Anda bisa mengaktifkan fitur <strong>App Pinning (Sematkan Aplikasi)</strong> yang ada di menu <strong>Settings &gt; Security</strong> pada tablet Android Anda. Ini akan mengunci layar khusus hanya untuk PWA POS tersebut.
+                </div>
               </div>
             </div>
 
