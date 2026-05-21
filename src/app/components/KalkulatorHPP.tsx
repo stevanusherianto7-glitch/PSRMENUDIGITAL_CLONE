@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../lib/supabase";
-import { Trash2, Plus, Calculator, RefreshCw, Info, ArrowUpRight, Percent, DollarSign, Package } from 'lucide-react';
+import { Trash2, Plus, Calculator, RefreshCw, Info, ArrowUpRight, Percent, DollarSign, Package, Download } from 'lucide-react';
+import { exportHPPReport } from '../../utils/exportUtils';
 
 interface Ingredient {
   id: string;
@@ -32,6 +33,7 @@ function calculateHPPData(
 }
 
 export const KalkulatorHPP = () => {
+  const [recipeName, setRecipeName] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [shrinkagePercent, setShrinkagePercent] = useState<number>(5); // Default 5% susut
   const [laborCost, setLaborCost] = useState<number>(2000); // Default biaya tenaga kerja
@@ -107,6 +109,24 @@ export const KalkulatorHPP = () => {
   // Helper format rupiah
   const rp = (val: number) => `Rp ${val.toLocaleString('id-ID')}`;
 
+  const handleDownloadPDF = () => {
+    exportHPPReport(
+      "PAWON SALAM",
+      recipeName,
+      ingredients,
+      shrinkagePercent,
+      laborCost,
+      overheadCost,
+      yieldPortions,
+      targetMargin,
+      baseHpp,
+      wasteCost,
+      totalHpp,
+      hppPerPortion,
+      recommendedSellingPrice
+    );
+  };
+
   if (loading) {
     return (
       <div className="bg-card/50 backdrop-blur-md rounded-b-[3rem] p-6 border border-white/5 w-full">
@@ -139,14 +159,22 @@ export const KalkulatorHPP = () => {
               <Calculator size={28} className="animate-float" />
             </div>
             <div>
-              <h2 className="text-3xl font-black text-foreground tracking-tighter font-poppins leading-none">MASTER HPP</h2>
+              <h2 className="text-3xl font-black text-foreground tracking-tighter font-poppins leading-none">KALKULASI HPP</h2>
               <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                Sistem Rekayasa Resep
+                Cost of Goods Sold
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center gap-2 px-5 py-3 text-white bg-primary hover:bg-primary/90 rounded-2xl transition-all duration-300 border border-primary/20 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] text-[10px] font-black uppercase tracking-widest"
+              title="Download Laporan HPP"
+            >
+              <Download size={16} />
+              <span>Download</span>
+            </button>
             <button
               onClick={() => window.location.reload()}
               className="p-3 text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary/80 rounded-2xl transition-all duration-300 border border-border group"
@@ -168,6 +196,28 @@ export const KalkulatorHPP = () => {
 
           {/* Left Column: Ingredients (8 Cols) */}
           <div className="lg:col-span-8 space-y-6">
+            
+            {/* Input Nama Resep */}
+            <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border border-border bg-card/60">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1.5 h-6 bg-primary rounded-full" />
+                <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Detail Resep Baru</h3>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="recipeNameInput" className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">
+                  Nama Resep Menu Baru
+                </label>
+                <input
+                  id="recipeNameInput"
+                  type="text"
+                  placeholder="CONTOH: AYAM GEPREK SAMBAL MATAH"
+                  value={recipeName}
+                  onChange={(e) => setRecipeName(e.target.value)}
+                  className="w-full px-6 py-4 bg-secondary border border-border rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm font-bold text-foreground uppercase tracking-wider placeholder:text-muted-foreground/30"
+                />
+              </div>
+            </div>
+
             <div className="glass-card rounded-[2.5rem] p-6 lg:p-8 shadow-2xl border border-border bg-card/60">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">

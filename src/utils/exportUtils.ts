@@ -416,3 +416,196 @@ export function exportInventoryPDF(
 
   printContent(html);
 }
+
+export function exportHPPReport(
+  brandName: string,
+  recipeName: string,
+  ingredients: any[],
+  shrinkagePercent: number,
+  laborCost: number,
+  overheadCost: number,
+  yieldPortions: number,
+  targetMargin: number,
+  baseHpp: number,
+  wasteCost: number,
+  totalHpp: number,
+  hppPerPortion: number,
+  recommendedSellingPrice: number
+) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Laporan Kalkulasi HPP - ${recipeName || 'Resep Baru'}</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px; color: #1A1A1E; background-color: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 3px solid #C8A96E; padding-bottom: 20px; }
+        .header-left h1 { color: #C8A96E; font-size: 28px; margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
+        .header-left p { color: #666; font-size: 14px; margin: 5px 0 0 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .header-right { text-align: right; }
+        .header-right p { margin: 2px 0; font-size: 12px; font-weight: 700; color: #1A1A1E; }
+        
+        .recipe-info { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 16px; padding: 20px; margin-bottom: 30px; }
+        .recipe-title { font-size: 10px; text-transform: uppercase; color: #6B7280; font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; }
+        .recipe-value { font-size: 20px; font-weight: 900; color: #1A1A1E; text-transform: uppercase; }
+
+        .summary-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 15px; text-align: center; }
+        .summary-card.highlight { background: rgba(232, 119, 34, 0.05); border-color: rgba(232, 119, 34, 0.2); }
+        .summary-label { font-size: 9px; text-transform: uppercase; color: #6B7280; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 5px; }
+        .summary-value { font-size: 16px; font-weight: 900; color: #1A1A1E; }
+        .summary-card.highlight .summary-value { color: #E87722; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 30px; }
+        th { background-color: #1A1A1E; color: #fff; text-align: left; padding: 12px 15px; text-transform: uppercase; font-weight: 800; border: 1px solid #1A1A1E; }
+        td { padding: 12px 15px; border: 1px solid #E5E7EB; color: #374151; font-weight: 500; }
+        tr:nth-child(even) { background-color: #FBFBFC; }
+        .font-bold { font-weight: 800; }
+
+        .params-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 15px; margin-bottom: 40px; background: #F9F9FB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 15px; }
+        .param-item { display: flex; flex-direction: column; font-size: 11px; }
+        .param-label { color: #6B7280; font-weight: 700; margin-bottom: 3px; }
+        .param-value { font-weight: 800; color: #1A1A1E; }
+
+        .footer-sig { margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .sig-box { width: 200px; text-align: center; }
+        .sig-line { border-bottom: 1px solid #1A1A1E; margin-bottom: 8px; height: 80px; }
+        .sig-name { font-weight: 800; font-size: 14px; }
+        .sig-title { font-size: 12px; color: #6B7280; }
+
+        @media print {
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="header-left">
+          <h1>${brandName}</h1>
+          <p>Kalkulasi HPP & Proyeksi Menu Baru</p>
+        </div>
+        <div class="header-right">
+          <p>Cost of Goods Sold (COGS) Report</p>
+          <p>Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+        </div>
+      </div>
+
+      <div class="recipe-info">
+        <div class="recipe-title">Nama Resep Menu Baru</div>
+        <div class="recipe-value">${recipeName || 'RESEP BARU TANPA NAMA'}</div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Total HPP Batch</div>
+          <div class="summary-value">Rp ${Math.round(totalHpp).toLocaleString('id-ID')}</div>
+        </div>
+        <div class="summary-card highlight">
+          <div class="summary-label">HPP Per Porsi</div>
+          <div class="summary-value">Rp ${Math.round(hppPerPortion).toLocaleString('id-ID')}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Target Margin</div>
+          <div class="summary-value">${targetMargin}%</div>
+        </div>
+        <div class="summary-card highlight">
+          <div class="summary-label">Rekomendasi Harga Jual</div>
+          <div class="summary-value">Rp ${Math.round(recommendedSellingPrice).toLocaleString('id-ID')}</div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 800; color: #1A1A1E;">Rincian Kebutuhan Bahan Baku</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5%">No</th>
+            <th style="width: 45%">Nama Bahan</th>
+            <th style="text-align: right; width: 15%;">Harga Beli</th>
+            <th style="text-align: center; width: 12%;">Konversi</th>
+            <th style="text-align: center; width: 11%;">Kebutuhan</th>
+            <th style="text-align: right; width: 12%;">Biaya Real</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ingredients.map((item, idx) => {
+            const pricePerUnit = item.conversionValue > 0 ? item.purchasePrice / item.conversionValue : 0;
+            const realCost = item.quantityNeeded * pricePerUnit;
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td style="font-weight: 800; text-transform: uppercase;">${item.name || 'Bahan Tanpa Nama'}</td>
+                <td style="text-align: right;">Rp ${item.purchasePrice.toLocaleString('id-ID')}</td>
+                <td style="text-align: center;">${item.conversionValue}</td>
+                <td style="text-align: center;">${item.quantityNeeded}</td>
+                <td style="text-align: right; font-weight: 800;">Rp ${Math.round(realCost).toLocaleString('id-ID')}</td>
+              </tr>
+            `;
+          }).join('')}
+          <tr style="background: #F9F9FB; font-weight: 800;">
+            <td colspan="5" style="text-align: right; font-weight: 800;">TOTAL BIAYA BAHAN BAKU (BASE HPP)</td>
+            <td style="text-align: right; font-weight: 900; color: #E87722;">Rp ${Math.round(baseHpp).toLocaleString('id-ID')}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; font-weight: 800; color: #1A1A1E;">Konstanta Variabel & Biaya Operasional</h3>
+      <div class="params-grid">
+        <div class="param-item">
+          <span class="param-label">Penyusutan (Shrinkage)</span>
+          <span class="param-value">${shrinkagePercent}% (Rp ${Math.round(wasteCost).toLocaleString('id-ID')})</span>
+        </div>
+        <div class="param-item">
+          <span class="param-label">Tenaga Kerja (Labor)</span>
+          <span class="param-value">Rp ${laborCost.toLocaleString('id-ID')}</span>
+        </div>
+        <div class="param-item">
+          <span class="param-label">Biaya Overhead</span>
+          <span class="param-value">Rp ${overheadCost.toLocaleString('id-ID')}</span>
+        </div>
+        <div class="param-item">
+          <span class="param-label">Jumlah Yield (Porsi)</span>
+          <span class="param-value">${yieldPortions} Porsi</span>
+        </div>
+      </div>
+
+      <div class="footer-sig">
+        <div style="font-size: 9px; color: #9CA3AF; max-width: 50%;">
+          * Laporan ini dibuat khusus untuk estimasi/rekayasa HPP menu baru pada sistem ${brandName}.<br>
+          * Hasil kalkulasi bersifat proyeksi dan dapat berubah mengikuti fluktuasi harga pasar bahan baku real-time.
+        </div>
+        <div class="sig-box">
+          <p style="margin-bottom: 5px; font-size: 11px;">Chef / Kitchen Manager</p>
+          <div class="sig-line"></div>
+          <p class="sig-name">......................................</p>
+          <p class="sig-title">${brandName} POS</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (doc) {
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 800);
+  }
+}
