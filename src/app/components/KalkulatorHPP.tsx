@@ -268,7 +268,7 @@ export const KalkulatorHPP = () => {
                       />
                     </div>
                     <div className="col-span-3 sm:col-span-2">
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Kebutuhan</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Pemakaian</p>
                       <input
                         type="number"
                         placeholder="0"
@@ -307,10 +307,10 @@ export const KalkulatorHPP = () => {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                 {[
-                  { id: "shrinkagePercent", label: "% Susut (Shrinkage)", val: shrinkagePercent, set: setShrinkagePercent, icon: Percent },
+                  { id: "shrinkagePercent", label: "% Susut", val: shrinkagePercent, set: setShrinkagePercent, icon: Percent },
                   { id: "laborCost", label: "Biaya Tenaga Kerja", val: laborCost, set: setLaborCost, icon: DollarSign },
                   { id: "overheadCost", label: "Biaya Overhead", val: overheadCost, set: setOverheadCost, icon: Info },
-                  { id: "yieldPortions", label: "Jumlah Porsi (Yield)", val: yieldPortions, set: setYieldPortions, icon: Package },
+                  { id: "yieldPortions", label: "Jumlah Porsi", val: yieldPortions, set: setYieldPortions, icon: Package },
                 ].map(param => (
                   <div key={param.id} className="space-y-3">
                     <label htmlFor={param.id} className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2 ml-1">
@@ -353,7 +353,6 @@ export const KalkulatorHPP = () => {
             <div className="glass-card rounded-[2.5rem] p-8 shadow-2xl border border-border bg-card/60 space-y-8">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Strategi Harga Pasar</h3>
-                <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Harga Pintar</div>
               </div>
 
               <div className="space-y-4">

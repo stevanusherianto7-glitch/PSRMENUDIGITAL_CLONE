@@ -726,7 +726,7 @@ export function exportHPPReport(
         </tbody>
       </table>
 
-      <div class="section-title">Rincian Kebutuhan Bahan Baku</div>
+      <div class="section-title">Rincian Pemakaian Bahan Baku</div>
       <table class="details-table">
         <thead>
           <tr>
@@ -734,7 +734,7 @@ export function exportHPPReport(
             <th style="width: 45%; text-align: left;">Nama Bahan Baku</th>
             <th style="width: 15%; text-align: right;">Harga Beli</th>
             <th style="width: 12%; text-align: center;">Konversi</th>
-            <th style="width: 11%; text-align: center;">Kebutuhan</th>
+            <th style="width: 11%; text-align: center;">Pemakaian</th>
             <th style="width: 12%; text-align: right;">Biaya Riil</th>
           </tr>
         </thead>
@@ -768,7 +768,7 @@ export function exportHPPReport(
         </thead>
         <tbody>
           <tr>
-            <td class="var-label">Penyusutan (Shrinkage)</td>
+            <td class="var-label">Penyusutan</td>
             <td class="var-val">${shrinkagePercent}% (Rp ${Math.round(wasteCost).toLocaleString('id-ID')})</td>
             <td class="var-label">Tenaga Kerja (Labor)</td>
             <td class="var-val">Rp ${laborCost.toLocaleString('id-ID')}</td>
@@ -776,7 +776,7 @@ export function exportHPPReport(
           <tr>
             <td class="var-label">Biaya Overhead</td>
             <td class="var-val">Rp ${overheadCost.toLocaleString('id-ID')}</td>
-            <td class="var-label">Jumlah Yield (Porsi)</td>
+            <td class="var-label">Jumlah Porsi</td>
             <td class="var-val">${yieldPortions} Porsi</td>
           </tr>
         </tbody>
