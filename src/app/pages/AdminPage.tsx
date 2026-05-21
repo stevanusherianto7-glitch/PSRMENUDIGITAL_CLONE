@@ -324,6 +324,10 @@ export default function AdminPage() {
   // TTS — hanya untuk pesanan pending (pesanan masuk baru)
   const pendingOrders = liveOrders.filter(o => o.status === "pending");
   const { speak } = useTTS(pendingOrders, ttsEnabled, ordersLoaded);
+  const speakRef = useRef(speak);
+  useEffect(() => {
+    speakRef.current = speak;
+  }, [speak]);
 
   // Preload voices + persist TTS preference
   useEffect(() => {
@@ -583,35 +587,7 @@ export default function AdminPage() {
                   position: "top-right",
                   duration: 5000,
                 });
-                if ("speechSynthesis" in window && ttsEnabled) {
-                  window.speechSynthesis.cancel();
-                  const utterance = new SpeechSynthesisUtterance(`Ada reservasi baru atas nama ${payload.new.name}`);
-                  utterance.lang = "id-ID";
-                  
-                  const rate = parseFloat(localStorage.getItem("pawon_tts_rate") || "0.95");
-                  const pitch = parseFloat(localStorage.getItem("pawon_tts_pitch") || "1.15");
-                  const preferredVoiceName = localStorage.getItem("pawon_tts_voice_name") || "";
-                  
-                  utterance.rate = rate;
-                  utterance.pitch = pitch;
-                  
-                  const voices = window.speechSynthesis.getVoices();
-                  let selectedVoice = preferredVoiceName 
-                    ? voices.find(v => v.name === preferredVoiceName)
-                    : null;
-                  if (!selectedVoice) {
-                    const idVoices = voices.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
-                    selectedVoice = idVoices.find(v => 
-                      v.name.includes("Gadis") || 
-                      v.name.includes("Google") || 
-                      v.name.toLowerCase().includes("female")
-                    ) || idVoices[0];
-                  }
-                  if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                  }
-                  window.speechSynthesis.speak(utterance);
-                }
+                speakRef.current(`Ada reservasi baru atas nama ${payload.new.name}`);
               }
             } else if (payload.eventType === "UPDATE") {
               setReservations(prev => prev.map(r => r.id === payload.new.id ? payload.new : r));
