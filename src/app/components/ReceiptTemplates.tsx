@@ -62,64 +62,58 @@ export function KitchenReceipt({ order }: KitchenReceiptProps) {
       
       {/* DAPUR Section */}
       {dapurItems.length > 0 && (
-        <>
+        <div className="mb-4 last:mb-0">
           <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
-            DAPUR (KITCHEN)
+            *** STRUK DAPUR ***
           </div>
-          <div className="text-xs mb-1">
-            <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
-            <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
-            <div>No: {order.id.toUpperCase()}</div>
-            <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
+          <div className="text-xs mb-1 space-y-0.5">
+            <div>TIPE : {order.orderMode === "dine-in" ? "DINE-IN" : "TAKE-AWAY"}</div>
+            <div>Meja : <span className="font-bold">{order.tableId || "Take Away"}</span></div>
+            <div>Jam  : {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
+            <div>Order: #{order.id.toUpperCase()}</div>
           </div>
           <div className="border-b border-dashed mb-1"></div>
-          <div className="text-xs font-bold">
+          <div className="text-xs font-bold space-y-0.5">
             {dapurItems.map((item, i) => (
-              <div key={i} className="flex justify-between py-0.5">
-                <span>{item.name}</span>
-                <span>x{item.qty}</span>
+              <div key={i} className="py-0.5">
+                {item.qty}x {item.name.toUpperCase()}
+                {item.notes && <div className="pl-4 font-normal text-[10px] text-muted-foreground">(Catatan: {item.notes})</div>}
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {/* BAR Section */}
       {barItems.length > 0 && (
-        <>
-          {dapurItems.length > 0 && <div className="border-b-2 border-double my-2"></div>}
+        <div className="mb-4 last:mb-0">
+          {dapurItems.length > 0 && <div className="border-b-2 border-double my-3"></div>}
           <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
-            BAR (MINUMAN)
+            *** STRUK BAR ***
           </div>
-          {dapurItems.length === 0 && (
-            <div className="text-xs mb-1">
-              <div>Waktu: {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
-              <div>Meja: <span className="font-bold text-sm">{order.tableId}</span></div>
-              <div>No: {order.id.toUpperCase()}</div>
-              <div>Tipe: {order.orderMode === "dine-in" ? "Dine In" : "Take Away"}</div>
-            </div>
-          )}
+          <div className="text-xs mb-1 space-y-0.5">
+            <div>TIPE : {order.orderMode === "dine-in" ? "DINE-IN" : "TAKE-AWAY"}</div>
+            <div>Meja : <span className="font-bold">{order.tableId || "Take Away"}</span></div>
+            <div>Jam  : {new Date(order.created_at).toLocaleTimeString("id-ID")}</div>
+            <div>Order: #{order.id.toUpperCase()}</div>
+          </div>
           <div className="border-b border-dashed mb-1"></div>
-          <div className="text-xs font-bold">
+          <div className="text-xs font-bold space-y-0.5">
             {barItems.map((item, i) => (
-              <div key={i} className="flex justify-between py-0.5">
-                <span>{item.name}</span>
-                <span>x{item.qty}</span>
+              <div key={i} className="py-0.5">
+                {item.qty}x {item.name.toUpperCase()}
+                {item.notes && <div className="pl-4 font-normal text-[10px] text-muted-foreground">(Catatan: {item.notes})</div>}
               </div>
             ))}
           </div>
-        </>
-      )}
-
-      <div className="border-b border-dashed my-1"></div>
-      {order.notes && (
-        <div className="text-xs">
-          <span className="font-bold">Catatan:</span> {order.notes}
         </div>
       )}
-      <div className="text-center text-[8pt] mt-3 border-t border-dashed pt-1">
-        Kedai Elvera 57
-      </div>
+
+      {order.notes && (
+        <div className="text-xs mt-2 border-t border-dashed pt-1">
+          <span className="font-bold">Catatan Global:</span> {order.notes}
+        </div>
+      )}
     </div>
   );
 }
@@ -218,16 +212,24 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
 
 interface ClosingReceiptProps {
   data: {
-    date: string;
-    penjualanBersih: number;
-    hpp: number;
-    labaKotor: number;
-    qris: number;
-    tunai: number;
-    kartu: number;
-    totalTransaksi: number;
-    totalItem: number;
-    pb1: number;
+    bulan: string;
+    kasir: string;
+    startTime: string;
+    endTime: string;
+    terjual: number;
+    items: { name: string; qty: number }[];
+    totalVoid: number;
+    pemasukan: {
+      qris: number;
+      debit: number;
+      tunai: number;
+      total: number;
+    };
+    kasKecil: {
+      awal: number;
+      saldo: number;
+      total: number;
+    };
   };
 }
 
@@ -235,61 +237,87 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
   return (
     <div className="receipt-container">
       <style>{receiptStyles}</style>
-      <div className="text-center font-bold border-b border-dashed pb-1 mb-1 text-sm">
-        LAPORAN CLOSING
-      </div>
-      <div className="text-xs mb-1">
-        <div>Tanggal: {data.date}</div>
-        <div>Waktu: {new Date().toLocaleTimeString("id-ID")}</div>
-        <div>Staff: Admin</div>
-      </div>
+      <div className="text-center font-bold text-sm mb-0.5">Kedai Elvera 57</div>
+      <div className="text-center text-xs mb-0.5">Ruko Beryl Commercial, Summarecon</div>
+      <div className="text-center text-xs mb-0.5">Jl. Bulevar Selatan No.78, Cisaranten Kidul</div>
+      <div className="text-center text-xs mb-0.5">Kec. Gedebage, Kota Bandung, Jawa Barat 40295</div>
+      <div className="text-center text-xs mb-2">WA: 0823-2033-6007</div>
+      
       <div className="border-b border-dashed mb-1"></div>
-      <div className="text-xs space-y-0.5">
-        <div className="flex justify-between font-bold">
-          <span>Penjualan Bersih</span>
-          <span>{rp(data.penjualanBersih)}</span>
-        </div>
-        <div className="flex justify-between text-muted-foreground">
-          <span>HPP</span>
-          <span>{rp(data.hpp)}</span>
-        </div>
-        <div className="flex justify-between font-bold border-t border-dashed pt-0.5">
-          <span>Laba Kotor</span>
-          <span>{rp(data.labaKotor)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>PB1</span>
-          <span>{rp(data.pb1)}</span>
-        </div>
+      
+      <div className="text-center font-bold text-xs my-2 tracking-widest">
+        LAPORAN REKAPITULASI
       </div>
+      
+      <div className="text-xs mb-1">
+        <div className="flex justify-between"><span>Bulan:</span> <span>{data.bulan}</span></div>
+        <div className="flex justify-between"><span>Kasir:</span> <span>{data.kasir}</span></div>
+        <div className="flex justify-between"><span>Mulai:</span> <span>{data.startTime}</span></div>
+        <div className="flex justify-between"><span>Selesai:</span> <span>{data.endTime}</span></div>
+        <div className="flex justify-between font-bold"><span>Terjual:</span> <span>{data.terjual} Item</span></div>
+      </div>
+      
       <div className="border-b border-dashed my-1"></div>
+      
+      <div className="text-xs font-bold my-1">DETAIL TRANSAKSI</div>
       <div className="text-xs space-y-0.5">
-        <div className="font-bold mb-0.5">Metode Pembayaran:</div>
+        {data.items && data.items.map((item, i) => (
+          <div key={i} className="flex justify-between">
+            <span className="truncate w-3/4">{item.name.toUpperCase()}</span>
+            <span>x {item.qty}</span>
+          </div>
+        ))}
+      </div>
+      
+      <div className="border-b border-dashed my-2"></div>
+      
+      <div className="text-xs font-bold my-1">TRANSAKSI VOID</div>
+      <div className="text-xs flex justify-between">
+        <span>TOTAL VOID</span>
+        <span>{data.totalVoid}</span>
+      </div>
+      
+      <div className="border-b border-dashed my-2"></div>
+      
+      <div className="text-xs font-bold my-1">DETAIL PEMASUKAN</div>
+      <div className="text-xs space-y-0.5">
         <div className="flex justify-between">
           <span>QRIS</span>
-          <span>{rp(data.qris)}</span>
+          <span>Rp {data.pemasukan.qris.toLocaleString("id-ID")}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>DEBIT CARD</span>
+          <span>Rp {data.pemasukan.debit.toLocaleString("id-ID")}</span>
         </div>
         <div className="flex justify-between">
           <span>TUNAI</span>
-          <span>{rp(data.tunai)}</span>
+          <span>Rp {data.pemasukan.tunai.toLocaleString("id-ID")}</span>
         </div>
-        <div className="flex justify-between">
-          <span>KARTU</span>
-          <span>{rp(data.kartu)}</span>
+        <div className="flex justify-between font-bold border-t border-dashed pt-0.5 mt-0.5">
+          <span>TOTAL PEMASUKAN</span>
+          <span>Rp {data.pemasukan.total.toLocaleString("id-ID")}</span>
         </div>
       </div>
-      <div className="border-b border-dashed my-1"></div>
+      
+      <div className="border-b border-dashed my-2"></div>
+      
+      <div className="text-xs font-bold my-1">DETAIL KAS KECIL</div>
       <div className="text-xs space-y-0.5">
         <div className="flex justify-between">
-          <span>Total Transaksi</span>
-          <span>{data.totalTransaksi}</span>
+          <span>KAS AWAL</span>
+          <span>Rp {data.kasKecil.awal.toLocaleString("id-ID")}</span>
         </div>
         <div className="flex justify-between">
-          <span>Total Item Terjual</span>
-          <span>{data.totalItem}</span>
+          <span>SALDO</span>
+          <span>Rp {data.kasKecil.saldo.toLocaleString("id-ID")}</span>
+        </div>
+        <div className="flex justify-between font-bold border-t border-dashed pt-0.5 mt-0.5">
+          <span>TOTAL KAS</span>
+          <span>Rp {data.kasKecil.total.toLocaleString("id-ID")}</span>
         </div>
       </div>
-      <div className="text-center text-[7pt] mt-3 border-t border-dashed pt-1.5 space-y-0.5 select-none text-muted-foreground leading-tight">
+      
+      <div className="text-center text-[7pt] mt-4 border-t border-dashed pt-2 space-y-0.5 select-none text-muted-foreground leading-tight">
         <div>Diterbitkan Oleh:</div>
         <div className="font-bold text-[8pt] text-foreground">POSGO - Self Order & POS App</div>
         <div>POSGO-hub.com</div>

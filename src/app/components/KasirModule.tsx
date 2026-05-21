@@ -273,7 +273,51 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       e.stopPropagation();
     }
     try {
-      await printService.printClosingReport();
+      const todayTransactions = transactions || [];
+      const totalSales = todayTransactions.reduce((s, tx) => s + tx.total, 0);
+      const qrisSales = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
+      const tunaiSales = todayTransactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
+      const kartuSales = todayTransactions.filter(tx => tx.method === "Debit" || tx.method === "Debit Card" || tx.method === "Kartu").reduce((s, tx) => s + tx.total, 0);
+      
+      const itemMap: Record<string, number> = {};
+      todayTransactions.forEach(tx => {
+        tx.items.forEach(item => {
+          const name = item.name.toUpperCase();
+          itemMap[name] = (itemMap[name] || 0) + item.qty;
+        });
+      });
+      const compiledItems = Object.entries(itemMap)
+        .map(([name, qty]) => ({ name, qty }))
+        .sort((a, b) => b.qty - a.qty);
+      
+      const totalItemCount = compiledItems.reduce((s, item) => s + item.qty, 0);
+
+      const realClosingData = {
+        bulan: new Date().toISOString().slice(0, 7),
+        kasir: "Admin",
+        startTime: todayTransactions.length > 0
+          ? new Date(Math.min(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+          : new Date().toLocaleString("id-ID"),
+        endTime: todayTransactions.length > 0
+          ? new Date(Math.max(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+          : new Date().toLocaleString("id-ID"),
+        terjual: totalItemCount,
+        items: compiledItems,
+        totalVoid: 0,
+        pemasukan: {
+          qris: qrisSales,
+          debit: kartuSales,
+          tunai: tunaiSales,
+          total: totalSales
+        },
+        kasKecil: {
+          awal: 0,
+          saldo: totalSales,
+          total: totalSales
+        }
+      };
+
+      await printService.printClosingReport(realClosingData);
       toast.success("Laporan closing berhasil dicetak");
     } catch (error) {
       toast.error("Gagal mencetak laporan: " + (error as Error).message);
@@ -754,24 +798,48 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
         const totalSales = todayTransactions.reduce((s, tx) => s + tx.total, 0);
         const qrisSales = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
         const tunaiSales = todayTransactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
-        const kartuSales = todayTransactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0);
-        const totalItemCount = todayTransactions.reduce((s, tx) => s + tx.items.reduce((sum, item) => sum + item.qty, 0), 0);
+        const kartuSales = todayTransactions.filter(tx => tx.method === "Debit" || tx.method === "Debit Card" || tx.method === "Kartu").reduce((s, tx) => s + tx.total, 0);
+        
+        const itemMap: Record<string, number> = {};
+        todayTransactions.forEach(tx => {
+          tx.items.forEach(item => {
+            const name = item.name.toUpperCase();
+            itemMap[name] = (itemMap[name] || 0) + item.qty;
+          });
+        });
+        const compiledItems = Object.entries(itemMap)
+          .map(([name, qty]) => ({ name, qty }))
+          .sort((a, b) => b.qty - a.qty);
+        
+        const totalItemCount = compiledItems.reduce((s, item) => s + item.qty, 0);
 
-        const closingReportData = {
-          date: new Date().toLocaleDateString("id-ID"),
-          penjualanBersih: totalSales,
-          pb1: Math.round(totalSales * 0.1),
-          qris: qrisSales,
-          tunai: tunaiSales,
-          kartu: kartuSales,
-          totalTransaksi: todayTransactions.length,
-          totalItem: totalItemCount,
-          hpp: Math.round(totalSales * 0.4),
-          labaKotor: Math.round(totalSales * 0.6)
+        const realClosingData = {
+          bulan: new Date().toISOString().slice(0, 7),
+          kasir: "Admin",
+          startTime: todayTransactions.length > 0
+            ? new Date(Math.min(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+            : new Date().toLocaleString("id-ID"),
+          endTime: todayTransactions.length > 0
+            ? new Date(Math.max(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+            : new Date().toLocaleString("id-ID"),
+          terjual: totalItemCount,
+          items: compiledItems,
+          totalVoid: 0,
+          pemasukan: {
+            qris: qrisSales,
+            debit: kartuSales,
+            tunai: tunaiSales,
+            total: totalSales
+          },
+          kasKecil: {
+            awal: 0,
+            saldo: totalSales,
+            total: totalSales
+          }
         };
         return (
           <div className="receipt-print-wrapper">
-            <ClosingReceipt data={closingReportData} />
+            <ClosingReceipt data={realClosingData} />
           </div>
         );
       })()}

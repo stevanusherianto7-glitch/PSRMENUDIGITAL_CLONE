@@ -129,20 +129,51 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   async function handlePrintThermal() {
     setIsPrinting(true);
     try {
-      // Mock closing data for thermal
-      const closingData = {
-        date: new Date().toLocaleDateString("id-ID"),
-        penjualanBersih: weekTotal,
-        pb1: Math.round(weekTotal * 0.1),
-        qris: transactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.4),
-        tunai: transactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        kartu: transactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        totalTransaksi: txCount,
-        totalItem: transactions.reduce((s, tx) => s + tx.items.length, 0) || 500,
-        hpp: Math.round(weekTotal * 0.4),
-        labaKotor: Math.round(weekTotal * 0.6)
+      const todayTransactions = transactions || [];
+      const totalSales = todayTransactions.reduce((s, tx) => s + tx.total, 0);
+      const qrisSales = todayTransactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0);
+      const tunaiSales = todayTransactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0);
+      const kartuSales = todayTransactions.filter(tx => tx.method === "Debit" || tx.method === "Debit Card" || tx.method === "Kartu").reduce((s, tx) => s + tx.total, 0);
+      
+      const itemMap: Record<string, number> = {};
+      todayTransactions.forEach(tx => {
+        tx.items.forEach(item => {
+          const name = item.name.toUpperCase();
+          itemMap[name] = (itemMap[name] || 0) + item.qty;
+        });
+      });
+      const compiledItems = Object.entries(itemMap)
+        .map(([name, qty]) => ({ name, qty }))
+        .sort((a, b) => b.qty - a.qty);
+      
+      const totalItemCount = compiledItems.reduce((s, item) => s + item.qty, 0);
+
+      const realClosingData = {
+        bulan: new Date().toISOString().slice(0, 7),
+        kasir: "Admin",
+        startTime: todayTransactions.length > 0
+          ? new Date(Math.min(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+          : new Date().toLocaleString("id-ID"),
+        endTime: todayTransactions.length > 0
+          ? new Date(Math.max(...todayTransactions.map(tx => new Date(tx.created_at).getTime()))).toLocaleString("id-ID")
+          : new Date().toLocaleString("id-ID"),
+        terjual: totalItemCount,
+        items: compiledItems,
+        totalVoid: 0,
+        pemasukan: {
+          qris: qrisSales,
+          debit: kartuSales,
+          tunai: tunaiSales,
+          total: totalSales
+        },
+        kasKecil: {
+          awal: 0,
+          saldo: totalSales,
+          total: totalSales
+        }
       };
-      await printService.printClosingReport(); // Using pre-existing method
+
+      await printService.printClosingReport(realClosingData);
       toast.success("Laporan closing dicetak.");
     } catch (err) {
       toast.error("Gagal cetak.");
