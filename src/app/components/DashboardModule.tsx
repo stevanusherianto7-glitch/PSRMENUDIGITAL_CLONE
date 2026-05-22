@@ -239,6 +239,17 @@ interface DashboardModuleProps {
   connected: boolean;
 }
 
+const isSameLocalDay = (dateStr: string, targetDate: Date = new Date()) => {
+  try {
+    const d = new Date(dateStr);
+    return d.getFullYear() === targetDate.getFullYear() &&
+           d.getMonth() === targetDate.getMonth() &&
+           d.getDate() === targetDate.getDate();
+  } catch (e) {
+    return false;
+  }
+};
+
 export const DashboardModule = ({ transactions, liveOrders, connected }: DashboardModuleProps) => {
   const [todayMetrics, setTodayMetrics] = useState({ totalSales: 0, transactionCount: 0, avgTransaction: 0 });
   const [loading, setLoading] = useState(true);
@@ -254,12 +265,16 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
       setLoading(true);
       setFetchError(false);
       try {
-        const today = new Date().toISOString().slice(0, 10);
+        const startOfLocalToday = new Date();
+        startOfLocalToday.setHours(0, 0, 0, 0);
+        const endOfLocalToday = new Date();
+        endOfLocalToday.setHours(23, 59, 59, 999);
+
         const { data, error } = await supabase
           .from('transactions')
           .select('total')
-          .gte('created_at', today + 'T00:00:00.000Z')
-          .lte('created_at', today + 'T23:59:59.999Z');
+          .gte('created_at', startOfLocalToday.toISOString())
+          .lte('created_at', endOfLocalToday.toISOString());
 
         if (error) throw error;
 
@@ -316,8 +331,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   }, [connected, retryCount]);
 
   const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const todayTx = transactions.filter(tx => tx.created_at.startsWith(todayStr));
+  const todayTx = transactions.filter(tx => isSameLocalDay(tx.created_at, now));
   const todaySales = todayTx.reduce((s, tx) => s + tx.total, 0);
   const todayCount = todayTx.length;
   const todayAvg = todayCount > 0 ? Math.round(todaySales / todayCount) : 0;
@@ -335,7 +349,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   }));
 
   transactions.forEach(tx => {
-    if (tx.created_at.startsWith(todayStr)) {
+    if (isSameLocalDay(tx.created_at, now)) {
       const hour = new Date(tx.created_at).getHours();
       if (hour >= 0 && hour < 24) {
         hourlyData[hour].sales += tx.total;
@@ -347,7 +361,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   // 2. Category Composition
   const catMap = new Map<string, number>();
   transactions.forEach(tx => {
-    if (tx.created_at.startsWith(todayStr)) {
+    if (isSameLocalDay(tx.created_at, now)) {
       tx.items.forEach(item => {
         const cat = item.category || "Lainnya";
         catMap.set(cat, (catMap.get(cat) || 0) + (item.price * item.qty));
