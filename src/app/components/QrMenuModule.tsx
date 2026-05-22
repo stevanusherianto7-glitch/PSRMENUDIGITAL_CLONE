@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import QRCode from "react-qr-code";
 import { GUEST_BASE_URL } from "../pages/AdminPage";
+import { BRAND_NAME } from "../data";
 import { supabase } from "../../lib/supabase";
 import type { TableData } from "../types";
 
@@ -316,11 +317,11 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     const printContent = tablesToPrint.map(t => `
       <div style="page-break-inside:avoid; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px dashed #C8A96E; border-radius:20px; padding:32px 28px; margin:16px; width:380px; background:#fff;">
         <p style="font-family:Poppins,sans-serif; font-size:20px; font-weight:800; margin:0 0 4px; color:#1F2937; letter-spacing:0.5px;">Buku Menu Digital</p>
-        <p style="font-family:Poppins,sans-serif; font-size:12px; font-weight:600; color:#C8A96E; margin:0 0 24px; text-transform:uppercase; letter-spacing:2px;">Kedai Elvera 57</p>
+        <p style="font-family:Poppins,sans-serif; font-size:12px; font-weight:600; color:#C8A96E; margin:0 0 24px; text-transform:uppercase; letter-spacing:2px;">${BRAND_NAME}</p>
         <div style="background:#fff; padding:16px; border:1px solid #E5E7EB; border-radius:16px; box-shadow:0 4px 12px -2px rgba(0,0,0,0.08);">
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`${baseUrl}/#/menu/${t.id}`)}" width="220" height="220" />
         </div>
-        <img src="https://ugfpbkjuxrdgveyfbfks.supabase.co/storage/v1/object/public/logo/ID_halal.png" style="height:56px; margin:20px 0 4px; object-fit:contain;" crossorigin="anonymous" />
+        <img src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/ID_halal.png" style="height:56px; margin:20px 0 4px; object-fit:contain;" crossorigin="anonymous" />
         <p style="font-family:Poppins,sans-serif; font-size:11px; font-weight:600; color:#9CA3AF; margin:0; text-transform:uppercase; letter-spacing:3px;">Nomor Meja</p>
         <p style="font-family:Poppins,sans-serif; font-size:36px; font-weight:900; margin:4px 0 0; color:#1F2937; letter-spacing:1px;">MEJA ${t.id}</p>
         <p style="font-family:Poppins,sans-serif; font-size:10px; color:#9CA3AF; margin-top:12px;">Scan QR untuk pesan menu favorit Anda</p>
@@ -330,7 +331,7 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
     printWindow.document.write(`
-      <!DOCTYPE html><html><head><title>QR Menu - KEDAI ELVERA 57</title>
+      <!DOCTYPE html><html><head><title>QR Menu - ${BRAND_NAME.toUpperCase()}</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
         body { margin:0; display:flex; flex-wrap:wrap; justify-content:center; font-family:Poppins,sans-serif; background:#f3f4f6; }
