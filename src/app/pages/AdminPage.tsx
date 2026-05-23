@@ -964,7 +964,7 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  {transaksiSubModule === "summary" && <DashboardModule transactions={filteredTransactions} liveOrders={liveOrders} connected={connected} />}
+                  {transaksiSubModule === "summary" && <DashboardModule transactions={filteredTransactions} liveOrders={liveOrders} connected={connected} onTransaction={handleTransaction} />}
                   {transaksiSubModule === "laporan" && <LaporanModule transactions={filteredTransactions} />}
                 </div>
               </div>

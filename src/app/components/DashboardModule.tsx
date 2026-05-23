@@ -4,10 +4,16 @@
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN LAPORAN KEUANGAN TIDAK AKURAT. ⚠️
  */
 import React, { useState, useEffect } from "react";
-import { Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, Download, Clock } from "lucide-react";
+import { 
+  Bell, Database, ArrowUpRight, ArrowDownRight, PieChart as PieIcon, BarChart as BarIcon, 
+  Download, Clock, Sparkles, Trash2, Play, ChevronDown, ChevronUp, RefreshCw, 
+  Banknote, Smartphone, CreditCard, Wallet, Info, CheckCircle2 
+} from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { rp } from "../data";
 import type { Transaction, Order } from "../types";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
@@ -237,6 +243,7 @@ interface DashboardModuleProps {
   transactions: Transaction[];
   liveOrders: Order[];
   connected: boolean;
+  onTransaction?: (tx: Transaction) => Promise<void>;
 }
 
 const isSameLocalDay = (dateStr: string, targetDate: Date = new Date()) => {
@@ -250,11 +257,43 @@ const isSameLocalDay = (dateStr: string, targetDate: Date = new Date()) => {
   }
 };
 
-export const DashboardModule = ({ transactions, liveOrders, connected }: DashboardModuleProps) => {
+export const DashboardModule = ({ transactions, liveOrders, connected, onTransaction }: DashboardModuleProps) => {
   const [todayMetrics, setTodayMetrics] = useState({ totalSales: 0, transactionCount: 0, avgTransaction: 0 });
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+
+  // State untuk simulator premium
+  const [isSimOpen, setIsSimOpen] = useState(false);
+  const [simMode, setSimMode] = useState<"local" | "cloud">("local");
+  const [simPayMethod, setSimPayMethod] = useState("QRIS");
+  const [simTableId, setSimTableId] = useState("A3");
+  const [simQty, setSimQty] = useState(1);
+  const [selectedPresetIndex, setSelectedPresetIndex] = useState(0);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [localSimulatedTransactions, setLocalSimulatedTransactions] = useState<Transaction[]>(() => {
+    try {
+      const saved = localStorage.getItem("pawon_simulated_tx");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Simpan simulasi lokal ke localStorage agar persistent
+  useEffect(() => {
+    localStorage.setItem("pawon_simulated_tx", JSON.stringify(localSimulatedTransactions));
+  }, [localSimulatedTransactions]);
+
+  const presetItems = [
+    { id: "menu_006", name: "GULAI MANGUT SEMARANG", price: 35000, category: "Makanan" },
+    { id: "menu_008", name: "NASI AYAM PENYET SEMARANG", price: 30000, category: "Makanan" },
+    { id: "menu_029", name: "ES TEH", price: 5000, category: "Minuman" },
+    { id: "menu_010", name: "TAHU GIMBAL SEMARANG", price: 25000, category: "Makanan" }
+  ];
+
+  // Gabungkan transaksi nyata dengan simulasi lokal untuk visualisasi grafik
+  const allTransactions = [...localSimulatedTransactions, ...transactions];
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -331,7 +370,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   }, [connected, retryCount]);
 
   const now = new Date();
-  const todayTx = transactions.filter(tx => isSameLocalDay(tx.created_at, now));
+  const todayTx = allTransactions.filter(tx => isSameLocalDay(tx.created_at, now));
   const todaySales = todayTx.reduce((s, tx) => s + tx.total, 0);
   const todayCount = todayTx.length;
   const todayAvg = todayCount > 0 ? Math.round(todaySales / todayCount) : 0;
@@ -348,7 +387,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
     count: 0
   }));
 
-  transactions.forEach(tx => {
+  allTransactions.forEach(tx => {
     if (isSameLocalDay(tx.created_at, now)) {
       const hour = new Date(tx.created_at).getHours();
       if (hour >= 0 && hour < 24) {
@@ -360,7 +399,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
 
   // 2. Category Composition
   const catMap = new Map<string, number>();
-  transactions.forEach(tx => {
+  allTransactions.forEach(tx => {
     if (isSameLocalDay(tx.created_at, now)) {
       tx.items.forEach(item => {
         const cat = item.category || "Lainnya";
@@ -372,6 +411,108 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
 
   // 3. Peak Hours (Order Count)
   const peakHoursData = hourlyData.map(h => ({ hour: h.hour, count: h.count })).filter(h => h.count > 0 || (parseInt(h.hour) > 9 && parseInt(h.hour) < 22));
+
+  // Handler jalankan simulasi
+  const handleRunSimulation = async () => {
+    const selectedItem = presetItems[selectedPresetIndex];
+    if (!selectedItem) return;
+    setIsSimulating(true);
+
+    try {
+      const cartItem = {
+        id: selectedItem.id,
+        name: selectedItem.name,
+        price: selectedItem.price,
+        qty: simQty,
+        category: selectedItem.category
+      };
+
+      const subtotal = selectedItem.price * simQty;
+      const tax = Math.round(subtotal * 0.1);
+      const total = subtotal + tax;
+      const txId = `SIM-${Date.now().toString(36).toUpperCase()}`;
+
+      const tx: Transaction = {
+        id: txId,
+        table_id: simTableId || null,
+        items: [cartItem],
+        subtotal,
+        tax,
+        total,
+        method: simPayMethod,
+        created_at: new Date().toISOString()
+      };
+
+      if (simMode === "local") {
+        setLocalSimulatedTransactions(prev => [tx, ...prev]);
+        
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(
+            `Simulasi transaksi Meja ${simTableId || "Take Away"} sukses`
+          );
+          utterance.lang = "id-ID";
+          utterance.rate = 0.95;
+          window.speechSynthesis.speak(utterance);
+        }
+
+        toast.success(`Simulasi Lokal Sukses! ${txId} ditambahkan ke grafik.`, {
+          description: `Total: ${rp(total)} · ${simPayMethod}`,
+          position: "bottom-center",
+          style: { fontSize: "10px", fontWeight: "bold" }
+        });
+      } else {
+        if (!connected) {
+          toast.error("Gagal mengirim simulasi: Koneksi Supabase offline.");
+          setIsSimulating(false);
+          return;
+        }
+
+        if (onTransaction) {
+          await onTransaction(tx);
+          
+          confetti({
+            particleCount: 150,
+            spread: 90,
+            origin: { y: 0.6 }
+          });
+
+          if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(
+              `Simulasi transaksi cloud Meja ${simTableId || "Take Away"} berhasil disinkronkan`
+            );
+            utterance.lang = "id-ID";
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+          }
+
+          toast.success(`Simulasi Cloud Berhasil! ${txId} disinkronkan ke Supabase.`, {
+            description: `Total: ${rp(total)} · Terkirim ke server`,
+            position: "bottom-center",
+            style: { fontSize: "10px", fontWeight: "bold" }
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Simulation error:", err);
+      toast.error("Gagal memproses simulasi.");
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
+  const handleClearLocalSimulations = () => {
+    setLocalSimulatedTransactions([]);
+    localStorage.removeItem("pawon_simulated_tx");
+    toast.info("Semua transaksi simulasi berhasil dibersihkan.");
+  };
 
   return (
     <div className="space-y-4 pt-8">
@@ -403,6 +544,152 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
           </p>
         </div>
       )}
+
+      {/* Premium Transaction Simulator Panel */}
+      <div className="bg-card border border-border/80 rounded-2xl p-4 overflow-hidden relative shadow-lg group hover:border-[#a76d33]/30 transition-all duration-300">
+        <button 
+          onClick={() => setIsSimOpen(!isSimOpen)}
+          className="w-full flex items-center justify-between font-black uppercase text-xs tracking-wider text-foreground hover:text-[#a76d33] transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-500 animate-pulse" />
+            Panel Kontrol Simulasi Transaksi (Kedai Elvera 57 POS)
+          </span>
+          <span className="flex items-center gap-3">
+            {localSimulatedTransactions.length > 0 && (
+              <span className="text-[9px] font-black bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2 py-0.5 rounded-lg animate-pulse">
+                {localSimulatedTransactions.length} SIMULASI AKTIF
+              </span>
+            )}
+            {isSimOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </span>
+        </button>
+
+        {isSimOpen && (
+          <div className="mt-4 pt-4 border-t border-border/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-300 text-xs select-none">
+            {/* Mode & Table Selector */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Mode Simulasi</label>
+                <div className="flex bg-[#ece3d5]/30 dark:bg-white/5 p-1 rounded-xl border border-border/40">
+                  <button 
+                    type="button"
+                    onClick={() => setSimMode("local")}
+                    className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${simMode === "local" ? "bg-[#a76d33] text-white shadow" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Lokal (Demo)
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setSimMode("cloud")}
+                    className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${simMode === "cloud" ? "bg-indigo-500 text-white shadow" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Cloud (Supabase)
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Meja Pelayanan</label>
+                <select 
+                  value={simTableId} 
+                  onChange={(e) => setSimTableId(e.target.value)}
+                  className="w-full bg-[#fcfbfa] dark:bg-background border border-border/60 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-1 focus:ring-[#a76d33]"
+                >
+                  <option value="">Take Away (Walk-in)</option>
+                  {["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"].map(tbl => (
+                    <option key={tbl} value={tbl}>Meja {tbl}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Menu Selection */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Pilih Item Menu</label>
+                <select 
+                  value={selectedPresetIndex} 
+                  onChange={(e) => setSelectedPresetIndex(parseInt(e.target.value))}
+                  className="w-full bg-[#fcfbfa] dark:bg-background border border-border/60 rounded-xl px-3 py-1.5 font-bold focus:outline-none focus:ring-1 focus:ring-[#a76d33]"
+                >
+                  {presetItems.map((item, idx) => (
+                    <option key={item.id} value={idx}>
+                      {item.name} ({rp(item.price)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-between items-center bg-[#ece3d5]/20 dark:bg-white/5 border border-border/40 p-2 rounded-xl">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Jumlah</span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => setSimQty(q => Math.max(1, q - 1))}
+                    className="w-6 h-6 flex items-center justify-center bg-secondary border border-border/50 hover:bg-border/50 text-[#a76d33] font-black rounded-lg"
+                  >
+                    -
+                  </button>
+                  <span className="font-mono font-black text-xs w-6 text-center">{simQty}</span>
+                  <button 
+                    type="button"
+                    onClick={() => setSimQty(q => q + 1)}
+                    className="w-6 h-6 flex items-center justify-center bg-secondary border border-border/50 hover:bg-border/50 text-[#a76d33] font-black rounded-lg"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1">Metode Pembayaran</label>
+                <div className="grid grid-cols-3 gap-1">
+                  {["QRIS", "Tunai", "Debit"].map(m => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSimPayMethod(m)}
+                      className={`py-2 rounded-xl border text-[9px] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${
+                        simPayMethod === m 
+                          ? "bg-[#a76d33]/15 border-[#a76d33] text-[#a76d33] font-black scale-105" 
+                          : "bg-[#fcfbfa] dark:bg-background border-border/60 text-muted-foreground hover:bg-secondary/40"
+                      }`}
+                    >
+                      {m === "QRIS" ? <Smartphone size={10} /> : m === "Tunai" ? <Banknote size={10} /> : <CreditCard size={10} />}
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Panel */}
+            <div className="flex flex-col justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleRunSimulation}
+                disabled={isSimulating}
+                className="w-full py-2.5 rounded-xl bg-[#a76d33] hover:bg-[#8b5a2b] text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-md shadow-[#a76d33]/10 hover:scale-[1.01] transition-all disabled:opacity-50"
+              >
+                {isSimulating ? <RefreshCw size={12} className="animate-spin" /> : <Play size={12} />}
+                Jalankan Simulasi
+              </button>
+              {localSimulatedTransactions.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearLocalSimulations}
+                  className="w-full py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20 text-[9px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-colors"
+                >
+                  <Trash2 size={10} />
+                  Hapus Simulasi
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         <MetricCard label="Penjualan" value={rp(todaySales)} trend="+12.4%" trendUp sub="vs kem." accent="text-indigo-400" loading={loading} />
@@ -503,17 +790,27 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
                       </tr>
                     ))
                   ) : (
-                    transactions.slice(0, 5).map(tx => (
-                      <tr key={tx.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group" style={{ borderBottom: '1px solid rgba(87,77,51,0.06)' }}>
-                        <td className="py-2 pr-3 font-mono text-[10px]" style={{ color: 'rgba(87,77,51,0.4)' }}>{tx.id.slice(-6).toUpperCase()}</td>
-                        <td className="py-2 pr-3 font-bold" style={{ color: 'rgba(87,77,51,0.8)' }}>{tx.table_id || "Walk-in"}</td>
-                        <td className="py-2 pr-3 font-semibold" style={{ color: 'rgba(87,77,51,0.5)' }}>{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
-                        <td className="py-2 pr-3 text-right font-black text-emerald-500">{rp(tx.total)}</td>
-                        <td className="py-2 text-right font-bold" style={{ color: 'rgba(87,77,51,0.45)' }}>{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
-                      </tr>
-                    ))
+                    allTransactions.slice(0, 5).map(tx => {
+                      const isSim = tx.id.startsWith("SIM-");
+                      return (
+                        <tr key={tx.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group" style={{ borderBottom: '1px solid rgba(87,77,51,0.06)' }}>
+                          <td className="py-2 pr-3 font-mono text-[10px] flex items-center gap-1.5" style={{ color: 'rgba(87,77,51,0.4)' }}>
+                            <span>{tx.id.slice(-6).toUpperCase()}</span>
+                            {isSim && (
+                              <span className="text-[7px] font-black bg-orange-500/10 border border-orange-500/30 text-orange-400 px-1 py-0.5 rounded uppercase tracking-widest animate-pulse scale-90">
+                                SIM
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 pr-3 font-bold" style={{ color: 'rgba(87,77,51,0.8)' }}>{tx.table_id || "Walk-in"}</td>
+                          <td className="py-2 pr-3 font-semibold" style={{ color: 'rgba(87,77,51,0.5)' }}>{tx.items.reduce((s, i) => s + i.qty, 0)} pc</td>
+                          <td className="py-2 pr-3 text-right font-black text-emerald-500">{rp(tx.total)}</td>
+                          <td className="py-2 text-right font-bold" style={{ color: 'rgba(87,77,51,0.45)' }}>{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                        </tr>
+                      );
+                    })
                   )}
-                  {!loading && transactions.length === 0 && (
+                  {!loading && allTransactions.length === 0 && (
                     <tr><td colSpan={5} className="py-8 text-center" style={{ color: 'rgba(87,77,51,0.4)' }}>Belum ada transaksi.</td></tr>
                   )}
                 </tbody>
