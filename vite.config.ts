@@ -58,6 +58,15 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
         runtimeCaching: [
           {
+            urlPattern: /\/imports\/.*\.webp$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'local-menu-images',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/storage\/v1\/.*/i,
             handler: 'CacheFirst',
             options: {
