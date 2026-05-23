@@ -55,7 +55,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/storage\/v1\/.*/i,
@@ -67,7 +67,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/.*/i,
+            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'supabase-assets',
@@ -102,9 +102,16 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('@supabase') || id.includes('supabase-js')) return 'supabase-vendor';
-            if (id.includes('recharts') || id.includes('d3')) return 'charts-vendor';
             if (id.includes('@mui') || id.includes('@emotion')) return 'mui-vendor';
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) return 'ui-primitives';
+            // Group recharts, d3, radix-ui, and lucide-react together to eliminate circular imports
+            if (
+              id.includes('recharts') ||
+              id.includes('d3') ||
+              id.includes('@radix-ui') ||
+              id.includes('lucide-react')
+            ) {
+              return 'vendor-ui-charts';
+            }
           }
         }
       }

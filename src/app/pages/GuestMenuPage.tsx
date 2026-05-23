@@ -35,7 +35,7 @@ const EVENT_PHOTOS: EventPhoto[] = [
     title: "Jamuan Pernikahan Premium",
     date: "12 Mei 2026",
     category: "Wedding",
-    image: "/imports/event_wedding.png",
+    image: "/imports/event_wedding.webp",
     description: "Merayakan hari bahagia bersama keluarga tercinta dengan konsep prasmanan premium dan dekorasi adat Jawa modern yang anggun."
   },
   {
@@ -43,7 +43,7 @@ const EVENT_PHOTOS: EventPhoto[] = [
     title: "Gathering & Rapat Korporat",
     date: "28 April 2026",
     category: "Corporate",
-    image: "/imports/event_gathering.png",
+    image: "/imports/event_gathering.webp",
     description: "Jamuan makan siang prasmanan premium dan kopi rehat berkualitas untuk kegiatan rapat kerja instansi dan forum korporat."
   },
   {
@@ -51,7 +51,7 @@ const EVENT_PHOTOS: EventPhoto[] = [
     title: "Ulang Tahun & Kumpul Keluarga",
     date: "05 April 2026",
     category: "Birthday",
-    image: "/imports/event_birthday.png",
+    image: "/imports/event_birthday.webp",
     description: "Momen hangat kumpul keluarga besar merayakan ulang tahun dengan hidangan lezat racikan khusus koki andalan kami."
   },
   {
@@ -59,7 +59,7 @@ const EVENT_PHOTOS: EventPhoto[] = [
     title: "Weekend Live Music Session",
     date: "Maret - Mei 2026",
     category: "Music Event",
-    image: "/imports/event_livemusic.png",
+    image: "/imports/event_livemusic.webp",
     description: "Keseruan akhir pekan di area taman outdoor menikmati alunan live acoustic music ditemani hidangan santai bersama sahabat."
   }
 ];
