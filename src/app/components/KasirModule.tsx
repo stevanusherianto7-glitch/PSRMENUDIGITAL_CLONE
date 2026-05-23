@@ -110,8 +110,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       id: "O-1001",
       tableId: "A1",
       items: [
-        { id: "menu_006", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1, available: true, category: "Makanan", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Gulai_Mangut_Semarang.png" },
-        { id: "menu_029", name: "ES TEH", price: 5000, qty: 1, available: true, category: "Minuman", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Es%20Teh.jpg" }
+        { id: "menu_006", name: "GULAI MANGUT SEMARANG", price: 35000, qty: 1, available: true, category: "Makanan", image: "/imports/Gulai_Mangut_Semarang.webp" },
+        { id: "menu_029", name: "ES TEH", price: 5000, qty: 1, available: true, category: "Minuman", image: "/imports/Es_Teh.webp" }
       ],
       subtotal: 40000,
       total: 40000,
@@ -125,8 +125,8 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       id: "O-1002",
       tableId: "A4",
       items: [
-        { id: "menu_010", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2, available: true, category: "Makanan", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Tahu_Gimbal_Semarang.jpg" },
-        { id: "menu_018", name: "NIPIS MADU", price: 12000, qty: 2, available: true, category: "Minuman", image: "https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/public-images/Nipis%20Madu.png" }
+        { id: "menu_010", name: "TAHU GIMBAL SEMARANG", price: 25000, qty: 2, available: true, category: "Makanan", image: "/imports/Tahu_Gimbal_Semarang.webp" },
+        { id: "menu_018", name: "NIPIS MADU", price: 12000, qty: 2, available: true, category: "Minuman", image: "/imports/Nipis_Madu.webp" }
       ],
       subtotal: 74000,
       total: 74000,

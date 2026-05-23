@@ -1074,7 +1074,7 @@ export default function GuestMenuPage() {
                       className="w-16 h-16 rounded-2xl object-cover border-2 border-foreground/10 shadow-sm"
                     />
                     <img 
-                      src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+                      src="/logo-kedai-elvera-57.png" 
                       alt="Sertifikat Halal" 
                       className={`h-16 w-auto object-contain transition-all duration-500 ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
                     />
@@ -1173,7 +1173,7 @@ export default function GuestMenuPage() {
                 <div className="text-center mb-5">
                   <div className="relative mb-3 flex items-center justify-center">
                     <img 
-                      src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+                      src="/logo-kedai-elvera-57.png" 
                       alt="Sertifikat Halal" 
                       className={`h-14 w-auto object-contain transition-all duration-500 hover:scale-105 filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)] ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
                     />
@@ -1273,7 +1273,7 @@ export default function GuestMenuPage() {
           </div>
           <div className="flex-shrink-0 mr-1">
             <img 
-              src="https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo_halal.png" 
+              src="/logo-kedai-elvera-57.png" 
               alt="Sertifikat Halal" 
               className={`h-[65px] w-auto object-contain transition-all duration-500 ${isDark ? 'halal-shift-dark' : 'halal-shift-light'}`}
               title="Restoran Bersertifikat Halal"
