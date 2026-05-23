@@ -19,7 +19,7 @@ export function isUrl(s: string) {
   return s.startsWith("http://") || s.startsWith("https://") || s.startsWith("blob:");
 }
 
-function compressImage(file: File, maxW = 1000, maxH = 1000): Promise<Blob> {
+function compressImage(file: File, maxW = 600, maxH = 600): Promise<Blob> {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -60,8 +60,8 @@ function compressImage(file: File, maxW = 1000, maxH = 1000): Promise<Blob> {
               resolve(file);
             }
           },
-          "image/jpeg",
-          0.75
+          "image/webp",
+          0.8
         );
       };
       img.onerror = () => resolve(file);
@@ -95,13 +95,13 @@ export function PhotoUploader({
     setUploading(true);
     try {
       const compressedBlob = await compressImage(file);
-      const ext = "jpg"; // Convert to jpg
+      const ext = "webp"; // Convert to webp
       const path = `${folder}/${genId()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from(bucket)
         .upload(path, compressedBlob, { 
           upsert: true, 
-          contentType: "image/jpeg",
+          contentType: "image/webp",
           cacheControl: "3600"
         });
       if (upErr) throw upErr;
