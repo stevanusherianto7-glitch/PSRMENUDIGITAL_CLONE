@@ -95,6 +95,21 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase') || id.includes('supabase-js')) return 'supabase-vendor';
+            if (id.includes('recharts') || id.includes('d3')) return 'charts-vendor';
+            if (id.includes('@mui') || id.includes('@emotion')) return 'mui-vendor';
+            if (id.includes('@radix-ui') || id.includes('lucide-react')) return 'ui-primitives';
+          }
+        }
+      }
+    }
+  },
   server: {
     port: 5173,
     strictPort: true,
