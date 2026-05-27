@@ -11,7 +11,7 @@ import {
   Utensils, ShoppingBag, Sparkles, MapPin, AlertCircle,
   Calendar, Users, Phone, User, FileText, Camera, Lock, Unlock, ShieldCheck
 } from "lucide-react";
-import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
+import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg, RESTAURANT_COORDS, ALLOWED_RADIUS_METERS } from "../data";
 import { supabase } from "../../lib/supabase";
 import { createOrder, fetchOrders, deleteOrder, updateOrder, getOrderDuration } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
@@ -149,9 +149,7 @@ export default function GuestMenuPage() {
   const [pinError, setPinError] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 
-  // Koordinat Kedai Elvera 57
-  const RESTAURANT_COORDS = { lat: -6.959087889298753, lng: 107.70170323880113 };
-  const ALLOWED_RADIUS_METERS = 150; // Radius toleransi GPS (meter)
+  // Koordinat dan radius sekarang di-import dari src/app/data.ts
 
   function getDailyVerificationPIN() {
     const today = new Date();
