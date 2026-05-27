@@ -306,7 +306,7 @@ class PrintService {
     if (isAndroid) {
       // Android Browser: RawBT adalah satu-satunya cara reliable untuk BT Classic printer
       const options: BluetoothDevice[] = [
-        { id: 'rawbt-intent', name: '⭐ RawBT — Cetak via Bluetooth (Recommended)', address: 'rawbt-intent' },
+        { id: 'rawbt-intent', name: '⭐ RawBT — Cetak via Bluetooth (06:2B:E0:4C:71:DF)', address: 'rawbt-intent' },
       ];
       // Eksperimental: Web Serial Bluetooth RFCOMM (Chrome 138+ Android)
       if (typeof navigator !== 'undefined' && 'serial' in navigator) {
