@@ -15,10 +15,10 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-// Local offline-ready logo with fallback reference: /icon.png
-export const APP_LOGO = "/icon.png";
+// Local offline-ready logo with fallback reference: /logo_kedai_Elvera57.webp
+export const APP_LOGO = "/logo_kedai_Elvera57.webp";
 export const BRAND_TAGLINE = "Sajian Spesial Penuh Rasa";
-export const PUBLIC_ICON_LOGO = "/icon.png";
+export const PUBLIC_ICON_LOGO = "/logo_kedai_Elvera57.webp";
 
 // ─── LOKASI & GEOFENCING (Kedai Elvera 57) ────────────────────────────────────
 export const RESTAURANT_COORDS = { lat: -6.302803597899337, lng: 106.77826146312971 };
@@ -357,7 +357,7 @@ export const orderModeConfig = {
   "take-away": { label: "Take Away", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
 } as const;
 
-export const GUEST_BASE_URL = "https://psrmenudigital.vercel.app";
+export const GUEST_BASE_URL = "https://psrmenudigital-clone.vercel.app";
 
 export const tableStatusConfig = {
   available: { label: "Kosong", color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" },
