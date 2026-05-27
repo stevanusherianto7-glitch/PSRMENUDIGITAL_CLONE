@@ -43,11 +43,7 @@ export const ReceiptTemplate = {
       .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
       .text('Kedai Elvera 57')
       .newline()
-      .text('Ruko Beryl Commercial')
-      .newline()
-      .text('Summarecon, Bandung')
-      .newline()
-      .text('Jl. Bulevar Selatan No.78')
+      .text('Jl. Pertanian Raya No. 57')
       .newline()
       .text('WA: 0823-2033-6007')
       .newline()
@@ -65,7 +61,7 @@ export const ReceiptTemplate = {
     }
 
     builder = builder
-      .text(`Kasir: Sansan`)
+      .text(`Kasir: Mrs Verena`)
       .newline()
       .text('--------------------------------') 
       .newline()
@@ -246,11 +242,7 @@ export const ReceiptTemplate = {
       .raw([0x1B, 0x61, 0x01]) // Center
       .text('Kedai Elvera 57')
       .newline()
-      .text('Ruko Beryl Commercial')
-      .newline()
-      .text('Summarecon, Bandung')
-      .newline()
-      .text('Jl. Bulevar Selatan No.78')
+      .text('Jl. Pertanian Raya No. 57')
       .newline()
       .text('WA: 0823-2033-6007')
       .newline()
