@@ -21,7 +21,7 @@ export const BRAND_TAGLINE = "Sajian Spesial Penuh Rasa";
 export const PUBLIC_ICON_LOGO = "/logo_kedai_Elvera57.webp";
 
 // ─── LOKASI & GEOFENCING (Kedai Elvera 57) ────────────────────────────────────
-export const RESTAURANT_COORDS = { lat: -6.302803597899337, lng: 106.77826146312971 };
+export const RESTAURANT_COORDS = { lat: -6.302760941952337, lng: 106.77789668270078 };
 export const ALLOWED_RADIUS_METERS = 150; // Radius toleransi GPS (meter)
 
 // ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
