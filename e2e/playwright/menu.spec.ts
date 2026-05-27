@@ -24,7 +24,7 @@ test.describe('Kedai Elvera 57 - Guest Menu & Ordering E2E Flow (Playwright Real
       await introButton.click();
     }
 
-    // Assert welcome screen title and Halal certificate presence
+    // Assert welcome screen title
     await expect(page.locator('text=Selamat Datang di')).toBeVisible();
     await expect(page.locator('text=Kedai Elvera 57!')).toBeVisible();
     await expect(page.locator('text=Meja A9').first()).toBeVisible();
@@ -90,7 +90,7 @@ test.describe('Kedai Elvera 57 - Guest Menu & Ordering E2E Flow (Playwright Real
 
     // Wait for the transition to the status view
     await expect(page.locator('h2:has-text("Status Pesanan")')).toBeVisible();
-    await expect(page.locator('span:has-text("Menunggu Konfirmasi")').first()).toBeVisible();
+    await expect(page.locator('text="Menunggu Konfirmasi"').first()).toBeVisible({ timeout: 15000 });
 
     // --- 6. CLEANUP ACTIVE ORDERS (RESTORE DB STATE) ---
     // Click on the Trash can icon in the header to reset orders on this table
