@@ -36,6 +36,7 @@ class PrintService {
   // HARDCODE MAC PRINTER ANDA
   private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
   private readonly DEFAULT_NAME = 'RPP02N';
+  private readonly ALLOWED_MACS = ['06:2B:E0:4C:71:DF', '18:67:EF:6E:E6:88'];
 
   /** Deteksi apakah berjalan di browser Android (bukan native Capacitor) */
   public isMobileAndroid(): boolean {
@@ -143,6 +144,15 @@ class PrintService {
           const keywords = ['THERMAL', 'PRINTER', '58MM', '58PRINTER', 'MTP', 'POS', 'BT-PRINTER'];
           found = devices.find((d: any) => 
             d.name && keywords.some(kw => d.name.toUpperCase().includes(kw))
+          );
+          if (found) {
+            resolve(found.address);
+            return;
+          }
+
+          // 3. Prioritas Ketiga: Cocokkan dengan daftar MAC yang diizinkan
+          found = devices.find((d: any) => 
+            d.address && this.ALLOWED_MACS.includes(d.address.toUpperCase())
           );
           if (found) {
             resolve(found.address);
