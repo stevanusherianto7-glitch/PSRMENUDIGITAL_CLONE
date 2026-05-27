@@ -45,7 +45,7 @@ export const ReceiptTemplate = {
       .newline()
       .text('Jl. Pertanian Raya No. 57')
       .newline()
-      .text('WA: 0823-2033-6007')
+      .text('WA: 0895-3763-48626')
       .newline()
       .newline()
       .raw([0x1B, 0x61, 0x00]) // ESC a 0 (Left) - KEMBALIKAN KE KIRI
@@ -244,7 +244,7 @@ export const ReceiptTemplate = {
       .newline()
       .text('Jl. Pertanian Raya No. 57')
       .newline()
-      .text('WA: 0823-2033-6007')
+      .text('WA: 0895-3763-48626')
       .newline()
       .text('--------------------------------')
       .newline()
