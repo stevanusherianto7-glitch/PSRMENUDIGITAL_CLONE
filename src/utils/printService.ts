@@ -681,7 +681,7 @@ class PrintService {
       .raw([0x1B, 0x61, 0x01]) // ESC a 1 (Center)
       .text('--- UJI COBA CETAK ---')
       .newline()
-      .text('PAWON SALAM')
+      .text('Kedai Elvera 57')
       .newline()
       .text('--------------------------------')
       .newline()

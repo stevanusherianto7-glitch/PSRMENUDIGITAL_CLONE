@@ -40,7 +40,7 @@ function StickerWithPrintArea({ tableId, size, wrapperRef }: {
         {/* Branding */}
         <div className="z-10 flex flex-col items-center gap-0.5">
           <img src={logoImg} alt="Logo" className="w-8 h-8 object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
-          <h2 className="text-[9px] font-black uppercase tracking-[0.35em] mb-0 text-gold-theme">PAWON SALAM</h2>
+          <h2 className="text-[9px] font-black uppercase tracking-[0.35em] mb-0 text-gold-theme">Kedai Elvera 57</h2>
           <div className="h-[1px] w-6 bg-gold-gradient-fade mt-0.5" />
         </div>
 

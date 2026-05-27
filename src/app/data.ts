@@ -1,6 +1,6 @@
 /** 
  * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
- * FILE INI BERISI CONFIG PRODUKSI, SEED DATA, DAN URL DOMAIN PAWON SALAM.
+ * FILE INI BERISI CONFIG PRODUKSI, SEED DATA, DAN URL DOMAIN Kedai Elvera 57.
  * PERUBAHAN TIDAK TERUKUR DAPAT MERUSAK TAMPILAN DAN QR CODE. ⚠️
  */
 
@@ -15,10 +15,10 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-// Local offline-ready logo with fallback reference: /logo-kedai-elvera-57.png
-export const APP_LOGO = "/logo-kedai-elvera-57.png";
-export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
-export const PUBLIC_ICON_LOGO = "/logo-kedai-elvera-57.png";
+// Local offline-ready logo with fallback reference: /icon.png
+export const APP_LOGO = "/icon.png";
+export const BRAND_TAGLINE = "Sajian Spesial Penuh Rasa";
+export const PUBLIC_ICON_LOGO = "/icon.png";
 
 // ─── LOKASI & GEOFENCING (Kedai Elvera 57) ────────────────────────────────────
 export const RESTAURANT_COORDS = { lat: -6.302803597899337, lng: 106.77826146312971 };

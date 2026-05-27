@@ -145,7 +145,7 @@ export const KalkulatorHPP = () => {
 
   const handleDownloadPDF = () => {
     exportHPPReport(
-      "PAWON SALAM",
+      "Kedai Elvera 57",
       recipeName,
       ingredients,
       shrinkagePercent,

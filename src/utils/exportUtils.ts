@@ -152,7 +152,7 @@ export function exportCategorySalesReport(
     </head>
     <body>
       <div class="header">
-        <h1>PAWON SALAM</h1>
+        <h1>Kedai Elvera 57</h1>
         <p class="subtitle">Laporan Penjualan Per Kategori</p>
         <p style="font-size: 11px; margin-top: 5px;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
       </div>
@@ -340,7 +340,7 @@ export function exportInventoryPDF(
     <body>
       <div class="header">
         <div class="header-left">
-          <h1>PAWON SALAM</h1>
+          <h1>Kedai Elvera 57</h1>
           <p>LAPORAN STOK OPNAME INVENTARIS</p>
         </div>
         <div class="header-right">
