@@ -179,6 +179,18 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   return (
     <div className="space-y-4 pb-10">
       
+      {/* Header Actions */}
+      <div className="flex justify-end items-center mb-2">
+        <button 
+          onClick={handlePrintThermal}
+          disabled={isPrinting}
+          className="flex items-center gap-2 px-4 py-2 bg-[#C8A96E]/10 text-[#C8A96E] border border-[#C8A96E]/30 rounded-xl font-black text-xs hover:bg-[#C8A96E] hover:text-[#141418] transition-all"
+        >
+          <Printer size={16} />
+          {isPrinting ? "Mencetak..." : "Cetak Struk Closing Shift"}
+        </button>
+      </div>
+
       {/* Header Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
