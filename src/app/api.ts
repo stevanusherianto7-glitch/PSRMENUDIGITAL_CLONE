@@ -171,7 +171,8 @@ export async function createOrder(payload: {
 }): Promise<Order> {
   const order: Record<string, any> = {
     id: generateOrderId(),
-    table_id: payload.tableId, // Hanya kirim kolom snake_case yang ada di DB
+    table_id: payload.tableId, // Send to both snake_case and camelCase for DB compatibility
+    tableId: payload.tableId,
     items: payload.items.map((c) => ({
       id: c.id,
       name: c.name,
@@ -182,7 +183,7 @@ export async function createOrder(payload: {
     subtotal: payload.subtotal,
     total: payload.total,
     notes: payload.notes || "",
-    order_mode: payload.orderMode, // Hanya kirim kolom snake_case yang ada di DB
+    orderMode: payload.orderMode, // Kolom di DB menggunakan camelCase
     status: "pending" as OrderStatus,
     type: payload.type,
     created_at: new Date().toISOString(),
