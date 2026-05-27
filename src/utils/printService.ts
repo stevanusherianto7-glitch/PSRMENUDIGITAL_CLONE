@@ -37,6 +37,18 @@ class PrintService {
   private readonly DEFAULT_MAC = '06:2B:E0:4C:71:DF';
   private readonly DEFAULT_NAME = 'RPP02N';
 
+  /** Deteksi apakah berjalan di browser Android (bukan native Capacitor) */
+  public isMobileAndroid(): boolean {
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    return /android/i.test(ua);
+  }
+
+  /** Deteksi apakah berjalan di dalam Capacitor native shell */
+  public isNativeCapacitor(): boolean {
+    return typeof bluetoothSerial !== 'undefined';
+  }
+
   constructor() {
     this.autoReconnectWebSerial();
     this.autoReconnectBluetooth();
@@ -278,10 +290,29 @@ class PrintService {
         );
       });
     }
-    // JIKA DI BROWSER: PAKSA MUNCUL (Agar Tahan Banting)
+    // JIKA DI BROWSER: Tampilkan opsi berdasarkan platform
+    const isAndroid = this.isMobileAndroid();
+
+    if (isAndroid) {
+      // Android Browser: RawBT adalah satu-satunya cara reliable untuk BT Classic printer
+      const options: BluetoothDevice[] = [
+        { id: 'rawbt-intent', name: '⭐ RawBT — Cetak via Bluetooth (Recommended)', address: 'rawbt-intent' },
+      ];
+      // Eksperimental: Web Serial Bluetooth RFCOMM (Chrome 138+ Android)
+      if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+        options.push({
+          id: 'web-serial-bt',
+          name: '🧪 Web Serial Bluetooth (Chrome 138+)',
+          address: 'web-serial-bt'
+        });
+      }
+      return options;
+    }
+
+    // Desktop Browser: Web Serial (USB) + RawBT sebagai alternatif
     return [
-      { id: 'rawbt-intent', name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent' },
-      { id: 'web-serial', name: 'Gunakan Web Serial (Pilih Port Manual)', address: 'web-serial' }
+      { id: 'web-serial', name: 'Gunakan Web Serial (Pilih Port Manual)', address: 'web-serial' },
+      { id: 'rawbt-intent', name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent' }
     ];
   }
 
@@ -301,8 +332,32 @@ class PrintService {
         return true;
       }
 
-      // Web Serial (Chrome/Edge/Desktop)
-      if (address === 'web-serial' || (typeof bluetoothSerial === 'undefined')) {
+      // Web Serial Bluetooth RFCOMM (Chrome 138+ Android — Eksperimental)
+      if (address === 'web-serial-bt') {
+        try {
+          const SPP_UUID = '00001101-0000-1000-8000-00805f9b34fb';
+          const port = await (navigator as any).serial.requestPort({
+            filters: [{ bluetoothServiceClassId: SPP_UUID }]
+          });
+          await port.open({ baudRate: 9600 });
+          this.serialPort = port;
+          this.serialWriter = port.writable.getWriter();
+          this.setConnected(true);
+          this.connectedAddress = 'web-serial-bt';
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem("connectedPrinterAddress", 'web-serial-bt');
+          }
+          toast.success("Printer Bluetooth terhubung via Web Serial.");
+          return true;
+        } catch (err) {
+          console.warn("[PrintService] Web Serial BT RFCOMM failed:", err);
+          toast.error("Gagal koneksi via Web Serial Bluetooth. Gunakan RawBT sebagai alternatif.");
+          return false;
+        }
+      }
+
+      // Web Serial USB (Chrome/Edge/Desktop)
+      if (address === 'web-serial' || (typeof bluetoothSerial === 'undefined' && !this.isMobileAndroid())) {
         const port = await (navigator as any).serial.requestPort();
         await port.open({ baudRate: 9600 });
         this.serialPort = port;
@@ -311,6 +366,12 @@ class PrintService {
         this.connectedAddress = 'web-serial';
         toast.success("Printer Serial terhubung.");
         return true;
+      }
+
+      // Android browser tanpa native plugin — arahkan ke RawBT
+      if (typeof bluetoothSerial === 'undefined' && this.isMobileAndroid()) {
+        toast.error("Browser Android tidak mendukung koneksi Bluetooth langsung. Gunakan opsi RawBT.");
+        return false;
       }
 
       // Cek apakah Bluetooth Aktif sebelum koneksi
@@ -570,11 +631,28 @@ class PrintService {
           }
         );
       } else {
-        // Mock untuk desktop testing / browser PWA
-        resolve([
-          { name: this.DEFAULT_NAME, address: this.DEFAULT_MAC, id: "1" },
-          { name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent', id: 'rawbt-intent' }
-        ]);
+        // Browser PWA: Tampilkan opsi berdasarkan platform
+        const isAndroid = this.isMobileAndroid();
+        if (isAndroid) {
+          // Android Browser: RawBT sebagai opsi utama
+          const options: BluetoothDevice[] = [
+            { name: '⭐ RawBT — Cetak via Bluetooth (Recommended)', address: 'rawbt-intent', id: 'rawbt-intent' }
+          ];
+          if (typeof navigator !== 'undefined' && 'serial' in navigator) {
+            options.push({
+              name: '🧪 Web Serial Bluetooth (Chrome 138+)',
+              address: 'web-serial-bt',
+              id: 'web-serial-bt'
+            });
+          }
+          resolve(options);
+        } else {
+          // Desktop Browser
+          resolve([
+            { name: this.DEFAULT_NAME, address: this.DEFAULT_MAC, id: "1" },
+            { name: 'Gunakan RawBT (Android Web Intent)', address: 'rawbt-intent', id: 'rawbt-intent' }
+          ]);
+        }
       }
     });
   }

@@ -114,7 +114,8 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
 
   async function handleDirectConnect() {
     toast.info("Mencoba koneksi ke RPP02N...");
-    const success = await printService.connect("06:2B:E0:4C:71:DF");
+    const savedAddress = localStorage.getItem("connectedPrinterAddress");
+    const success = await printService.connect(savedAddress || printService.getDefaultMac());
     if (success) toast.success("Printer terhubung!");
     else toast.error("Gagal koneksi.");
   }

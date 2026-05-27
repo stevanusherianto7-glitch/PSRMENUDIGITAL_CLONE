@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Printer, RefreshCw, Bluetooth, AlertTriangle } from "lucide-react";
+import { X, Printer, RefreshCw, Bluetooth, AlertTriangle, ExternalLink, Smartphone } from "lucide-react";
 import { printService, BluetoothDevice } from "../../utils/printService";
 import { toast } from "sonner";
 
@@ -17,6 +17,10 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
   );
   const [printing, setPrinting] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<string>("");
+
+  // Deteksi mode browser (bukan native Capacitor)
+  const isBrowserMode = !printService.isNativeCapacitor();
+  const isAndroidBrowser = isBrowserMode && printService.isMobileAndroid();
 
   useEffect(() => {
     checkBluetooth();
@@ -203,6 +207,48 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
             )}
           </div>
 
+          {/* Browser Mode Info Banner (Android) */}
+          {isAndroidBrowser && (
+            <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 flex-shrink-0 mt-0.5">
+                  <Smartphone size={16} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-400">Mode Browser Terdeteksi</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
+                    Anda membuka aplikasi via browser. Untuk mencetak ke printer Bluetooth, 
+                    gunakan <strong className="text-amber-300">RawBT</strong> sebagai jembatan.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2 ml-11">
+                <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[8px] font-black">1</span>
+                  <span>Install <strong className="text-amber-300">RawBT</strong> dari Play Store</span>
+                </div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[8px] font-black">2</span>
+                  <span>Pairing printer di Settings Bluetooth Android</span>
+                </div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground">
+                  <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[8px] font-black">3</span>
+                  <span>Pilih <strong className="text-amber-300">RawBT</strong> di daftar bawah, lalu Tes Cetak</span>
+                </div>
+              </div>
+              <a
+                href="https://play.google.com/store/apps/details?id=ru.a402d.rawbtprinter"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 ml-11 mt-1 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[9px] font-black uppercase tracking-wider text-amber-400 hover:bg-amber-500/20 transition-all duration-300"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ExternalLink size={10} />
+                Download RawBT di Play Store
+              </a>
+            </div>
+          )}
+
           {/* List Devices */}
           <div className="space-y-3">
             <div className="flex items-center justify-between mb-1">
@@ -277,7 +323,15 @@ export function PrinterSettingsModal({ onClose }: PrinterSettingsModalProps) {
                           <Printer size={16} />
                         </div>
                         <div className="text-left">
-                          <p className="text-xs font-black uppercase tracking-wider">{device.name || "Unknown Printer"}</p>
+                          <p className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                            {device.name || "Unknown Printer"}
+                            {device.address === 'rawbt-intent' && isAndroidBrowser && (
+                              <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 uppercase tracking-widest">Best</span>
+                            )}
+                            {device.address === 'web-serial-bt' && (
+                              <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 uppercase tracking-widest">Beta</span>
+                            )}
+                          </p>
                           <p className="text-[9px] font-mono text-muted-foreground mt-0.5 tracking-widest">{device.address}</p>
                         </div>
                       </div>
