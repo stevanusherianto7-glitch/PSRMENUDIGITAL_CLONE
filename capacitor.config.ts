@@ -7,7 +7,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.kedaielvera57.pos',
-  appName: 'Kedai Elvera 57',
+  appName: 'Kedai Elvera 57 POS',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

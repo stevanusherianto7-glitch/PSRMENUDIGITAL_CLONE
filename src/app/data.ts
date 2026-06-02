@@ -15,12 +15,16 @@ const addDays = (d: Date, n: number) => {
 
 // ─── BRAND CONFIG ─────────────────────────────────────────────────────────────
 export const BRAND_NAME = "Kedai Elvera 57";
-// Local offline-ready logo with fallback reference: https://pbitlwrgainrcippjuwd.supabase.co/storage/v1/object/public/logo/logo%20pawon%20salam.png
+// Local offline-ready logo with fallback reference: /logo-kedai-elvera-57.png
 export const APP_LOGO = "/logo-kedai-elvera-57.png";
-export const BRAND_TAGLINE = "Sajian Otentik Khas Semarang";
+export const BRAND_TAGLINE = "Sajian Otentik Penuh Cita Rasa";
 export const PUBLIC_ICON_LOGO = "/logo-kedai-elvera-57.png";
 
-// ─── SEED MENU (Fetched from Supabase Project B) ──────────────────────────────────
+// ─── LOKASI & GEOFENCING (Kedai Elvera 57) ────────────────────────────────────────
+export const RESTAURANT_COORDS = { lat: -7.007820, lng: 110.411850 }; // Semarang
+export const ALLOWED_RADIUS_METERS = 300; // Radius toleransi GPS diperbesar (meter) untuk Opsi B
+
+// ─── SEED MENU (Fetched from Supabase / Local Fallback) ───────────────────────
 export const SEED_MENU: MenuItem[] = [
   {
     "id": "menu_001",
