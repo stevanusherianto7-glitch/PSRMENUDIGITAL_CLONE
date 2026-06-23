@@ -6,17 +6,14 @@
 
 import { useState, useRef } from "react";
 import { 
-  ArrowUpRight, Database, Printer, ExternalLink, 
-  RefreshCw, X, PieChart as PieIcon, BarChart3, Clock, Download
+  ArrowUpRight, Database, 
+  PieChart as PieIcon, BarChart3, Clock, Download
 } from "lucide-react";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend 
 } from "recharts";
-import { rp, BEST_SELLER_DATA, PAYMENT_DATA } from "../data";
-import { printService } from "../../utils/printService";
-import { ClosingReceipt } from "./ReceiptTemplates";
-import { toast } from "sonner";
+import { rp } from "../data";
 import type { Transaction } from "../types";
 import { exportCategorySalesReport } from "../../utils/exportUtils";
 
@@ -77,8 +74,6 @@ function TiltCard({ children, className = "", glowColor = "rgba(200, 169, 110, 0
 }
 
 export function LaporanModule({ transactions }: LaporanModuleProps) {
-  const [isPrinting, setIsPrinting] = useState(false);
-  const [pdfImage, setPdfImage] = useState<string | null>(null);
 
   // 1. Data Penjualan per Kategori (Makanan, Snack, Minuman)
   const categories = ["Makanan", "Snack", "Minuman"];
@@ -106,65 +101,68 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
   }));
 
   // 2. Data Jam Ramai Transaksi (10:00 - 22:00)
+  // Fix Bug#5: removed Math.random() mock — use 0 for hours with no real data
   const hourlyData = Array.from({ length: 13 }, (_, i) => {
     const hour = i + 10;
     const count = hasTx ? transactions.filter(tx => {
-      const txHour = new Date(tx.created_at).getHours();
-      return txHour === hour;
-    }).length : Math.floor(Math.random() * 40) + 10; // Mock data jika kosong
+      if (!tx.created_at) return false;
+      const txDate = new Date(tx.created_at);
+      return !isNaN(txDate.getTime()) && txDate.getHours() === hour;
+    }).length : 0;
     return { name: `${hour}:00`, total: count };
   });
 
-  const weekTotal = transactions.reduce((s, tx) => s + tx.total, 0) || 37942000;
-  const txCount = transactions.length || 377;
-  const avgTx = txCount > 0 ? Math.round(weekTotal / txCount) : 100640;
+  // Fix Bug#6: remove hardcoded fallback numbers — show 0 if no real data
+  const weekTotal = transactions.reduce((s, tx) => s + (tx.total || 0), 0);
+  const txCount = transactions.length;
+  const avgTx = txCount > 0 ? Math.round(weekTotal / txCount) : 0;
 
-  async function handleDirectConnect() {
-    toast.info("Mencoba koneksi ke RPP02N...");
-    const success = await printService.connect("06:2B:E0:4C:71:DF");
-    if (success) toast.success("Printer terhubung!");
-    else toast.error("Gagal koneksi.");
-  }
+  // Fix Bug#8: Compute best sellers from real transaction items
+  const itemSalesMap = new Map<string, { name: string; qty: number; revenue: number }>();
+  transactions.forEach(tx => {
+    (tx.items || []).forEach(item => {
+      const existing = itemSalesMap.get(item.id) || { name: item.name, qty: 0, revenue: 0 };
+      itemSalesMap.set(item.id, {
+        name: item.name,
+        qty: existing.qty + (item.qty || 0),
+        revenue: existing.revenue + ((item.price || 0) * (item.qty || 0)),
+      });
+    });
+  });
+  const realBestSellers = Array.from(itemSalesMap.values())
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 5);
+  const bestSellerDisplay = hasTx ? realBestSellers : [];
 
-  async function handlePrintThermal() {
-    setIsPrinting(true);
-    try {
-      // Mock closing data for thermal
-      const closingData = {
-        date: new Date().toLocaleDateString("id-ID"),
-        penjualanBersih: weekTotal,
-        pb1: Math.round(weekTotal * 0.1),
-        qris: transactions.filter(tx => tx.method === "QRIS").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.4),
-        tunai: transactions.filter(tx => tx.method === "Tunai").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        kartu: transactions.filter(tx => tx.method === "Debit").reduce((s, tx) => s + tx.total, 0) || (weekTotal * 0.3),
-        totalTransaksi: txCount,
-        totalItem: transactions.reduce((s, tx) => s + tx.items.length, 0) || 500,
-        hpp: Math.round(weekTotal * 0.4),
-        labaKotor: Math.round(weekTotal * 0.6)
-      };
-      await printService.printClosingReport(); // Using pre-existing method
-      toast.success("Laporan closing dicetak.");
-    } catch (err) {
-      toast.error("Gagal cetak.");
-    } finally {
-      setIsPrinting(false);
-    }
-  }
+  // Fix Bug#9: Compute payment method breakdown from real transaction data
+  const paymentBreakdown = (() => {
+    const methods = ["QRIS", "Tunai", "Debit"];
+    const totals = methods.map(m => ({
+      name: m,
+      amount: transactions.filter(tx => tx.method === m).reduce((s, tx) => s + (tx.total || 0), 0),
+    }));
+    const grandTotal = totals.reduce((s, t) => s + t.amount, 0);
+    return totals.map((t, i) => ({
+      name: t.name,
+      value: grandTotal > 0 ? Math.round((t.amount / grandTotal) * 100) : 0,
+      color: ["#6366F1", "#10B981", "#F59E0B"][i],
+    }));
+  })();
 
   return (
     <div className="space-y-4 pb-10">
       
-      {/* Header Stats */}
+      {/* Header Stats — Fix Bug#7: removed hardcoded trend strings */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { label: "Omzet Penjualan", val: rp(weekTotal), trend: "+18.3%", accent: "text-primary" },
-          { label: "Volume Transaksi", val: `${txCount} Order`, trend: "+22 tx", accent: "text-foreground" },
-          { label: "Rata-rata Struk", val: rp(avgTx), trend: null, accent: "text-foreground" },
+          { label: "Omzet Penjualan", val: rp(weekTotal), sub: hasTx ? `${txCount} transaksi` : "Belum ada data", accent: "text-primary" },
+          { label: "Volume Transaksi", val: hasTx ? `${txCount} Order` : "0 Order", sub: hasTx ? `avg ${rp(avgTx)}` : "-", accent: "text-foreground" },
+          { label: "Rata-rata Struk", val: rp(avgTx), sub: hasTx ? "per transaksi" : "Belum ada data", accent: "text-foreground" },
         ].map(m => (
           <div key={m.label} className="bg-card border border-border/60 rounded-xl p-4 flex flex-col justify-between shadow-sm">
             <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.15em] mb-1">{m.label}</p>
             <p className={`font-black text-lg leading-tight font-['Poppins'] truncate ${m.accent}`}>{m.val}</p>
-            {m.trend && <p className="text-green-500 text-[10px] font-bold mt-1 flex items-center gap-1"><ArrowUpRight size={10} /> {m.trend}</p>}
+            <p className="text-muted-foreground text-[10px] font-bold mt-1">{m.sub}</p>
           </div>
         ))}
       </div>
@@ -267,27 +265,8 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
 
       </div>
 
-      {/* Action Row - Centered Professional Layout */}
-      <div className="flex flex-col items-center justify-center gap-4 py-8 bg-white/2 border border-white/5 rounded-[2.5rem] shadow-inner">
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <button
-            onClick={handleDirectConnect}
-            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-500/20 active:scale-95 group"
-          >
-            <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
-            Connect RPP02N
-          </button>
-          <button
-            onClick={handlePrintThermal}
-            disabled={isPrinting}
-            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-50 shadow-lg active:scale-95"
-          >
-            {isPrinting ? <RefreshCw size={18} className="animate-spin" /> : <Printer size={18} />}
-            Terminal Closing
-          </button>
-        </div>
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">Hardware Command Center</p>
-      </div>
+
+
 
       {/* ── Table Top Products & Payment (Simplified) ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -297,7 +276,7 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
             <h3 className="font-black text-xs uppercase tracking-widest text-foreground">Menu Terlaris</h3>
           </div>
           <div className="space-y-3">
-            {BEST_SELLER_DATA.slice(0, 5).map((d, i) => (
+            {bestSellerDisplay.length > 0 ? bestSellerDisplay.map((d, i) => (
               <div key={d.name} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                 <div className="flex items-center gap-3">
                   <span className="text-muted-foreground text-[10px] font-black">0{i+1}</span>
@@ -305,7 +284,9 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
                 </div>
                 <span className="text-xs font-black text-gold">{d.qty} Porsi</span>
               </div>
-            ))}
+            )) : (
+              <p className="text-center text-[11px] text-muted-foreground py-6 opacity-50">Belum ada transaksi</p>
+            )}
           </div>
         </div>
         
@@ -315,7 +296,9 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
             <h3 className="font-black text-xs uppercase tracking-widest text-foreground">Metode Pembayaran</h3>
           </div>
           <div className="space-y-4">
-            {PAYMENT_DATA.map(d => (
+            {paymentBreakdown.every(d => d.value === 0) ? (
+              <p className="text-center text-[11px] text-muted-foreground py-6 opacity-50">Belum ada transaksi</p>
+            ) : paymentBreakdown.map(d => (
               <div key={d.name} className="space-y-1.5">
                 <div className="flex justify-between items-end">
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{d.name}</span>

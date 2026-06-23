@@ -709,6 +709,14 @@ export default function AdminPage() {
               </button>
             </div>
 
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400">
+              <span className="text-[10px] font-bold uppercase tracking-widest">PIN TAMU:</span>
+              <span className="text-xs font-black tracking-widest">{
+                String(new Date().getDate()).padStart(2, '0') +
+                String(new Date().getMonth() + 1).padStart(2, '0')
+              }</span>
+            </div>
+
             <ThemeToggle />
 
             <button onClick={() => setActiveModule("orders")} className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -758,8 +766,8 @@ export default function AdminPage() {
                 <div className="px-4 lg:px-0">
                   {/* Date Picker Modal */}
                   {showDatePicker && (
-                    <div className="fixed inset-0 bg-black/40 dark:bg-black/ backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-                      <div className="relative max-w-4xl w-full">
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                      <div className="relative max-w-2xl w-full">
                         <button
                           onClick={() => setShowDatePicker(false)}
                           title="Tutup"
@@ -767,12 +775,10 @@ export default function AdminPage() {
                         >
                           <XCircle size={24} />
                         </button>
-                        <div className="bg-[#141418] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-                          <DateRangePicker
-                            onSelect={(range) => setDateRange(range)}
-                            onClose={() => setShowDatePicker(false)}
-                          />
-                        </div>
+                        <DateRangePicker
+                          onSelect={(range) => setDateRange(range)}
+                          onClose={() => setShowDatePicker(false)}
+                        />
                       </div>
                     </div>
                   )}

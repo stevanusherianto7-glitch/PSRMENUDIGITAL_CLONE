@@ -136,8 +136,8 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       .map(i => `${i.name} ${i.qty === 1 ? "satu" : i.qty === 2 ? "dua" : i.qty === 3 ? "tiga" : i.qty === 4 ? "empat" : i.qty === 5 ? "lima" : String(i.qty)}`)
       .join(", ");
     const source = order.type === "guest" ? "dari tamu" : order.type === "waiter" ? "dari pelayan" : "dari kasir";
-    const tableId = order.tableId || order.table_id || "?";
-    const mode = order.orderMode === "take-away" || order.order_mode === "take-away" ? ", dibungkus" : ", makan di tempat";
+    const tableId = order.tableId || "?";
+    const mode = order.orderMode === "take-away" ? ", dibungkus" : ", makan di tempat";
     const chefNote = order.notes ? `Catatan untuk shef: ${order.notes}` : "";
     
     const hasFood = order.items.some(i => i.category === "Makanan" || i.category === "Snack");

@@ -55,7 +55,10 @@ export default function GuestMenuPage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [welcomeMode, setWelcomeMode] = useState<OrderMode>("dine-in");
-  const [welcomeStep, setWelcomeStep] = useState<1 | 2>(1);
+  const [welcomeStep, setWelcomeStep] = useState<1 | 2 | 3>(1);
+  const [locStatus, setLocStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [locError, setLocError] = useState("");
+  const [pinInput, setPinInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -252,9 +255,82 @@ export default function GuestMenuPage() {
     },
   };
 
+  function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+    var R = 6371; 
+    var dLat = (lat2-lat1) * (Math.PI/180);  
+    var dLon = (lon2-lon1) * (Math.PI/180); 
+    var a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+      ; 
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    var d = R * c; 
+    return d;
+  }
+
+  const RESTO_LAT = -6.959044795912027;
+  const RESTO_LON = 107.70142536736377;
+  const MAX_DISTANCE_KM = 0.1; // 100 meter
+
   function handleStartOrder() {
-    setOrderMode(welcomeMode);
-    setShowWelcome(false);
+    setWelcomeStep(3);
+    verifyLocation();
+  }
+
+  function verifyLocation() {
+    setLocStatus("loading");
+    if (!navigator.geolocation) {
+      setLocError("Geolokasi tidak didukung oleh perangkat ini.");
+      setLocStatus("error");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const dist = getDistanceFromLatLonInKm(
+          position.coords.latitude, 
+          position.coords.longitude, 
+          RESTO_LAT, 
+          RESTO_LON
+        );
+        if (dist <= MAX_DISTANCE_KM) {
+          setLocStatus("success");
+          setTimeout(() => {
+            setOrderMode(welcomeMode);
+            setShowWelcome(false);
+          }, 1500);
+        } else {
+          setLocError(`Anda berada terlalu jauh dari restoran (${(dist * 1000).toFixed(0)} meter). Pastikan Anda berada di area Kedai Elvera 57.`);
+          setLocStatus("error");
+        }
+      },
+      (error) => {
+        let errMessage = "Akses lokasi ditolak atau gagal. Pastikan GPS aktif dan izinkan akses lokasi.";
+        if (error.code === 1) errMessage = "Akses lokasi ditolak oleh browser Anda. Mohon izinkan lokasi di pengaturan.";
+        else if (error.code === 2) errMessage = "Posisi GPS tidak tersedia saat ini.";
+        else if (error.code === 3) errMessage = "Waktu permintaan lokasi habis.";
+        setLocError(errMessage);
+        setLocStatus("error");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }
+
+  function verifyPin() {
+    const today = new Date();
+    const dynamicPin = String(today.getDate()).padStart(2, '0') + 
+                       String(today.getMonth() + 1).padStart(2, '0');
+
+    if (pinInput === dynamicPin || pinInput.toUpperCase() === "PAWON") {
+      setLocStatus("success");
+      setTimeout(() => {
+        setOrderMode(welcomeMode);
+        setShowWelcome(false);
+      }, 1000);
+    } else {
+      setLocError("PIN salah! Silakan tanya pelayan kami.");
+    }
   }
 
   async function handleResetActiveOrders() {
@@ -552,6 +628,64 @@ export default function GuestMenuPage() {
                 <p className="text-center text-[10px] text-muted-foreground mt-3">
                   Meja {tableId} · {BRAND_NAME} · Semarang
                 </p>
+              </div>
+            )}
+
+            {welcomeStep === 3 && (
+              <div className="p-6">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${
+                    locStatus === "loading" ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" :
+                    locStatus === "success" ? "bg-green-500/10 text-green-500 border border-green-500/20" :
+                    "bg-red-500/10 text-red-500 border border-red-500/20"
+                  }`}>
+                    {locStatus === "loading" && <RefreshCw size={28} className="animate-spin" />}
+                    {locStatus === "success" && <CheckCircle2 size={28} />}
+                    {locStatus === "error" && <MapPin size={28} />}
+                  </div>
+                  
+                  <h2 className="text-xl font-extrabold text-foreground leading-tight font-poppins mb-2">
+                    {locStatus === "loading" && "Memverifikasi Lokasi..."}
+                    {locStatus === "success" && "Lokasi Terverifikasi!"}
+                    {locStatus === "error" && "Verifikasi Gagal"}
+                  </h2>
+                  
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {locStatus === "loading" && "Kami sedang memastikan Anda berada di dalam restoran untuk mencegah pesanan fiktif."}
+                    {locStatus === "success" && "Anda siap untuk memesan! Mengarahkan ke menu..."}
+                    {locStatus === "error" && locError}
+                  </p>
+                </div>
+
+                {locStatus === "error" && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 mb-5">
+                    <p className="text-xs font-bold text-foreground mb-3 text-center">Gunakan PIN (Bantuan Pelayan)</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="password" 
+                        value={pinInput}
+                        onChange={(e) => setPinInput(e.target.value)}
+                        placeholder="Masukkan PIN" 
+                        className="flex-1 bg-card border border-border rounded-xl px-4 text-sm font-bold tracking-widest text-center focus:outline-none focus:border-primary/50"
+                      />
+                      <button 
+                        onClick={verifyPin}
+                        className="bg-primary text-white px-5 rounded-xl font-bold text-xs hover:bg-indigo-500 transition-colors"
+                      >
+                        Cek
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {locStatus === "error" && (
+                  <button
+                    onClick={verifyLocation}
+                    className="w-full py-4 rounded-2xl bg-secondary text-foreground font-bold text-sm hover:bg-border transition-all active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw size={16} /> Coba Deteksi Ulang
+                  </button>
+                )}
               </div>
             )}
           </div>

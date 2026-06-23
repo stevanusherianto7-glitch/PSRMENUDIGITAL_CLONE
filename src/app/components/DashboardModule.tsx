@@ -64,6 +64,15 @@ function HourlySalesChart({ data }: { data: { hour: string; sales: number }[] })
 }
 
 function CategoryPieChart({ data }: { data: { name: string; value: number }[] }) {
+  // Guard: if no data, show empty state instead of broken chart
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-[180px] flex flex-col items-center justify-center text-muted-foreground opacity-50">
+        <PieIcon size={28} className="mb-2" />
+        <p className="text-[10px] font-bold uppercase tracking-widest">Belum Ada Data</p>
+      </div>
+    );
+  }
   return (
     <div className="w-full h-[180px]">
       <ResponsiveContainer>
@@ -261,10 +270,12 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   }));
 
   transactions.forEach(tx => {
-    if (tx.created_at.startsWith(todayStr)) {
-      const hour = new Date(tx.created_at).getHours();
-      if (hour >= 0 && hour < 24) {
-        hourlyData[hour].sales += tx.total;
+    if (tx.created_at && tx.created_at.startsWith(todayStr)) {
+      const parsedDate = new Date(tx.created_at);
+      const hour = parsedDate.getHours();
+      // Guard against Invalid Date (NaN)
+      if (!isNaN(hour) && hour >= 0 && hour < 24) {
+        hourlyData[hour].sales += tx.total || 0;
         hourlyData[hour].count += 1;
       }
     }
@@ -282,8 +293,10 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
   });
   const categoryData = Array.from(catMap.entries()).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
 
-  // 3. Peak Hours (Order Count)
-  const peakHoursData = hourlyData.map(h => ({ hour: h.hour, count: h.count })).filter(h => h.count > 0 || (parseInt(h.hour) > 9 && parseInt(h.hour) < 22));
+  // 3. Peak Hours — only include hours that actually have transactions, plus operating range 10-22
+  const peakHoursData = hourlyData
+    .filter(h => h.count > 0 || (parseInt(h.hour) >= 10 && parseInt(h.hour) <= 22))
+    .map(h => ({ hour: h.hour.slice(0, 5), count: h.count }));
 
   return (
     <div className="space-y-4 pt-8">
@@ -317,11 +330,11 @@ export const DashboardModule = ({ transactions, liveOrders, connected }: Dashboa
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <MetricCard label="Penjualan" value={rp(todaySales)} trend="+12.4%" trendUp sub="vs kem." accent="text-indigo-400" loading={loading} />
-        <MetricCard label="Laba Kotor" value={rp(Math.round(todaySales * 0.5))} trend="+8.1%" trendUp sub="50%" accent="text-emerald-400" loading={loading} />
-        <MetricCard label="Laba Bersih" value={rp(Math.round(todaySales * 0.3))} trend="+5.3%" trendUp sub="30%" accent="text-green-400" loading={loading} />
+        <MetricCard label="Penjualan" value={rp(todaySales)} sub="hari ini" accent="text-indigo-400" loading={loading} />
+        <MetricCard label="PB1 (10%" value={rp(Math.round(todaySales * 0.1))} sub="estimasi pajak" accent="text-emerald-400" loading={loading} />
+        <MetricCard label="Net Revenue" value={rp(Math.round(todaySales * 0.9))} sub="setelah PB1" accent="text-green-400" loading={loading} />
         <MetricCard label="Pesanan" value={String(liveOrders.filter(o => o.status !== "served").length)} sub="Aktif" accent="text-amber-400" loading={loading} />
-        <MetricCard label="Transaksi" value={String(todayCount)} trend="+3" trendUp sub={`avg ${rp(todayAvg)}`} accent="text-orange-400" loading={loading} />
+        <MetricCard label="Transaksi" value={String(todayCount)} sub={`avg ${rp(todayAvg)}`} accent="text-orange-400" loading={loading} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
