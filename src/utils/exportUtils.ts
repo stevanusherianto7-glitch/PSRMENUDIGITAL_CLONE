@@ -48,10 +48,10 @@ export function exportMonthlyPDF(
       <title>Jadwal Shift Bulanan</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px; color: #2A1F18; background-color: #FFFBF3; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
-        h1 { color: #E87722; font-size: 28px; margin-bottom: 5px; font-weight: 800; }
-        p.subtitle { color: #7A6A57; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 15mm 20mm; color: #2A1F18; background-color: #FFFBF3; }
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
+        .header h1 { color: #E87722; font-size: 28px; margin: 0; font-weight: 800; }
+        .header p.subtitle { color: #7A6A57; font-size: 14px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 10px; text-align: center; }
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -64,10 +64,10 @@ export function exportMonthlyPDF(
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @page {
           size: landscape;
-          margin: 10mm;
+          margin: 0;
         }
         @media print {
-          body { padding: 0; background-color: #fff; }
+          body { padding: 15mm 20mm; background-color: #fff; }
           .no-print { display: none; }
           * {
             -webkit-print-color-adjust: exact !important;
@@ -78,8 +78,13 @@ export function exportMonthlyPDF(
     </head>
     <body>
       <div class="header">
-        <h1>JADWAL SHIFT Kedai Elvera 57</h1>
-        <p class="subtitle">Periode: ${monthYearStr}</p>
+        <div style="text-align: left;">
+          <h1>JADWAL SHIFT Kedai Elvera 57</h1>
+          <p class="subtitle">Periode: ${monthYearStr}</p>
+        </div>
+        <div style="font-weight: 800; font-size: 14px; color: #E87722; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px;">
+          Jadwal Shift Bulanan
+        </div>
       </div>
       <table>
         <thead>
@@ -128,8 +133,9 @@ export function exportMonthlyPDF(
         </div>
       </div>
       
-      <div style="text-align: center; font-size: 9px; color: #7A6A57; margin-top: 40px; border-top: 1px dashed #E8E3D3; padding-top: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
-        Jadwal Shift Bulanan
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #7A6A57; margin-top: 45px; border-top: 1px dashed #E8E3D3; padding-top: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+        <span>kedai elvera 57 resto</span>
+        <span>Halaman 1 / 1</span>
       </div>
     </body>
     </html>
@@ -256,10 +262,10 @@ export function exportWeeklyPDF(
       <title>Pola Mingguan Jadwal Shift</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px; color: #2A1F18; background-color: #FFFBF3; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
-        h1 { color: #E87722; font-size: 28px; margin-bottom: 5px; font-weight: 800; }
-        p.subtitle { color: #7A6A57; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 15mm 20mm; color: #2A1F18; background-color: #FFFBF3; }
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
+        .header h1 { color: #E87722; font-size: 28px; margin: 0; font-weight: 800; }
+        .header p.subtitle { color: #7A6A57; font-size: 14px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 12px; text-align: center; }
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -272,10 +278,10 @@ export function exportWeeklyPDF(
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @page {
           size: landscape;
-          margin: 10mm;
+          margin: 0;
         }
         @media print {
-          body { padding: 0; background-color: #fff; }
+          body { padding: 15mm 20mm; background-color: #fff; }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -285,8 +291,13 @@ export function exportWeeklyPDF(
     </head>
     <body>
       <div class="header">
-        <h1>POLA MINGGUAN JADWAL SHIFT</h1>
-        <p class="subtitle">Berlaku Mulai: ${dateStr}</p>
+        <div style="text-align: left;">
+          <h1>POLA MINGGUAN JADWAL SHIFT</h1>
+          <p class="subtitle">Berlaku Mulai: ${dateStr}</p>
+        </div>
+        <div style="font-weight: 800; font-size: 14px; color: #E87722; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px;">
+          Jadwal Shift Mingguan
+        </div>
       </div>
       <table>
         <thead>
@@ -326,6 +337,11 @@ export function exportWeeklyPDF(
           <div class="legend-box shift-O">O</div>
           <span>Libur</span>
         </div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: #7A6A57; margin-top: 45px; border-top: 1px dashed #E8E3D3; padding-top: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+        <span>kedai elvera 57 resto</span>
+        <span>Halaman 1 / 1</span>
       </div>
     </body>
     </html>
