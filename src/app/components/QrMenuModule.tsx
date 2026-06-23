@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { Printer, Download, ExternalLink, QrCode } from "lucide-react";
+import { Printer, Download, ExternalLink, QrCode, Camera } from "lucide-react";
 import QRCode from "react-qr-code";
 import { GUEST_BASE_URL } from "../pages/AdminPage";
 import type { TableData } from "../types";
+import { cn } from "./ui/utils";
+import { EventGalleryModule } from "./EventGalleryModule";
 
 interface QrMenuModuleProps {
   tables: TableData[];
@@ -11,6 +13,7 @@ interface QrMenuModuleProps {
 export function QrMenuModule({ tables }: QrMenuModuleProps) {
   const baseUrl = GUEST_BASE_URL;
   const [selectedTable, setSelectedTable] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<"qr" | "gallery">("qr");
 
   function handleDownload(tableId: string) {
     const svg = document.querySelector(`#qr-code-${tableId} svg`);
@@ -73,70 +76,101 @@ export function QrMenuModule({ tables }: QrMenuModuleProps) {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="font-semibold text-sm">Buku Menu Digital</h3>
-          <p className="text-muted-foreground text-xs mt-0.5">QR Code untuk setiap meja — tamu scan langsung lihat menu &amp; pesan mandiri</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            title="Pilih meja"
-            aria-label="Pilih meja"
-            value={selectedTable}
-            onChange={(e) => setSelectedTable(e.target.value)}
-            className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
-          >
-            <option value="all">Semua Meja</option>
-            {tables.map(t => (
-              <option key={t.id} value={t.id}>Meja {t.id}</option>
-            ))}
-          </select>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors whitespace-nowrap"
-          >
-            <Printer size={14} /> {selectedTable === "all" ? "Cetak Semua" : `Cetak Meja ${selectedTable}`}
-          </button>
-        </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row bg-slate-50/50 p-1.5 rounded-2xl border border-slate-100 max-w-2xl mx-auto mb-6 gap-1">
+        <button
+          onClick={() => setActiveTab("qr")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all",
+            activeTab === "qr"
+              ? "bg-white text-slate-800 shadow-sm border border-slate-200/50"
+              : "text-slate-500 hover:bg-slate-100/50 hover:text-slate-700"
+          )}
+        >
+          <QrCode size={16} /> GENERATOR QR MEJA
+        </button>
+        <button
+          onClick={() => setActiveTab("gallery")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all",
+            activeTab === "gallery"
+              ? "bg-[#E87722] text-white shadow-md shadow-orange-500/20"
+              : "text-slate-500 hover:bg-slate-100/50 hover:text-slate-700"
+          )}
+        >
+          <Camera size={16} /> KELOLA GALERI ACARA
+        </button>
       </div>
 
-      <div className="bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-4 flex items-start gap-3">
-        <QrCode size={16} className="text-indigo-400 flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p><strong className="text-foreground">Cara kerja:</strong> Cetak QR stiker untuk setiap meja, tempel di meja. Tamu scan QR → buka menu digital → pilih item → pesan langsung ke dapur.</p>
-          <p>URL dasar: <code className="bg-secondary border border-border px-1.5 py-0.5 rounded font-mono text-[10px]">{baseUrl}/#/menu/{"{meja}"}</code></p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {tables.map(t => {
-          const url = `${baseUrl}/#/menu/${t.id}`;
-          return (
-            <div key={t.id} className="bg-card border border-border rounded-xl overflow-hidden flex flex-col items-center p-5 gap-3 group hover:border-primary/30 transition-colors">
-              <p className="font-bold text-sm font-['Poppins']">Meja {t.id}</p>
-              <div id={`qr-code-${t.id}`} className="bg-white p-2 rounded-lg">
-                <QRCode value={url} size={120} />
-              </div>
-              <p className="text-[10px] text-muted-foreground font-mono break-all text-center leading-tight">{url}</p>
-              <div className="flex gap-2 w-full mt-auto">
-                <button
-                  onClick={() => handleDownload(t.id)}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-secondary border border-border text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Download size={10} /> Unduh
-                </button>
-                <button
-                  onClick={() => window.open(url, "_blank")}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary hover:bg-primary/20 transition-colors"
-                >
-                  <ExternalLink size={10} /> Buka
-                </button>
-              </div>
+      {activeTab === "qr" ? (
+        <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-sm">Buku Menu Digital</h3>
+              <p className="text-muted-foreground text-xs mt-0.5">QR Code untuk setiap meja — tamu scan langsung lihat menu &amp; pesan mandiri</p>
             </div>
-          );
-        })}
-      </div>
+            <div className="flex items-center gap-2">
+              <select
+                title="Pilih meja"
+                aria-label="Pilih meja"
+                value={selectedTable}
+                onChange={(e) => setSelectedTable(e.target.value)}
+                className="bg-card border border-border rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:border-primary transition-colors"
+              >
+                <option value="all">Semua Meja</option>
+                {tables.map(t => (
+                  <option key={t.id} value={t.id}>Meja {t.id}</option>
+                ))}
+              </select>
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-indigo-500 transition-colors whitespace-nowrap"
+              >
+                <Printer size={14} /> {selectedTable === "all" ? "Cetak Semua" : `Cetak Meja ${selectedTable}`}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-indigo-500/5 border border-indigo-500/15 rounded-xl p-4 flex items-start gap-3">
+            <QrCode size={16} className="text-indigo-400 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p><strong className="text-foreground">Cara kerja:</strong> Cetak QR stiker untuk setiap meja, tempel di meja. Tamu scan QR → buka menu digital → pilih item → pesan langsung ke dapur.</p>
+              <p>URL dasar: <code className="bg-secondary border border-border px-1.5 py-0.5 rounded font-mono text-[10px]">{baseUrl}/#/menu/{"{meja}"}</code></p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {tables.map(t => {
+              const url = `${baseUrl}/#/menu/${t.id}`;
+              return (
+                <div key={t.id} className="bg-card border border-border rounded-xl overflow-hidden flex flex-col items-center p-5 gap-3 group hover:border-primary/30 transition-colors">
+                  <p className="font-bold text-sm font-['Poppins']">Meja {t.id}</p>
+                  <div id={`qr-code-${t.id}`} className="bg-white p-2 rounded-lg">
+                    <QRCode value={url} size={120} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-mono break-all text-center leading-tight">{url}</p>
+                  <div className="flex gap-2 w-full mt-auto">
+                    <button
+                      onClick={() => handleDownload(t.id)}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-secondary border border-border text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Download size={10} /> Unduh
+                    </button>
+                    <button
+                      onClick={() => window.open(url, "_blank")}
+                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-[10px] font-semibold text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <ExternalLink size={10} /> Buka
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <EventGalleryModule />
+      )}
     </div>
   );
 }
