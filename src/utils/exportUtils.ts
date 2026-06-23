@@ -45,7 +45,7 @@ export function exportMonthlyPDF(
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Jadwal Shift - ${monthYearStr}</title>
+      <title>Jadwal Shift Bulanan</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; padding: 30px; color: #2A1F18; background-color: #FFFBF3; }
@@ -126,6 +126,10 @@ export function exportMonthlyPDF(
           <div class="legend-box shift-O">O</div>
           <span>Libur</span>
         </div>
+      </div>
+      
+      <div style="text-align: center; font-size: 9px; color: #7A6A57; margin-top: 40px; border-top: 1px dashed #E8E3D3; padding-top: 15px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+        Jadwal Shift Bulanan
       </div>
     </body>
     </html>
