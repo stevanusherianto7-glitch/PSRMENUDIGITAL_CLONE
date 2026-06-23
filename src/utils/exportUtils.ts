@@ -70,7 +70,7 @@ export function exportMonthlyPDF(
           body { padding: 15mm 20mm; background-color: #fff; }
           .no-print { display: none; }
           table { table-layout: fixed; width: 100% !important; }
-          th.emp-col, td.emp-col { position: static !important; width: 15% !important; }
+          th.emp-col, td.emp-col { position: static !important; width: 15% !important; padding-left: 10px !important; }
           th, td { padding: 4px 1px !important; font-size: 8px !important; }
           * {
             -webkit-print-color-adjust: exact !important;
@@ -285,6 +285,7 @@ export function exportWeeklyPDF(
         }
         @media print {
           body { padding: 15mm 20mm; background-color: #fff; }
+          th.emp-col, td.emp-col { padding-left: 10px !important; }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
