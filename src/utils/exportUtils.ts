@@ -54,17 +54,21 @@ export function exportMonthlyPDF(
         p.subtitle { color: #7A6A57; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 10px; text-align: center; }
-        th { background-color: #2A1F18; color: #F7F1E6; font-weight: 800; text-transform: uppercase; }
-        th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3; position: sticky; left: 0; }
-        .shift-P { background-color: #E0F2FE; color: #0369A1; font-weight: 800; border-radius: 4px; }
-        .shift-M { background-color: #D1FAE5; color: #047857; font-weight: 800; border-radius: 4px; }
-        .shift-O { background-color: #FEE2E2; color: #B91C1C; font-weight: 800; border-radius: 4px; }
+        th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; position: sticky; left: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-P { background-color: #E0F2FE !important; color: #0369A1 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-M { background-color: #D1FAE5 !important; color: #047857 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-O { background-color: #FEE2E2 !important; color: #B91C1C !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @media print {
           body { padding: 0; background-color: #fff; }
           .no-print { display: none; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       </style>
     </head>
@@ -77,7 +81,15 @@ export function exportMonthlyPDF(
         <thead>
           <tr>
             <th class="emp-col">Nama Karyawan</th>
-            ${dates.map(d => `<th>${d.slice(8, 10)}</th>`).join('')}
+            ${dates.map(d => {
+              const [y, m, dVal] = d.split('-').map(Number);
+              const date = new Date(y, m - 1, dVal);
+              const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' }); // "Sen", "Sel", etc.
+              return `<th>
+                <div style="font-size: 8px; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; color: #4B5563;">${dayName}</div>
+                <div style="font-size: 11px; font-weight: 800; color: #1F2937;">${d.slice(8, 10)}</div>
+              </th>`;
+            }).join('')}
           </tr>
         </thead>
         <tbody>
@@ -147,7 +159,13 @@ export function exportCategorySalesReport(
         .sig-box { width: 200px; text-align: center; }
         .sig-line { border-bottom: 1px solid #1A1A1E; height: 80px; margin-bottom: 10px; }
         
-        @media print { body { padding: 0; } }
+        @media print {
+          body { padding: 0; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
       </style>
     </head>
     <body>
@@ -233,16 +251,20 @@ export function exportWeeklyPDF(
         p.subtitle { color: #7A6A57; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 12px; text-align: center; }
-        th { background-color: #2A1F18; color: #F7F1E6; font-weight: 800; text-transform: uppercase; }
-        th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3; }
-        .shift-P { background-color: #E0F2FE; color: #0369A1; font-weight: 800; border-radius: 4px; }
-        .shift-M { background-color: #D1FAE5; color: #047857; font-weight: 800; border-radius: 4px; }
-        .shift-O { background-color: #FEE2E2; color: #B91C1C; font-weight: 800; border-radius: 4px; }
+        th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-P { background-color: #E0F2FE !important; color: #0369A1 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-M { background-color: #D1FAE5 !important; color: #047857 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-O { background-color: #FEE2E2 !important; color: #B91C1C !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @media print {
           body { padding: 0; background-color: #fff; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       </style>
     </head>
@@ -334,6 +356,10 @@ export function exportInventoryPDF(
         @media print {
           body { padding: 0; }
           .no-print { display: none; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       </style>
     </head>

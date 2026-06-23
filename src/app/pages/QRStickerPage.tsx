@@ -145,6 +145,10 @@ export default function QRStickerPage() {
             align-items: center !important;
           }
           .no-print { display: none !important; }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       `}</style>
 
