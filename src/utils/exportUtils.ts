@@ -300,7 +300,7 @@ export function exportWeeklyPDF(
     <body>
       <div class="header">
         <div style="text-align: left;">
-          <h1>POLA MINGGUAN JADWAL SHIFT</h1>
+          <h1>Jadwal Shift Pola Mingguan</h1>
           <p class="subtitle">Berlaku Mulai: ${dateStr}</p>
         </div>
         <div style="font-weight: 800; font-size: 14px; color: #E87722; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 5px;">
