@@ -160,7 +160,7 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
       `Mohon segera diproses.`
     ].filter(Boolean);
     
-    const fullText = parts.join(". ");
+    const fullText = parts.join(". ").replace(/chef/gi, "shef");
     console.log("[TTS] Announcing order:", order.id, fullText);
     speak(fullText);
   }, [speak]);
