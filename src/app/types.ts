@@ -102,7 +102,7 @@ export interface Transaction {
   /** Unique transaction identifier */
   id: string;
   /** Table identifier (null for take-away) */
-  table_id: string;
+  table_id: string | null;
   /** Items purchased in this transaction */
   items: CartItem[];
   /** Subtotal before tax and discounts */

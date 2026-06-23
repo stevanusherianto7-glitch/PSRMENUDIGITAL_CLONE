@@ -60,3 +60,8 @@ db_cleanup.js
 db_columns.js
 temp_query.cjs
 test_order.js
+
+# Playwright test results
+test-results/
+playwright-report/
+admin_script.js
