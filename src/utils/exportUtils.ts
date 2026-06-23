@@ -89,9 +89,12 @@ export function exportMonthlyPDF(
               const [y, m, dVal] = d.split('-').map(Number);
               const date = new Date(y, m - 1, dVal);
               const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' }); // "Sen", "Sel", etc.
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              const textColor = isWeekend ? '#EF4444' : '#1F2937';
+              const dayColor = isWeekend ? '#F87171' : '#4B5563';
               return `<th>
-                <div style="font-size: 8px; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; color: #4B5563;">${dayName}</div>
-                <div style="font-size: 11px; font-weight: 800; color: #1F2937;">${d.slice(8, 10)}</div>
+                <div style="font-size: 8px; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; opacity: 0.8; color: ${dayColor};">${dayName}</div>
+                <div style="font-size: 11px; font-weight: 800; color: ${textColor};">${d.slice(8, 10)}</div>
               </th>`;
             }).join('')}
           </tr>
@@ -285,7 +288,11 @@ export function exportWeeklyPDF(
         <thead>
           <tr>
             <th class="emp-col">Nama Karyawan</th>
-            ${DAYS.map(d => `<th>${d}</th>`).join('')}
+            ${DAYS.map(d => {
+              const isWeekend = d === 'SABTU' || d === 'MINGGU';
+              const textColor = isWeekend ? '#EF4444' : '#374151';
+              return `<th style="color: ${textColor} !important;">${d}</th>`;
+            }).join('')}
           </tr>
         </thead>
         <tbody>
