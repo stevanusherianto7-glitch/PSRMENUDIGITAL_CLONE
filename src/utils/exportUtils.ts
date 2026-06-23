@@ -52,7 +52,7 @@ export function exportMonthlyPDF(
         .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
         .header h1 { color: #E87722; font-size: 28px; margin: 0; font-weight: 800; }
         .header p.subtitle { color: #7A6A57; font-size: 14px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        table { width: 100%; margin: 0 auto 20px auto; border-collapse: collapse; font-size: 11px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 10px; text-align: center; }
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; position: sticky; left: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -63,7 +63,7 @@ export function exportMonthlyPDF(
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @page {
-          size: landscape;
+          size: 297mm 210mm;
           margin: 0;
         }
         @media print {
@@ -266,7 +266,7 @@ export function exportWeeklyPDF(
         .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 2px solid #E87722; padding-bottom: 15px; }
         .header h1 { color: #E87722; font-size: 28px; margin: 0; font-weight: 800; }
         .header p.subtitle { color: #7A6A57; font-size: 14px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        table { width: 100%; margin: 0 auto 20px auto; border-collapse: collapse; font-size: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         th, td { border: 1px solid #E8E3D3; padding: 12px; text-align: center; }
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         th.emp-col, td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
@@ -277,7 +277,7 @@ export function exportWeeklyPDF(
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
         @page {
-          size: landscape;
+          size: 297mm 210mm;
           margin: 0;
         }
         @media print {
