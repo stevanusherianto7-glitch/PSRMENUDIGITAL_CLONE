@@ -8,12 +8,15 @@ import ScheduleGrid from './ScheduleGrid';
 import HeaderJadwal from './HeaderJadwal';
 import type { DateRange } from "react-day-picker";
 
-// Helper to get all dates in a month
+// Helper to get all dates in a month (timezone safe, local YYYY-MM-DD)
 function getDatesInMonth(year: number, month: number): string[] {
   const dates: string[] = [];
   const date = new Date(year, month, 1);
   while (date.getMonth() === month) {
-    dates.push(date.toISOString().slice(0, 10));
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    dates.push(`${y}-${m}-${d}`);
     date.setDate(date.getDate() + 1);
   }
   return dates;
@@ -67,7 +70,8 @@ export const JadwalShift = ({ dateRange }: { dateRange: DateRange | undefined })
           // Map to current month dates
           newShifts[d.id] = {};
           dates.forEach(dateStr => {
-            const date = new Date(dateStr);
+            const [y, m, dVal] = dateStr.split('-').map(Number);
+            const date = new Date(y, m - 1, dVal);
             // JavaScript getDay() returns 0 for Sunday, 1 for Monday, etc.
             // Our array index 0 is Monday, 6 is Sunday.
             const dayIdx = (date.getDay() + 6) % 7;
@@ -108,7 +112,8 @@ export const JadwalShift = ({ dateRange }: { dateRange: DateRange | undefined })
           newPatterns[d.id] = types;
           newShifts[d.id] = {};
           dates.forEach(dateStr => {
-            const date = new Date(dateStr);
+            const [y, m, dVal] = dateStr.split('-').map(Number);
+            const date = new Date(y, m - 1, dVal);
             const dayIdx = (date.getDay() + 6) % 7;
             newShifts[d.id][dateStr] = types[dayIdx] || ShiftType.LIBUR;
           });
@@ -181,7 +186,8 @@ export const JadwalShift = ({ dateRange }: { dateRange: DateRange | undefined })
     employees.forEach(emp => {
       newShifts[emp.id] = {};
       dates.forEach(dateStr => {
-        const date = new Date(dateStr);
+        const [y, m, dVal] = dateStr.split('-').map(Number);
+        const date = new Date(y, m - 1, dVal);
         const dayIdx = (date.getDay() + 6) % 7;
         newShifts[emp.id][dateStr] = newPattern[emp.id][dayIdx] || ShiftType.LIBUR;
       });

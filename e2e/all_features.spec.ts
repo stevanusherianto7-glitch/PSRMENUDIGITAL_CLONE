@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PSRMENUDIGITAL — Comprehensive E2E Test Suite
  *
  * Covers:
@@ -375,6 +375,64 @@ test.describe("[RESPONSIVE] Mobile Viewport", () => {
     await loginAsAdmin(page);
     const hamburger = page.locator("button.lg\\:hidden").first();
     await expect(hamburger).toBeVisible({ timeout: 5000 });
+  });
+});
+
+// --- [SDM] SDM & Shift Scheduling ---
+
+test.describe("[SDM] SDM & Shift Scheduling Module", () => {
+  test("SDM module loads and shows employee list", async ({ page }) => {
+    await loginAsAdmin(page);
+    const sdmBtn = page.locator("button").filter({ hasText: /^SDM$/i }).first();
+    await sdmBtn.waitFor({ state: "visible", timeout: 10000 });
+    await sdmBtn.click();
+    await page.waitForTimeout(2000);
+
+    const body = await page.content();
+    expect(body).toMatch(/daftar karyawan|karyawan|role|tambah/i);
+  });
+
+  test("Shift scheduling grid can be toggled", async ({ page }) => {
+    await loginAsAdmin(page);
+    const sdmBtn = page.locator("button").filter({ hasText: /^SDM$/i }).first();
+    await sdmBtn.waitFor({ state: "visible", timeout: 10000 });
+    await sdmBtn.click();
+    await page.waitForTimeout(2000);
+
+    const shiftTab = page.locator("button").filter({ hasText: /jadwal shift/i }).first();
+    await shiftTab.waitFor({ state: "visible", timeout: 5000 });
+    await shiftTab.click();
+    await page.waitForTimeout(2000);
+
+    const body = await page.content();
+    expect(body).toMatch(/absence matrix|karyawan|pola|shift|log presensi/i);
+  });
+
+  test("Weekly Pattern view can be opened and closed", async ({ page }) => {
+    await loginAsAdmin(page);
+    const sdmBtn = page.locator("button").filter({ hasText: /^SDM$/i }).first();
+    await sdmBtn.waitFor({ state: "visible", timeout: 10000 });
+    await sdmBtn.click();
+    await page.waitForTimeout(2000);
+
+    const shiftTab = page.locator("button").filter({ hasText: /jadwal shift/i }).first();
+    await shiftTab.waitFor({ state: "visible", timeout: 5000 });
+    await shiftTab.click();
+    await page.waitForTimeout(2000);
+
+    const patternBtn = page.locator("button").filter({ hasText: /pola mingguan/i }).first();
+    if (await patternBtn.isVisible()) {
+      await patternBtn.click();
+      await page.waitForTimeout(1500);
+      const body = await page.content();
+      expect(body).toMatch(/diulang setiap minggu|kembali/i);
+      
+      const kembaliBtn = page.locator("button").filter({ hasText: /kembali/i }).first();
+      await kembaliBtn.click();
+      await page.waitForTimeout(1000);
+      const postBackBody = await page.content();
+      expect(postBackBody).toMatch(/absence matrix/i);
+    }
   });
 });
 

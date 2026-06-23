@@ -59,7 +59,9 @@ export default function ScheduleGrid({ employees, shifts, dates, onShiftClick, o
                   const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' }).toUpperCase();
                   const dayNum = date.getDate();
                   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                  const isToday = new Date().toISOString().split('T')[0] === dateStr;
+                  const today = new Date();
+                  const localTodayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                  const isToday = localTodayStr === dateStr;
 
                   return (
                     <th key={dateStr} className={cn(
