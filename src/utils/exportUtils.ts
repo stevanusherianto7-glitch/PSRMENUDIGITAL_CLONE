@@ -62,6 +62,10 @@ export function exportMonthlyPDF(
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
+        @page {
+          size: landscape;
+          margin: 10mm;
+        }
         @media print {
           body { padding: 0; background-color: #fff; }
           .no-print { display: none; }
@@ -259,6 +263,10 @@ export function exportWeeklyPDF(
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
+        @page {
+          size: landscape;
+          margin: 10mm;
+        }
         @media print {
           body { padding: 0; background-color: #fff; }
           * {
