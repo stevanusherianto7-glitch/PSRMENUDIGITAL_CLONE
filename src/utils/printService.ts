@@ -11,6 +11,7 @@ import EscPosEncoder from 'esc-pos-encoder';
 
 interface BluetoothSerial {
   isEnabled: (success: () => void, failure: (err?: string) => void) => void;
+  isConnected: (success: () => void, failure: (err?: any) => void) => void;
   list: (success: (devices: any[]) => void, failure: (err: any) => void) => void;
   connectInsecure: (address: string, success: () => void, failure: (err: any) => void) => void;
   disconnect: (success: () => void, failure: (err: any) => void) => void;
@@ -262,7 +263,7 @@ class PrintService {
         // 2. KIRIM DATA (Write)
         if (isBluetooth) {
           await new Promise((resolve, reject) => {
-            bluetoothSerial.write(cleanBuffer,
+            bluetoothSerial.write(cleanBuffer as ArrayBuffer,
               () => resolve(true),
               (err) => reject(new Error("Gagal mengirim data: " + err))
             );

@@ -173,7 +173,7 @@ export default function GuestMenuPage() {
 
   useEffect(() => {
     loadMyOrders();
-    let interval: NodeJS.Timeout | null = null;
+    let interval: any = null;
     if (autoRefresh && view === "status") {
       interval = setInterval(loadMyOrders, 5000);
     }
@@ -259,16 +259,16 @@ export default function GuestMenuPage() {
   };
 
   function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-    var R = 6371; 
-    var dLat = (lat2-lat1) * (Math.PI/180);  
-    var dLon = (lon2-lon1) * (Math.PI/180); 
-    var a = 
+    const R = 6371; 
+    const dLat = (lat2-lat1) * (Math.PI/180);  
+    const dLon = (lon2-lon1) * (Math.PI/180); 
+    const a = 
       Math.sin(dLat/2) * Math.sin(dLat/2) +
       Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * 
       Math.sin(dLon/2) * Math.sin(dLon/2)
       ; 
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-    var d = R * c; 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const d = R * c; 
     return d;
   }
 
@@ -370,7 +370,7 @@ export default function GuestMenuPage() {
         utterance.rate = 1.1; // Sedikit lebih cepat khas gaya bicara remaja yang dinamis
         
         // Muat daftar suara
-        let voices = window.speechSynthesis.getVoices();
+        const voices = window.speechSynthesis.getVoices();
         
         const selectAndikaVoice = (vList: SpeechSynthesisVoice[]) => {
           const idVoices = vList.filter(v => v.lang === "id-ID" || v.lang.startsWith("id"));
@@ -381,7 +381,7 @@ export default function GuestMenuPage() {
           ) || idVoices[0];
         };
 
-        let selectedVoice = selectAndikaVoice(voices);
+        const selectedVoice = selectAndikaVoice(voices);
 
         // Fallback jika suara belum ter-preload (umum di Chrome/Windows)
         if (!selectedVoice && voices.length === 0) {

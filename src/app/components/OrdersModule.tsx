@@ -80,7 +80,7 @@ export const OrdersModule = ({ orders, onRefresh, connected, onNavigateToKasir }
         {(["all", "pending", "cooking", "ready", "served"] as const).map(s => {
           const isActive = filter === s;
           const label = s === "all" ? "Semua" : orderStatusConfig[s as OrderStatus].label;
-          const icon = s === "all" ? <ShoppingBag size={18} /> : React.cloneElement(orderStatusConfig[s as OrderStatus].icon as React.ReactElement, { size: 18 });
+          const icon = s === "all" ? <ShoppingBag size={18} /> : React.cloneElement(orderStatusConfig[s as OrderStatus].icon as React.ReactElement<{ size?: number }>, { size: 18 });
           return (
             <button
               key={s}

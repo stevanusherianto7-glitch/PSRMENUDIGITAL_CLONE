@@ -6,7 +6,7 @@ test('Click Mulai Masak', async ({ page }) => {
   page.on('pageerror', err => logs.push(`[PAGE ERROR] ${err.message}`));
 
   // Go to Waiter/Kitchen page
-  await page.goto('http://localhost:5173/#/');
+  await page.goto('/#/');
   await page.waitForLoadState('networkidle');
 
   // Login as Kitchen

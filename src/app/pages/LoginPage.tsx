@@ -31,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
 
-    const cred = CREDENTIALS[role];
+    const cred = CREDENTIALS[role as keyof typeof CREDENTIALS];
     if (password !== cred.password) {
       setError("Password salah. Coba lagi.");
       setLoading(false);

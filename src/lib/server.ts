@@ -1,5 +1,7 @@
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 
+declare const process: any;
+
 export function createClient(request: Request) {
   const headers = new Headers()
 
