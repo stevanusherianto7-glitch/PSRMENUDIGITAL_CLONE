@@ -8,7 +8,8 @@ import { useParams } from "react-router-dom";
 import {
   ShoppingCart, Plus, Minus, Trash2, X, ChevronRight, ChevronLeft,
   CheckCircle2, Clock, ChefHat, UtensilsCrossed, Scan, RefreshCw,
-  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle
+  Utensils, ShoppingBag, Sparkles, MapPin, ClipboardList, AlertCircle,
+  BookOpen, Image as ImageIcon, Calendar
 } from "lucide-react";
 import { SEED_MENU, menuCategories, rp, BRAND_NAME, APP_LOGO as logoImg } from "../data";
 import { supabase } from "../../lib/supabase";
@@ -16,8 +17,10 @@ import { createOrder, fetchOrders, deleteOrder, updateOrder } from "../api";
 import type { MenuItem, CartItem, Order, OrderMode } from "../types";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { useThemeStore } from "../hooks/useThemeStore";
+import { GuestGalleryModule } from "../components/GuestGalleryModule";
+import { GuestReservationModule } from "../components/GuestReservationModule";
 
-type View = "menu" | "cart" | "status";
+type View = "menu" | "cart" | "status" | "gallery" | "reservation";
 
 function OptimizedImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
   const [loaded, setLoaded] = useState(false);
@@ -728,6 +731,46 @@ export default function GuestMenuPage() {
           )}
         </div>
       </header>
+
+      {/* Main Navigation Tabs */}
+      <div className="sticky top-[61px] z-10 bg-background/95 backdrop-blur-md border-b border-border px-4 pt-3 pb-3 flex gap-2">
+        <button
+          onClick={() => setView("menu")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            view === "menu" || view === "cart" || view === "status"
+              ? "bg-[#E87722]/10 text-[#E87722] border border-[#E87722]/20 shadow-sm"
+              : "text-muted-foreground hover:bg-secondary border border-transparent"
+          }`}
+        >
+          <BookOpen size={14} /> MENU
+        </button>
+        <button
+          onClick={() => setView("gallery")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            view === "gallery"
+              ? "bg-[#E87722]/10 text-[#E87722] border border-[#E87722]/20 shadow-sm"
+              : "text-muted-foreground hover:bg-secondary border border-transparent"
+          }`}
+        >
+          <ImageIcon size={14} /> GALERI
+        </button>
+        <button
+          onClick={() => setView("reservation")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all ${
+            view === "reservation"
+              ? "bg-[#E87722]/10 text-[#E87722] border border-[#E87722]/20 shadow-sm"
+              : "text-muted-foreground hover:bg-secondary border border-transparent"
+          }`}
+        >
+          <Calendar size={14} /> RESERVASI
+        </button>
+      </div>
+
+      {/* Gallery View */}
+      {view === "gallery" && <GuestGalleryModule />}
+
+      {/* Reservation View */}
+      {view === "reservation" && <GuestReservationModule />}
 
       {/* Menu View */}
       {view === "menu" && (
