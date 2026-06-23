@@ -57,9 +57,9 @@ export function exportMonthlyPDF(
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         th.emp-col { text-align: left; font-weight: 800; background-color: #E5E7EB !important; position: sticky; left: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; position: sticky; left: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-P { background-color: #E0F2FE !important; color: #0369A1 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-M { background-color: #D1FAE5 !important; color: #047857 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-O { background-color: #FEE2E2 !important; color: #B91C1C !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-P { background-color: #2563EB !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-M { background-color: #059669 !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-O { background-color: #F43F5E !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
@@ -276,9 +276,9 @@ export function exportWeeklyPDF(
         th { background-color: #E5E7EB !important; color: #374151 !important; font-weight: 800; text-transform: uppercase; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         th.emp-col { text-align: left; font-weight: 800; background-color: #E5E7EB !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         td.emp-col { text-align: left; font-weight: 800; background-color: #FFFBF3 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-P { background-color: #E0F2FE !important; color: #0369A1 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-M { background-color: #D1FAE5 !important; color: #047857 !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .shift-O { background-color: #FEE2E2 !important; color: #B91C1C !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-P { background-color: #2563EB !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-M { background-color: #059669 !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .shift-O { background-color: #F43F5E !important; color: #FFFFFF !important; font-weight: 800; border-radius: 4px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
         .legend { display: flex; justify-content: center; gap: 20px; font-size: 12px; margin-top: 20px; }
         .legend-item { display: flex; items-center; gap: 5px; }
         .legend-box { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; }
