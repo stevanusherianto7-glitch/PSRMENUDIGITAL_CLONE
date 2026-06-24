@@ -1,0 +1,295 @@
+﻿
+> @figma/my-make-file@0.0.1 lint
+> eslint src
+
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\__tests__\integration\robustness.test.tsx
+  153:15  warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\__tests__\integration\security_printing.test.tsx
+  1:10  warning  'renderHook' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\api.ts
+  211:32  warning  '_' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  238:15  warning  '_' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  238:30  warning  '__' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  257:26  warning  '_' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  308:72  warning  'served_at' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\AdminLayout.tsx
+  29:3  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+  35:3  warning  'ttsEnabled' is defined but never used   @typescript-eslint/no-unused-vars
+  39:3  warning  'onToggleTts' is defined but never used  @typescript-eslint/no-unused-vars
+  40:3  warning  'onSpeakTest' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\AssetModule.tsx
+   3:10  warning  'Plus' is defined but never used            @typescript-eslint/no-unused-vars
+   3:50  warning  'Tag' is defined but never used             @typescript-eslint/no-unused-vars
+  33:19  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\DashboardModule.tsx
+    9:3   warning  'Download' is defined but never used               @typescript-eslint/no-unused-vars
+   10:37  warning  'Wallet' is defined but never used                 @typescript-eslint/no-unused-vars
+   10:45  warning  'Info' is defined but never used                   @typescript-eslint/no-unused-vars
+   10:51  warning  'CheckCircle2' is defined but never used           @typescript-eslint/no-unused-vars
+  255:12  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  261:10  warning  'todayMetrics' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  278:14  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\HeaderJadwal.tsx
+   2:37  warning  'Save' is defined but never used               @typescript-eslint/no-unused-vars
+   2:43  warning  'Layers' is defined but never used             @typescript-eslint/no-unused-vars
+   3:8   warning  'GlossyButton' is defined but never used       @typescript-eslint/no-unused-vars
+   4:10  warning  'ShiftType' is defined but never used          @typescript-eslint/no-unused-vars
+  20:3   warning  'onExportPDF' is defined but never used        @typescript-eslint/no-unused-vars
+  21:3   warning  'onExportWeeklyPDF' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\InventarisModule.tsx
+   7:10  warning  'Tooltip' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   7:19  warning  'TooltipTrigger' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   7:35  warning  'TooltipContent' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   7:51  warning  'TooltipProvider' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  20:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  46:47  warning  'logs' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\JadwalShift.tsx
+   46:21  warning  'error' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+   82:39  warning  'attError' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  123:6   warning  React Hook useEffect has a missing dependency: 'dates'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\KalkulatorHPP.tsx
+   14:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   83:21  warning  'error' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+  475:7   warning  'Badge' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\KaryawanModule.tsx
+    3:10  warning  'Plus' is defined but never used               @typescript-eslint/no-unused-vars
+    3:61  warning  'Shield' is defined but never used             @typescript-eslint/no-unused-vars
+   31:19  warning  'error' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   71:23  warning  'authData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  153:19  warning  'initials' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\KasirModule.tsx
+    7:31  warning  'useRef' is defined but never used               @typescript-eslint/no-unused-vars
+    9:17  warning  'Trash2' is defined but never used               @typescript-eslint/no-unused-vars
+   10:37  warning  'Minus' is defined but never used                @typescript-eslint/no-unused-vars
+   11:34  warning  'ExternalLink' is defined but never used         @typescript-eslint/no-unused-vars
+   11:48  warning  'Copy' is defined but never used                 @typescript-eslint/no-unused-vars
+   14:14  warning  'menuCategories' is defined but never used       @typescript-eslint/no-unused-vars
+   15:10  warning  'supabase' is defined but never used             @typescript-eslint/no-unused-vars
+   21:10  warning  'createOrder' is defined but never used          @typescript-eslint/no-unused-vars
+   76:10  warning  'cat' is assigned a value but never used         @typescript-eslint/no-unused-vars
+   76:15  warning  'setCat' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   86:10  warning  'chefNotes' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  108:9   warning  'mockOrders' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  166:12  warning  'updateQty' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\LaporanModule.tsx
+    9:36  warning  'ExternalLink' is defined but never used          @typescript-eslint/no-unused-vars
+   10:3   warning  'RefreshCw' is defined but never used             @typescript-eslint/no-unused-vars
+   10:14  warning  'X' is defined but never used                     @typescript-eslint/no-unused-vars
+   18:10  warning  'ClosingReceipt' is defined but never used        @typescript-eslint/no-unused-vars
+   80:10  warning  'pdfImage' is assigned a value but never used     @typescript-eslint/no-unused-vars
+   80:20  warning  'setPdfImage' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  115:18  warning  'handleDirectConnect' is defined but never used   @typescript-eslint/no-unused-vars
+  172:14  warning  'err' is defined but never used                   @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\MejaModule.tsx
+  20:6  warning  React Hook useEffect has a missing dependency: 'selected'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\MenuManagement.tsx
+   1:20  warning  'useRef' is defined but never used         @typescript-eslint/no-unused-vars
+   1:28  warning  'useCallback' is defined but never used    @typescript-eslint/no-unused-vars
+   3:20  warning  'Upload' is defined but never used         @typescript-eslint/no-unused-vars
+   3:35  warning  'Save' is defined but never used           @typescript-eslint/no-unused-vars
+   3:41  warning  'Trash2' is defined but never used         @typescript-eslint/no-unused-vars
+   4:3   warning  'GripVertical' is defined but never used   @typescript-eslint/no-unused-vars
+   4:17  warning  'Eye' is defined but never used            @typescript-eslint/no-unused-vars
+   4:30  warning  'Tag' is defined but never used            @typescript-eslint/no-unused-vars
+   4:35  warning  'ChevronDown' is defined but never used    @typescript-eslint/no-unused-vars
+   5:3   warning  'LayoutList' is defined but never used     @typescript-eslint/no-unused-vars
+   5:29  warning  'AlertCircle' is defined but never used    @typescript-eslint/no-unused-vars
+   5:57  warning  'Link2' is defined but never used          @typescript-eslint/no-unused-vars
+   6:16  warning  'Star' is defined but never used           @typescript-eslint/no-unused-vars
+   9:30  warning  'SEED_MENU' is defined but never used      @typescript-eslint/no-unused-vars
+  10:10  warning  'PhotoUploader' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\OrderCard.tsx
+  158:21  error  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\PatternManager.tsx
+  26:3  warning  'onBack' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  27:3  warning  'currentDate' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  41:6  warning  React Hook React.useEffect has a missing dependency: 'localPattern'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\PhotoUploader.tsx
+   14:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   18:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  112:14  warning  'err' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\PrinterSettingsModal.tsx
+   36:6   warning  React Hook useEffect has a missing dependency: 'checkBluetooth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   80:14  warning  'error' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+  119:14  warning  'error' is defined but never used                                                                                  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\QrMenuModule.tsx
+    5:34  warning  'Calendar' is defined but never used          @typescript-eslint/no-unused-vars
+    6:20  warning  'ImageIcon' is defined but never used         @typescript-eslint/no-unused-vars
+  243:11  warning  'payload' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\RealTimeIndicator.tsx
+   2:32  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  36:16  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ReceiptTemplates.tsx
+  8:15  warning  'CartItem' is defined but never used  @typescript-eslint/no-unused-vars
+  9:10  warning  'rp' is defined but never used        @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ReservasiModule.tsx
+    2:74  warning  'AlertCircle' is defined but never used          @typescript-eslint/no-unused-vars
+  174:19  warning  'isRejected' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\SchedulerHeader.tsx
+   3:37  warning  'Save' is defined but never used                      @typescript-eslint/no-unused-vars
+   3:43  warning  'Layers' is defined but never used                    @typescript-eslint/no-unused-vars
+   4:8   warning  'GlossyButton' is defined but never used              @typescript-eslint/no-unused-vars
+   5:10  warning  'ShiftType' is defined but never used                 @typescript-eslint/no-unused-vars
+  36:9   warning  'handlePdfExport' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ThemeToggle.tsx
+  16:11  warning  'theme' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\badge.tsx
+  46:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\button.tsx
+  58:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\date-range-picker.tsx
+  4:18  warning  'addDays' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\form.tsx
+  160:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\navigation-menu.tsx
+  167:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\sidebar.tsx
+  725:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\toaster.tsx
+  19:15  warning  'data' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\components\ui\toggle.tsx
+  47:18  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\context\StoreContext.tsx
+  122:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\hooks\useAdminState.ts
+   4:23  warning  'fetchTransactions' is defined but never used               @typescript-eslint/no-unused-vars
+  87:21  warning  'setInventory' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  88:18  warning  'setPromos' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  89:25  warning  'setInventoryLogs' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  94:24  warning  'setSdmSubModule' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  95:25  warning  'setStokSubModule' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  96:30  warning  'setTransaksiSubModule' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  97:26  warning  'setKasirSubModule' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\hooks\usePaginatedData.ts
+  27:23  warning  'refetchInterval' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\hooks\useSupabaseStatus.ts
+  14:17  warning  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  17:16  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\hooks\useTTS.ts
+   50:12  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  312:18  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  318:18  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+  340:20  warning  '_' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\pages\AdminPage.tsx
+    8:23  warning  'Routes' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+    8:31  warning  'Route' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+   10:20  warning  'ShoppingCart' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+   10:34  warning  'UtensilsCrossed' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   11:3   warning  'Package' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   11:12  warning  'FileBarChart2' is defined but never used                                                                                               @typescript-eslint/no-unused-vars
+   12:3   warning  'Users' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+   12:10  warning  'Receipt' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   12:19  warning  'Minus' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+   12:26  warning  'Plus' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   12:32  warning  'Trash2' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   12:40  warning  'AlertTriangle' is defined but never used                                                                                               @typescript-eslint/no-unused-vars
+   13:33  warning  'CreditCard' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+   13:45  warning  'Wallet' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   13:53  warning  'Banknote' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+   14:23  warning  'Search' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   14:31  warning  'ArrowUpRight' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+   14:45  warning  'ArrowDownRight' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+   15:3   warning  'ChefHat' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   15:23  warning  'Database' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+   15:33  warning  'Wifi' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   15:39  warning  'WifiOff' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   15:48  warning  'Save' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   15:54  warning  'QrCode' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   16:3   warning  'Tag' is defined but never used                                                                                                         @typescript-eslint/no-unused-vars
+   16:42  warning  'Copy' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   17:21  warning  'Printer' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+   17:30  warning  'Download' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+   17:50  warning  'Edit2' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+   18:13  warning  'Calculator' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+   18:25  warning  'Briefcase' is defined but never used                                                                                                   @typescript-eslint/no-unused-vars
+   20:8   warning  'QRCode' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   29:3   warning  'menuCategories' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+   29:19  warning  'rp' is defined but never used                                                                                                          @typescript-eslint/no-unused-vars
+   29:24  warning  'PAYMENT_DATA' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+   29:38  warning  'BEST_SELLER_DATA' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+   29:56  warning  'HOURLY_DATA' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+   29:69  warning  'CREDENTIALS' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+   32:23  warning  'updateOrder' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+   32:36  warning  'createOrder' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+   56:13  warning  'CartItem' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+   63:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components          react-refresh/only-export-components
+   74:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components          react-refresh/only-export-components
+   95:7   warning  'pathModuleMap' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+  101:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components          react-refresh/only-export-components
+  108:7   warning  'orderStatusConfig' is assigned a value but never used                                                                                  @typescript-eslint/no-unused-vars
+  127:9   warning  'location' is assigned a value but never used                                                                                           @typescript-eslint/no-unused-vars
+  158:10  warning  'time' is assigned a value but never used                                                                                               @typescript-eslint/no-unused-vars
+  557:86  warning  'payload' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+  593:6   warning  React Hook useEffect has missing dependencies: 'loadOrders' and 'loadTransactions'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  640:6   warning  React Hook useCallback has an unnecessary dependency: 'connected'. Either exclude it or remove the dependency array                     react-hooks/exhaustive-deps
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\pages\GuestMenuPage.tsx
+   12:43  warning  'Camera' is defined but never used           @typescript-eslint/no-unused-vars
+   12:57  warning  'Unlock' is defined but never used           @typescript-eslint/no-unused-vars
+   16:36  warning  'deleteOrder' is defined but never used      @typescript-eslint/no-unused-vars
+   67:48  warning  'width' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  106:16  warning  '_' is defined but never used                @typescript-eslint/no-unused-vars
+  179:41  warning  'isAuto' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  564:16  warning  '_' is defined but never used                @typescript-eslint/no-unused-vars
+  576:16  warning  '_' is defined but never used                @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\pages\WaiterPage.tsx
+   11:68  warning  'Settings' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+   15:10  warning  'rp' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+   16:49  warning  'getOrderDuration' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   19:10  warning  'printService' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   26:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   37:7   warning  'statusConfig' is assigned a value but never used                                                                               @typescript-eslint/no-unused-vars
+   45:7   warning  'orderModeConfig' is assigned a value but never used                                                                            @typescript-eslint/no-unused-vars
+  300:12  warning  'elapsed' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\app\routes.tsx
+  8:10  warning  Fast refresh only works when a file only exports components. Move your component(s) to a separate file  react-refresh/only-export-components
+
+C:\Users\ASUS\.gemini\antigravity-ide\scratch\PSRMENUDIGITAL_CLONE_project\src\utils\printService.ts
+  576:62  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  779:63  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+  783:55  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 202 problems (1 error, 201 warnings)
+

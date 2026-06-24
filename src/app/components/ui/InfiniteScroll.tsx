@@ -15,7 +15,7 @@ export function InfiniteScroll({
   children, 
   threshold = 100 
 }: InfiniteScrollProps) {
-  const observer = useRef<IntersectionObserver>();
+  const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {

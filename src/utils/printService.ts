@@ -15,6 +15,7 @@ interface BluetoothSerial {
   connectInsecure: (address: string, success: () => void, failure: (err: any) => void) => void;
   disconnect: (success: () => void, failure: (err: any) => void) => void;
   write: (data: ArrayBuffer | string, success: () => void, failure: (err: any) => void) => void;
+  isConnected: (success: () => void, failure: (err?: any) => void) => void;
 }
 
 declare const bluetoothSerial: BluetoothSerial;
@@ -430,7 +431,7 @@ class PrintService {
    * Dilengkapi sistem Auto-Retry (Maksimal 3x) agar tahan banting (Robust) terhadap koneksi tidak stabil.
    */
   async printRaw(data: Uint8Array, address?: string): Promise<void> {
-    const cleanBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+    const cleanBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
     const isBluetooth = typeof bluetoothSerial !== 'undefined';
     const MAX_RETRIES = 3;
     let attempt = 0;

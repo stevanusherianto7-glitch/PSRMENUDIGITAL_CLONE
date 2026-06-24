@@ -4,7 +4,10 @@
  * PERUBAHAN TIDAK TERUKUR DAPAT MERUSAK TAMPILAN DAN QR CODE. ⚠️
  */
 
-import type { MenuItem, TableData, InventoryItem, Promo } from "./types";
+import type { MenuItem, TableData, InventoryItem, Promo, Module } from "./types";
+import {
+  FileBarChart2, ShoppingBag, ShoppingCart, Grid3X3, UtensilsCrossed, QrCode, Package, Activity, Users, Calculator, LayoutDashboard
+} from "lucide-react";
 
 const today = new Date();
 const addDays = (d: Date, n: number) => {
@@ -399,4 +402,31 @@ export const CREDENTIALS = {
   admin: { password: "[REDACTED_ADMIN_PASSWORD]", name: "Admin Kedai Elvera 57" },
   waiter: { password: "[REDACTED_WAITER_PASSWORD]", name: "Pelayan" },
   kitchen: { password: "[REDACTED_KITCHEN_PASSWORD]", name: "Dapur" },
+};
+
+export const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "transaksi", label: "Data Transaksi", icon: FileBarChart2 },
+  { id: "orders", label: "Monitor Pesanan", icon: ShoppingBag },
+  { id: "kasir", label: "Kasir", icon: ShoppingCart },
+  { id: "meja", label: "Manajemen Meja", icon: Grid3X3 },
+  { id: "menu", label: "Katalog Menu", icon: UtensilsCrossed },
+  { id: "qr-menu", label: "Buku Menu Digital", icon: QrCode },
+  { id: "stok", label: "Stok Opname", icon: Package },
+  { id: "metrics", label: "Metrics", icon: Activity },
+  { id: "sdm", label: "SDM", icon: Users },
+  { id: "hpp", label: "Kalkulator HPP", icon: Calculator },
+];
+
+export const moduleLabels: Record<Module, string> = {
+  transaksi: "Data Transaksi",
+  orders: "Monitor Pesanan",
+  kasir: "Kasir",
+  meja: "Manajemen Meja",
+  menu: "Katalog Menu",
+  "qr-menu": "Buku Menu Digital",
+  stok: "Stok Opname",
+  metrics: "Metrics",
+  sdm: "SDM",
+  hpp: "Kalkulator HPP",
+  promo: "Promo",
 };

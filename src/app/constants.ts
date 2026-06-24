@@ -1,4 +1,4 @@
-import { ShiftType } from '../types';
+import { ShiftType } from './types';
 
 export const SHIFT_CONFIGS = {
   [ShiftType.PAGI]: {

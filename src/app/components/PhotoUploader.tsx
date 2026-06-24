@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Image, Upload, Link2, Camera, RefreshCw, AlertCircle } from "lucide-react";
+import { Image as ImageIcon, Upload, Link2, Camera, RefreshCw, AlertCircle } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 
 interface PhotoUploaderProps {
@@ -143,7 +143,7 @@ export function PhotoUploader({
                   : "bg-secondary border-border text-muted-foreground hover:text-foreground"
               }`}
             >
-              {m === "preview" ? <Image size={9} /> : m === "upload" ? <Upload size={9} /> : <Link2 size={9} />}
+              {m === "preview" ? <ImageIcon size={9} /> : m === "upload" ? <Upload size={9} /> : <Link2 size={9} />}
               {m === "preview" ? "Preview" : m === "upload" ? "Upload" : "URL"}
             </button>
           ))}

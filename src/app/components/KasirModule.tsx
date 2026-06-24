@@ -176,7 +176,7 @@ export function KasirModule({ menuItems, onTransaction, promos, tables, orders, 
       const txId = `TX-${Date.now().toString(36).toUpperCase()}`;
       const tx: Transaction = {
         id: txId,
-        table_id: orderMode === "take-away" ? null : selectedTable,
+        table_id: orderMode === "take-away" ? "" : selectedTable,
         items: cart,
         subtotal,
         discount: selectedPromo ? (selectedPromo.type === "percentage" ? selectedPromo.discount : (subtotal > 0 ? Math.round((discountAmount / subtotal) * 100) : 0)) : undefined,

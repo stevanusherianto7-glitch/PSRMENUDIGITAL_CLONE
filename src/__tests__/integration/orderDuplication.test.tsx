@@ -33,7 +33,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
     mockQuery = supabase.from('orders');
     
     // Default implementation for successful insert
-    mockQuery.then.mockImplementation(function (onFulfilled) {
+    mockQuery.then.mockImplementation(function (onFulfilled: any) {
       return Promise.resolve({
         data: {
           id: 'O-TEST-123',
@@ -59,7 +59,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
   it('should successfully create an order and include the idempotency_key in payload', async () => {
     const payload = {
       tableId: 'Meja-1',
-      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan' }],
+      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan', image: '', available: true }],
       subtotal: 15000,
       total: 15000,
       orderMode: 'dine-in' as const,
@@ -84,7 +84,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
   // ---------------------------------------------------------------------------
   it('should propagate a database unique constraint violation error (code 23505) when a duplicate key is inserted', async () => {
     // Mock the insert returning a unique violation error
-    mockQuery.then.mockImplementationOnce(function (onFulfilled) {
+    mockQuery.then.mockImplementationOnce(function (onFulfilled: any) {
       return Promise.resolve({
         data: null,
         error: {
@@ -96,7 +96,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
 
     const payload = {
       tableId: 'Meja-1',
-      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan' }],
+      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan', image: '', available: true }],
       subtotal: 15000,
       total: 15000,
       orderMode: 'dine-in' as const,
@@ -117,7 +117,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
   // ---------------------------------------------------------------------------
   it('should fallback and retry inserting the order without the idempotency_key if the database schema is missing that column', async () => {
     let callCount = 0;
-    mockQuery.then.mockImplementation(function (onFulfilled) {
+    mockQuery.then.mockImplementation(function (onFulfilled: any) {
       callCount++;
       if (callCount === 1) {
         // First call fails with missing column error
@@ -134,7 +134,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
           data: {
             id: 'O-RETRY-123',
             table_id: 'Meja-1',
-            items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan' }],
+            items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan', image: '', available: true }],
             subtotal: 15000,
             total: 15000,
             status: 'pending',
@@ -150,7 +150,7 @@ describe('Simulation & Stress Testing: Order Duplication Prevention', () => {
 
     const payload = {
       tableId: 'Meja-1',
-      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan' }],
+      items: [{ id: 'menu-1', name: 'Nasi Goreng', price: 15000, qty: 1, category: 'Makanan', image: '', available: true }],
       subtotal: 15000,
       total: 15000,
       orderMode: 'dine-in' as const,

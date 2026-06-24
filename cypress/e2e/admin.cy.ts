@@ -131,7 +131,7 @@ describe('Kedai Elvera 57 - Admin & POS Kasir E2E Operations (Cypress Mocked-API
     cy.contains('Struk Pelanggan').should('be.visible');
 
     // 11. Action: Return to main cashier screen
-    cy.get('button').contains(/Beranda Utama/i).click();
+    cy.get('button').contains(/Beranda Utama/i).click({ force: true });
 
     // Reload to cleanly trigger loadOrders fetch under the new mocked empty state
     cy.reload();

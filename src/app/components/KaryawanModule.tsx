@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../../lib/supabase";
-import { createClient } from '@supabase/supabase-js';
 import { Plus, Edit2, Trash2, Search, UserPlus, Mail, Lock, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
-// Buat client sementara agar tidak mengganggu session manager yang sedang login
-const SUPABASE_URL = 'https://pbitlwrgainrcippjuwd.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
-const tempSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: false }
-});
+// Menggunakan shared supabase client dari lib/supabase (kredensial via .env)
 
 interface Employee {
   id: string;
@@ -74,7 +68,7 @@ export const KaryawanModule = () => {
           throw new Error("Email dan Password wajib diisi untuk karyawan baru.");
         }
         
-        const { data: authData, error: authError } = await tempSupabase.auth.signUp({
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {

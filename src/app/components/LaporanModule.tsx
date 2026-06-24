@@ -138,9 +138,9 @@ export function LaporanModule({ transactions }: LaporanModuleProps) {
       });
       const compiledItems = Object.entries(itemMap)
         .map(([name, qty]) => ({ name, qty }))
-        .sort((a, b) => b.qty - a.qty);
+        .sort((a: { qty: number }, b: { qty: number }) => b.qty - a.qty);
       
-      const totalItemCount = compiledItems.reduce((s, item) => s + item.qty, 0);
+      const totalItemCount = compiledItems.reduce((s: number, item: { qty: number }) => s + item.qty, 0);
 
       const realClosingData = {
         bulan: new Date().toISOString().slice(0, 7),
