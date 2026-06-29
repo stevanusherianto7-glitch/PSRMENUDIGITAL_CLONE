@@ -127,11 +127,10 @@ export function GuestReceipt({ tx }: GuestReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold text-sm mb-0.5">Kedai Elvera 57</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Ruko Beryl Commercial, Summarecon</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Jl. Bulevar Selatan No.78</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Cisaranten Kidul, Kec. Gedebage</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Kota Bandung, Jawa Barat 40295</div>
-      <div className="text-center text-xs mb-1">WA: 0823-2033-6007</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Jl. Pertanian Raya No.57, RT.4/RW.4</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Lb. Bulus, Kec. Cilandak</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Kota Jakarta Selatan, DKI Jakarta 12440</div>
+      <div className="text-center text-xs mb-1">WA: 0895-3763-48626</div>
       <div className="text-center text-xs mb-2 font-semibold">Order {tx.order_id ? tx.order_id : `#${tx.id}`}</div>
       
       <div className="border-b border-dashed mb-1"></div>
@@ -239,11 +238,10 @@ export function ClosingReceipt({ data }: ClosingReceiptProps) {
     <div className="receipt-container">
       <style>{receiptStyles}</style>
       <div className="text-center font-bold text-sm mb-0.5">Kedai Elvera 57</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Ruko Beryl Commercial, Summarecon</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Jl. Bulevar Selatan No.78</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Cisaranten Kidul, Kec. Gedebage</div>
-      <div className="text-center text-[7.5px] leading-tight mb-0.5">Kota Bandung, Jawa Barat 40295</div>
-      <div className="text-center text-xs mb-2">WA: 0823-2033-6007</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Jl. Pertanian Raya No.57, RT.4/RW.4</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Lb. Bulus, Kec. Cilandak</div>
+      <div className="text-center text-[7.5px] leading-tight mb-0.5">Kota Jakarta Selatan, DKI Jakarta 12440</div>
+      <div className="text-center text-xs mb-2">WA: 0895-3763-48626</div>
       
       <div className="border-b border-dashed mb-1"></div>
       
