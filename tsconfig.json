@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2016",
-    "ignoreDeprecations": "5.0",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2016", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -10,9 +9,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true,
-    "types": ["node", "jest"],
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
