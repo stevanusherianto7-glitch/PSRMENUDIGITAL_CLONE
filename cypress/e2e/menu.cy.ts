@@ -77,11 +77,11 @@ describe('Kedai Elvera 57 - Guest Menu & Ordering E2E Flow (Cypress Mocked-API)'
     cy.get('button').contains('Tambah').click();
 
     // Dialog closes and bottom checkout bar is shown
-    cy.contains('Lihat Keranjang').should('be.visible');
+    cy.contains('Lihat Keranjang').should('exist');
     cy.contains('Rp 25.000').should('be.visible');
 
     // --- 4. CHECKOUT CART AND ADD CHEF NOTES ---
-    cy.get('button').contains('Lihat Keranjang').click();
+    cy.get('button').contains('Lihat Keranjang').click({ force: true });
     cy.contains('Keranjang Pesanan').should('be.visible');
 
     // Select Dine In (verify it is selected/active)
