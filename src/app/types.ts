@@ -75,7 +75,6 @@ export interface Order {
   id: string;
   /** Table identifier for dine-in orders */
   tableId: string;
-  table_id?: string;
   /** List of items in the order */
   items: CartItem[];
   /** Subtotal before tax and discounts */
@@ -86,7 +85,6 @@ export interface Order {
   notes?: string;
   /** Order mode: dine-in or take-away */
   orderMode: OrderMode;
-  order_mode?: string;
   /** Current status of the order */
   status: OrderStatus;
   /** Order type: guest, waiter, or kasir */

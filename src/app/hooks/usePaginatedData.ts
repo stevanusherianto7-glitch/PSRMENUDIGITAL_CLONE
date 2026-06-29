@@ -44,15 +44,15 @@ export function usePaginatedData<T>(
     }
   }, [fetchData, limit, loading]);
   
-  const loadMore = useCallback(async () => {
+  const loadMore = useCallback(() => {
     const totalPages = Math.ceil(total / limit);
     if (page < totalPages && !loading) {
-      await loadPage(page + 1);
+      loadPage(page + 1);
     }
   }, [page, total, limit, loading, loadPage]);
   
-  const refresh = useCallback(async () => {
-    await loadPage(1);
+  const refresh = useCallback(() => {
+    loadPage(1);
   }, [loadPage]);
   
   return {

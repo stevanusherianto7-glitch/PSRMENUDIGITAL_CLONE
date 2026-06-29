@@ -55,7 +55,7 @@ describe('Security, Multi-Tab Sync, & Printer Failure Simulations', () => {
   describe('Scenario 1: Printer Connection Failure & Retry Resiliency', () => {
     it('should retry up to 3 times on write failure and then report failure to UI via toast', async () => {
       // Mock write failure on every attempt
-      mockBluetoothSerial.write.mockImplementation((data: any, success: () => void, failure: (err: any) => void) => {
+      mockBluetoothSerial.write.mockImplementation((data, success, failure) => {
         failure('Write error: device disconnected');
       });
 
@@ -91,7 +91,7 @@ describe('Security, Multi-Tab Sync, & Printer Failure Simulations', () => {
 
     it('should succeed printing if connection recovers on the 2nd attempt', async () => {
       let attempts = 0;
-      mockBluetoothSerial.write.mockImplementation((data: any, success: () => void, failure: (err: any) => void) => {
+      mockBluetoothSerial.write.mockImplementation((data, success, failure) => {
         attempts++;
         if (attempts === 1) {
           failure('Write error');

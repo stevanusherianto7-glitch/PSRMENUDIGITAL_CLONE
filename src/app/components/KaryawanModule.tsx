@@ -68,7 +68,7 @@ export const KaryawanModule = () => {
           throw new Error("Email dan Password wajib diisi untuk karyawan baru.");
         }
         
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await tempSupabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {

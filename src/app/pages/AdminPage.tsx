@@ -27,7 +27,7 @@ import { format } from "date-fns";
 import {
   SEED_MENU, SEED_TABLES, SEED_INVENTORY, SEED_PROMOS,
   menuCategories, rp,  PAYMENT_DATA, BEST_SELLER_DATA, HOURLY_DATA, CREDENTIALS,
-  BRAND_NAME, APP_LOGO as logoImg, NAV_ITEMS, moduleLabels
+  BRAND_NAME, APP_LOGO as logoImg
 } from "../data";
 import { fetchOrders, updateOrder, createOrder } from "../api";
 import { DashboardModule } from "../components/DashboardModule";
@@ -43,7 +43,6 @@ import { JadwalShift } from "../components/JadwalShift";
 import { KalkulatorHPP } from "../components/KalkulatorHPP";
 import { useTTS, preloadVoices } from "../hooks/useTTS";
 import { KaryawanModule } from "../components/KaryawanModule";
-import { ConnectionBadge } from "../components/ConnectionBadge";
 import { AssetModule } from "../components/AssetModule";
 import { ReservasiModule } from "../components/ReservasiModule";
 import { MenuManagement } from "../components/MenuManagement";
@@ -113,7 +112,28 @@ const orderStatusConfig: Record<OrderStatus, { label: string; color: string; bg:
   cancelled: { label: "Dibatal", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: <XCircle size={12} /> },
 };
 
-// NAV_ITEMS and ConnectionBadge are imported from data.ts and ConnectionBadge.tsx
+const NAV_ITEMS: { id: Module; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "transaksi", label: "Data Transaksi", icon: FileBarChart2 },
+  { id: "orders", label: "Monitor Pesanan", icon: ShoppingBag },
+  { id: "kasir", label: "Kasir", icon: ShoppingCart },
+  { id: "meja", label: "Manajemen Meja", icon: Grid3X3 },
+  { id: "menu", label: "Katalog Menu", icon: UtensilsCrossed },
+  { id: "qr-menu", label: "Buku Menu Digital", icon: QrCode },
+  { id: "stok", label: "Stok Opname", icon: Package },
+  { id: "metrics", label: "Metrics", icon: Activity },
+  { id: "sdm", label: "SDM", icon: Users },
+  { id: "hpp", label: "Kalkulator HPP", icon: Calculator },
+];
+
+
+
+function ConnectionBadge({ connected }: { connected: boolean }) {
+  return (
+    <div className={`flex items-center justify-center w-8 h-8 rounded-full border transition-all ${connected ? "bg-green-500/10 border-green-500/20 text-green-500 shadow-[0_0_10px_rgba(34,197,94,0.2)]" : "bg-red-500/10 border-red-500/20 text-red-500"}`} title={connected ? "Supabase Online" : "Offline"}>
+      {connected ? <Wifi size={14} className="animate-pulse" /> : <WifiOff size={14} />}
+    </div>
+  );
+}
 
 
 
@@ -700,7 +720,12 @@ export default function AdminPage() {
 
   const pendingOrdersCount = liveOrders.filter(o => o.status === "pending").length;
 
-  // moduleLabels is imported from data.ts
+  const moduleLabels: Record<Module, string> = {
+    orders: "Monitor Pesanan", kasir: "Kasir",
+    meja: "Manajemen Meja", menu: "Katalog Menu", "qr-menu": "Buku Menu Digital", promo: "Promo",
+    sdm: "SDM", stok: "Stok Opname", transaksi: "Data Transaksi",
+    hpp: "Kalkulator HPP", metrics: "Metrics",
+  };
 
   function logout() { localStorage.removeItem("pawon_session"); navigate("/"); }
 

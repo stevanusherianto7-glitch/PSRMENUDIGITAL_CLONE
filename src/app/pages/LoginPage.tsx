@@ -31,8 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
 
-    const targetRole = (role === "manager" || role === "owner") ? "admin" : role;
-    const cred = CREDENTIALS[targetRole as keyof typeof CREDENTIALS];
+    const cred = CREDENTIALS[role];
     if (password !== cred.password) {
       setError("Password salah. Coba lagi.");
       setLoading(false);

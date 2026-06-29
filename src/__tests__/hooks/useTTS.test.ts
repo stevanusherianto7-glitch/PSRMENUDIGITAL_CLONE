@@ -132,7 +132,7 @@ describe('useTTS Concurrent Orders Test', () => {
 
     // Now, simulate a subsequent update to the orders array (e.g. an order is updated or status changes)
     // With Opsi 2, this update should NOT clear the persistent ttsQueue
-    const updatedOrders = initialOrders.map(o => o.id === 'order-11' ? { ...o, status: 'cooking' } as Order : o);
+    const updatedOrders = initialOrders.map(o => o.id === 'order-11' ? { ...o, status: 'processing' } as Order : o);
     rerender({ ords: updatedOrders });
 
     // Advance time by 40 seconds (long enough for all 9 orders to be announced)

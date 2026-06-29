@@ -696,7 +696,7 @@ export default function GuestMenuPage() {
         const fallbackOrder: Order = {
           id: `OFFLINE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
           tableId,
-          items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category, image: c.image || "", available: c.available !== undefined ? c.available : true })),
+          items: cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, category: c.category })),
           subtotal,
           total: total,
           notes: notes || "",

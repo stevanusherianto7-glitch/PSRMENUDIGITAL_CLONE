@@ -414,7 +414,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected, onTransac
 
   // Handler jalankan simulasi
   const handleRunSimulation = async () => {
-    const selectedItem = presetItems[selectedPresetIndex] as any;
+    const selectedItem = presetItems[selectedPresetIndex];
     if (!selectedItem) return;
     setIsSimulating(true);
 
@@ -424,9 +424,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected, onTransac
         name: selectedItem.name,
         price: selectedItem.price,
         qty: simQty,
-        category: selectedItem.category,
-        image: selectedItem.image || "",
-        available: selectedItem.available !== undefined ? selectedItem.available : true
+        category: selectedItem.category
       };
 
       const subtotal = selectedItem.price * simQty;
@@ -436,7 +434,7 @@ export const DashboardModule = ({ transactions, liveOrders, connected, onTransac
 
       const tx: Transaction = {
         id: txId,
-        table_id: simTableId || "",
+        table_id: simTableId || null,
         items: [cartItem],
         subtotal,
         tax,

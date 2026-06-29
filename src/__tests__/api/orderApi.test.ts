@@ -51,7 +51,7 @@ describe('Order API', () => {
         }
       ];
 
-      mockQuery.then.mockImplementationOnce(function (onFulfilled: any) {
+      mockQuery.then.mockImplementationOnce(function (onFulfilled) {
         return Promise.resolve({ data: mockDbOrders, error: null }).then(onFulfilled);
       });
 
@@ -75,7 +75,7 @@ describe('Order API', () => {
     });
 
     it('handles API errors', async () => {
-      mockQuery.then.mockImplementation(function (onFulfilled: any) {
+      mockQuery.then.mockImplementation(function (onFulfilled) {
         return Promise.resolve({ data: null, error: new Error('Database connection failed') }).then(onFulfilled);
       });
 
@@ -98,7 +98,7 @@ describe('Order API', () => {
         updated_at: '2023-01-01'
       };
 
-      mockQuery.then.mockImplementationOnce(function (onFulfilled: any) {
+      mockQuery.then.mockImplementationOnce(function (onFulfilled) {
         return Promise.resolve({ data: mockDbOrder, error: null }).then(onFulfilled);
       });
 
@@ -109,7 +109,7 @@ describe('Order API', () => {
         total: 0,
         orderMode: 'dine-in',
         type: 'guest'
-      });
+      }, true); // skipQueue = true to bypass offline queue during testing
 
       expect(order.tableId).toBe('A1');
       expect(order.orderMode).toBe('dine-in');
