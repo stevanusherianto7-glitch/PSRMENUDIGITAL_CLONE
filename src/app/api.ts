@@ -38,16 +38,17 @@ function generateOrderId(): string {
  * DTO Adapter: Maps snake_case database columns to camelCase properties.
  * This guarantees frontend compatibility even if duplicate database columns are dropped!
  */
-export function mapOrder(o: any): Order {
-  if (!o) return o;
+export function mapOrder(o: unknown): Order {
+  if (!o) return o as unknown as Order;
+  const obj = o as Record<string, unknown>;
   const mapped = {
-    ...o,
-    tableId: o.table_id || o.tableId || "",
-    orderMode: o.order_mode || o.orderMode || o.mode || "dine-in",
+    ...obj,
+    tableId: (obj.table_id || obj.tableId || "") as string,
+    orderMode: (obj.order_mode || obj.orderMode || obj.mode || "dine-in") as OrderMode,
   };
-  delete mapped.table_id;
-  delete mapped.order_mode;
-  return mapped;
+  delete (mapped as Record<string, unknown>).table_id;
+  delete (mapped as Record<string, unknown>).order_mode;
+  return mapped as unknown as Order;
 }
 
 export async function fetchOrders(status?: string, tableId?: string): Promise<Order[]> {
@@ -73,7 +74,7 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     throw error;
   }
 
-  const dbOrders = ((data as any[]) || []).map(mapOrder);
+  const dbOrders = ((data as Record<string, unknown>[]) || []).map(mapOrder);
 
   // Apply robust local fallback cache overrides if present
   try {
@@ -123,7 +124,7 @@ export async function fetchPaginatedOrders(
     throw error;
   }
 
-  const dbOrders = ((data as any[]) || []).map(mapOrder);
+  const dbOrders = ((data as Record<string, unknown>[]) || []).map(mapOrder);
 
   // Apply robust local fallback cache overrides if present
   try {
@@ -235,7 +236,7 @@ export async function createOrder(payload: {
  */
 export async function updateOrder(id: string, patch: Partial<Order>): Promise<Order> {
   // Sanitize: prevent overwriting id or created_at
-  const { id: _, created_at: __, ...safePatch } = patch as any;
+  const { id: _, created_at: __, ...safePatch } = patch as Record<string, unknown>;
 
   const { data, error } = await supabase
     .from("orders")
@@ -254,7 +255,7 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     const isMissingServedAtError = errorResult.message && errorResult.message.includes('served_at');
     if (isMissingServedAtError) {
       console.warn(`[ROBUST FALLBACK] Column 'served_at' is missing in remote DB schema. Retrying update without 'served_at'...`);
-      const { served_at: _, ...retryPatch } = safePatch as any;
+      const { served_at: _, ...retryPatch } = safePatch as Record<string, unknown>;
       
       const { data: retryData, error: retryError } = await supabase
         .from("orders")
@@ -305,7 +306,7 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
           
         if (!fetchErr && existing) {
           // If served_at was missing from the DB schema, strip it from the merged insert payload too
-          const finalPatch = isMissingServedAtError ? (() => { const { served_at, ...rest } = safePatch as any; return rest; })() : safePatch;
+          const finalPatch = isMissingServedAtError ? (() => { const { served_at, ...rest } = safePatch as Record<string, unknown>; return rest; })() : safePatch;
           
           const merged = {
             ...existing,

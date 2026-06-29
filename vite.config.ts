@@ -1,6 +1,6 @@
 /** 
  * ⚠️ DILARANG KERAS UNTUK MENGUBAH ATAU MEMODIFIKASI FILE INI TANPA IZIN SENIOR ARCHITECT.
- * FILE INI BERISI KONFIGURASI BUILD VITE DAN SETUP PWA PAWON SALAM.
+ * FILE INI BERISI KONFIGURASI BUILD VITE DAN SETUP PWA KEDAI ELVERA 57.
  * KESALAHAN MODIFIKASI DAPAT MENYEBABKAN APLIKASI GAGAL DI-DEPLOY ATAU PWA TIDAK AKTIF. ⚠️
  */
 import { defineConfig } from 'vite'
@@ -31,7 +31,7 @@ export default defineConfig({
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'Kedai Elvera 57 — POS & Menu Digital',
-        short_name: 'PawonSalam',
+        short_name: 'KedaiElvera57',
         description: 'Sistem Kasir & Menu Digital Kedai Elvera 57. Sajian Otentik Khas Semarang.',
         theme_color: '#E87722',
         background_color: '#F7F1E6',

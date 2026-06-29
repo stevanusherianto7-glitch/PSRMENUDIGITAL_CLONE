@@ -190,7 +190,7 @@ jobs:
       - name: "📋 Report CI status"
         run: |
           echo "╔══════════════════════════════════════════════╗"
-          echo "║   CI Full Test Suite — Kedai Elvera 57           ║"
+          echo "║   CI Full Test Suite — Kedai Elvera 57       ║"
           echo "╠══════════════════════════════════════════════╣"
           echo "║  Unit Tests      : ${{ needs.unit-tests.result }}"
           echo "║  Playwright E2E  : ${{ needs.playwright-e2e.result }}"

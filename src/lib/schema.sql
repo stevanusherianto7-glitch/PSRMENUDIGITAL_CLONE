@@ -1,5 +1,5 @@
 -- ============================================================
---  PAWON SALAM RESTO — Supabase SQL Schema
+--  KEDAI ELVERA 57 — Supabase SQL Schema
 --  Project : PSRMENUDIGITAL
 --  Jalankan seluruh script ini di Supabase → SQL Editor
 -- ============================================================
