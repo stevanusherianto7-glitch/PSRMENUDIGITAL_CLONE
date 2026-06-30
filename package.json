@@ -9,6 +9,7 @@
     "test:coverage": "jest --coverage",
     "build": "npx vite build",
     "dev": "vite",
+    "preview": "vite preview --port 5174",
     "lint": "eslint src",
     "format": "eslint src --fix",
     "clean": "npx rimraf dist"

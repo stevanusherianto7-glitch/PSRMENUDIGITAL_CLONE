@@ -45,11 +45,12 @@ export default defineConfig({
     },
   ],
 
-  // Auto-start dev server sebelum test
+  // Auto-start server sebelum test
+  // Di CI: gunakan preview (dist sudah di-build), lokal: gunakan dev server
   webServer: {
-    command: 'npm run dev',
+    command: process.env.CI ? 'npm run preview' : 'npm run dev',
     url: 'http://localhost:5174',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
 });
