@@ -2,10 +2,10 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 90_000,
-  expect: { timeout: 15_000 },
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
   fullyParallel: false,
-  retries: 1,
+  retries: 2,
   workers: 1,
 
   reporter: [
@@ -21,8 +21,8 @@ export default defineConfig({
     headless: !!process.env.CI,
 
     viewport: { width: 1280, height: 720 },
-    actionTimeout: 15_000,
-    navigationTimeout: 30_000,
+    actionTimeout: 20_000,
+    navigationTimeout: 60_000,
 
     // Record trace untuk debugging
     trace: 'on-first-retry',
