@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Menggunakan react-router-dom agar tidak error context
 import { ChefHat, Eye, EyeOff, Lock, ArrowRight, UtensilsCrossed, ShoppingBag, Scan } from "lucide-react";
+import { supabase } from "../../lib/supabase";
 
 // Menggunakan string path untuk logo agar tidak error di Vite
 import { CREDENTIALS, BRAND_NAME, APP_LOGO as logoImg } from "../data";
@@ -29,24 +30,76 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 300));
 
-    const cred = CREDENTIALS[role as keyof typeof CREDENTIALS];
-    if (password !== cred.password) {
-      setError("Password salah. Coba lagi.");
+    const defaultCred = CREDENTIALS[role as keyof typeof CREDENTIALS];
+    const email = `${role}@pawonsalam.id`;
+    let userSessionName = defaultCred ? defaultCred.name : `${role} Staff`;
+
+    try {
+      // 1. Coba login dengan Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        // Jika login gagal, periksa apakah karena user belum terdaftar
+        // Dan apakah password yang diinput adalah password default untuk peran tersebut
+        if (defaultCred && password === defaultCred.password && (authError.message.includes("Invalid login credentials") || authError.message.includes("Email not confirmed"))) {
+          // Lakukan auto-seed (registrasi otomatis)
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                nama: defaultCred.name,
+                role: role
+              }
+            }
+          });
+
+          if (signUpError) {
+            throw signUpError;
+          }
+
+          // Coba login kembali setelah registrasi otomatis berhasil
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (retryError) {
+            throw retryError;
+          }
+
+          if (retryData.user?.user_metadata?.nama) {
+            userSessionName = retryData.user.user_metadata.nama;
+          }
+        } else {
+          // Jika gagal karena password salah (bukan default) atau error lain, lemparkan error asli
+          throw authError;
+        }
+      } else {
+        if (authData.user?.user_metadata?.nama) {
+          userSessionName = authData.user.user_metadata.nama;
+        }
+      }
+
+      // Buat session local untuk kecocokan frontend yang ada
+      const session: UserSession = { role, name: userSessionName };
+      localStorage.setItem("pawon_session", JSON.stringify(session));
+
+      // Pengalihan halaman berdasarkan peran
+      if (role === "admin" || role === "manager" || role === "owner") navigate("/admin");
+      else if (role === "kitchen") navigate("/kitchen");
+      else navigate("/waiter");
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.message || "Gagal masuk. Periksa kembali kredensial Anda.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const session: UserSession = { role, name: cred.name };
-    localStorage.setItem("pawon_session", JSON.stringify(session));
-
-    // Fix redirect logic agar role kitchen dan manager/owner terarah dengan benar
-    if (role === "admin" || role === "manager" || role === "owner") navigate("/admin");
-    else if (role === "kitchen") navigate("/kitchen");
-    else navigate("/waiter");
-    
-    setLoading(false);
   }
 
   return (

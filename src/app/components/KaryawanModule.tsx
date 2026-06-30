@@ -5,9 +5,11 @@ import { Plus, Edit2, Trash2, Search, UserPlus, Mail, Lock, Shield } from 'lucid
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
+import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+
 // Buat client sementara agar tidak mengganggu session manager yang sedang login
-const SUPABASE_URL = 'https://ugfpbkjuxrdgveyfbfks.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `https://${projectId}.supabase.co`;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || publicAnonKey;
 const tempSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false }
 });

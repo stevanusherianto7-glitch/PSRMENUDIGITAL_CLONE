@@ -65,3 +65,7 @@ test_order.js
 test-results/
 playwright-report/
 admin_script.js
+
+# Sensitive credentials
+CREDENTIALS.md
+

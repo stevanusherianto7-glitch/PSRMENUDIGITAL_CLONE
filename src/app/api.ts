@@ -31,6 +31,24 @@ function generateOrderId(): string {
 
 // ─── ORDERS ──────────────────────────────────────────────────────────────────
 
+export interface DbOrder {
+  id: string;
+  table_id?: string;
+  tableId?: string;
+  items: CartItem[];
+  subtotal: number;
+  total: number;
+  notes?: string;
+  order_mode?: OrderMode;
+  orderMode?: OrderMode;
+  mode?: OrderMode;
+  status: OrderStatus;
+  type: OrderType;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any;
+}
+
 /**
  * Fetch orders, optionally filter by status and/or tableId.
  */
@@ -38,7 +56,7 @@ function generateOrderId(): string {
  * DTO Adapter: Maps snake_case database columns to camelCase properties.
  * This guarantees frontend compatibility even if duplicate database columns are dropped!
  */
-export function mapOrder(o: any): Order {
+export function mapOrder(o: DbOrder): Order {
   if (!o) return o;
   return {
     ...o,
@@ -60,9 +78,6 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     query = query.eq("table_id", tableId);
   }
 
-  // Bypass browser cache for GET requests
-  query = query.neq("id", `dummy-${Date.now()}`);
-
   const { data, error } = await query;
 
   if (error) {
@@ -70,7 +85,7 @@ export async function fetchOrders(status?: string, tableId?: string): Promise<Or
     throw error;
   }
 
-  return ((data as any[]) || []).map(mapOrder);
+  return ((data as DbOrder[]) || []).map(mapOrder);
 }
 
 /**
@@ -102,7 +117,7 @@ export async function fetchPaginatedOrders(
   }
 
   return {
-    data: ((data as any[]) || []).map(mapOrder),
+    data: ((data as DbOrder[]) || []).map(mapOrder),
     total: count || 0,
     page,
     limit,
@@ -178,7 +193,7 @@ export async function updateOrder(id: string, patch: Partial<Order>): Promise<Or
     throw error;
   }
 
-  return data as Order;
+  return mapOrder(data as DbOrder);
 }
 
 /**
