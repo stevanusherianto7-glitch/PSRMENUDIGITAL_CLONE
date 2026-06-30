@@ -1,0 +1,154 @@
+name: PSRMENUDIGITAL CI
+
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'fix/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Jalankan E2E Playwright?'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+env:
+  # Fallback values untuk CI (unit test tidak butuh Supabase real)
+  VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'placeholder-pub-key' }}
+  VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:3000' }}
+  VITE_API_USERNAME: ${{ secrets.VITE_API_USERNAME || 'ci-user' }}
+  VITE_API_PASSWORD: ${{ secrets.VITE_API_PASSWORD || 'ci-pass' }}
+  VITE_API_DB: ${{ secrets.VITE_API_DB || 'ci-db' }}
+
+jobs:
+  # ── JOB 1: Lint + TypeCheck + Unit Tests ─────────────────────────────────
+  unit-test:
+    name: Lint, TypeCheck & Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (verifikasi tidak ada TypeScript error)
+        run: npm run build
+
+      - name: Unit Tests + Coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-coverage-${{ github.run_number }}
+          path: coverage/
+          retention-days: 7
+
+  # ── JOB 2: E2E Playwright Tests ──────────────────────────────────────────
+  e2e-test:
+    name: E2E Playwright Tests
+    runs-on: ubuntu-latest
+    needs: unit-test
+    timeout-minutes: 20
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e == 'true') ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app
+        run: npm run build
+
+      - name: Run Playwright E2E Tests
+        run: npx playwright test --workers=1
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-test-results-${{ github.run_number }}
+          path: test-results/
+          retention-days: 3
+
+  # ── JOB 3: Security Check ─────────────────────────────────────────────────
+  security-check:
+    name: Security & Secrets Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check tidak ada hardcoded credentials
+        run: |
+          echo "=== Checking for hardcoded Supabase keys ==="
+          # Cek pola key Supabase yang hardcoded
+          if grep -rn "sb_publishable_\|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" \
+            src/ --include="*.ts" --include="*.tsx" | grep -v ".bak" | grep -v "//"; then
+            echo "❌ HARDCODED SUPABASE KEY DITEMUKAN DI SOURCE CODE!"
+            exit 1
+          else
+            echo "✓ Tidak ada hardcoded Supabase key"
+          fi
+
+      - name: Check CREDENTIALS.md tidak ada
+        run: |
+          if [ -f "CREDENTIALS.md" ]; then
+            echo "❌ CREDENTIALS.md masih ada di repository!"
+            echo "Hapus file ini dan hapus dari git history."
+            exit 1
+          else
+            echo "✓ CREDENTIALS.md tidak ada"
+          fi
+
+      - name: Check .env tidak ter-commit
+        run: |
+          if git show HEAD:.env >/dev/null 2>&1; then
+            echo "❌ .env ter-commit ke git!"
+            exit 1
+          else
+            echo "✓ .env tidak ter-commit"
+          fi

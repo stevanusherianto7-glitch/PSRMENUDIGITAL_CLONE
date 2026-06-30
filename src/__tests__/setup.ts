@@ -1,4 +1,7 @@
 import '@testing-library/jest-dom';
+import { TextEncoder, TextDecoder } from 'util';
+(globalThis as any).TextEncoder = TextEncoder;
+(globalThis as any).TextDecoder = TextDecoder;
 
 // Mock ResizeObserver
 (globalThis as any).ResizeObserver = jest.fn().mockImplementation(() => ({
