@@ -11,7 +11,6 @@ http.get('https://psrmenudigital-clone.vercel.app/', (res) => {
       jsRes.on('data', d => js += d);
       jsRes.on('end', () => {
         console.log("Edge Function URL:", js.includes("functions/v1/make-server"));
-        console.log("Elvera ID:", js.includes("ugfpbkjuxrdgveyfbfks"));
         console.log("Pawon ID:", js.includes("pbitlwrgainrcippjuwd"));
         console.log("fetchOrders uses supabase.from('orders'):", js.includes('.from("orders")'));
       });

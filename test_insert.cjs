@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient('https://ugfpbkjuxrdgveyfbfks.supabase.co', 'sb_publishable_goaDeAnsgkAQ1ZQM_lArBQ_LhC6vN-7');
+const supabase = createClient('https://pbitlwrgainrcippjuwd.supabase.co', 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ');
 
 async function run() {
   const { data, error } = await supabase.from('orders').insert({
