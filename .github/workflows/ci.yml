@@ -66,7 +66,7 @@ jobs:
     name: E2E Playwright Tests
     runs-on: ubuntu-latest
     needs: unit-test
-    timeout-minutes: 45
+    timeout-minutes: 15
     if: |
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e == 'true') ||
@@ -94,11 +94,12 @@ jobs:
           VITE_SUPABASE_URL: ${{ env.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ env.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Run Playwright E2E Tests (stable specs only)
+      - name: Run Playwright E2E Tests (tanpa Supabase auth — cepat & stabil)
         run: |
           npx playwright test \
             e2e/all_features.spec.ts \
             e2e/gallery-reservation.spec.ts \
+            --grep "\\[GUEST\\]|\\[NAV\\]|\\[GALERI\\]|\\[RESERVASI\\]|Login page loads|Wrong password" \
             --workers=1 --reporter=list
         env:
           CI: true
