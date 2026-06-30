@@ -18,7 +18,7 @@ export default defineConfig({
     baseURL: 'http://localhost:5174',
 
     // HEADED: browser terlihat saat test berjalan
-    headless: false,
+    headless: true,
 
     viewport: { width: 1280, height: 720 },
     actionTimeout: 15_000,
