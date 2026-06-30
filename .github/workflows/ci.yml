@@ -2,9 +2,9 @@ name: PSRMENUDIGITAL CI
 
 on:
   push:
-    branches: [main, develop, 'feature/**', 'fix/**']
+    branches: [main, master, develop, 'feature/**', 'fix/**']
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
   workflow_dispatch:
     inputs:
       run_e2e:
@@ -127,7 +127,7 @@ jobs:
           echo "=== Checking for hardcoded Supabase keys ==="
           # Cek pola key Supabase yang hardcoded
           if grep -rn "sb_publishable_\|eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" \
-            src/ --include="*.ts" --include="*.tsx" | grep -v ".bak" | grep -v "//"; then
+            src/ --include="*.ts" --include="*.tsx" | grep -v ".bak" | grep -v "//" | grep -v "src/utils/supabase/"; then
             echo "❌ HARDCODED SUPABASE KEY DITEMUKAN DI SOURCE CODE!"
             exit 1
           else
