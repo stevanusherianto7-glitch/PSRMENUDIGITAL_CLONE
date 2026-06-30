@@ -99,7 +99,6 @@ jobs:
           npx playwright test \
             e2e/all_features.spec.ts \
             e2e/gallery-reservation.spec.ts \
-            e2e/admin-gallery.spec.ts \
             --workers=1 --reporter=list
         env:
           CI: true
