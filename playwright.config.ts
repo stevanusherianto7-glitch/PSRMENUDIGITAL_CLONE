@@ -17,8 +17,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5174',
 
-    // HEADED: browser terlihat saat test berjalan
-    headless: true,
+    // Headless di CI, headed secara lokal untuk debugging
+    headless: !!process.env.CI,
 
     viewport: { width: 1280, height: 720 },
     actionTimeout: 15_000,
