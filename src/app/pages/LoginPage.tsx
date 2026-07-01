@@ -183,7 +183,7 @@ export default function LoginPage() {
             <p className="eyebrow mb-3 text-[#C2410C] dark:text-[#F97316] font-black tracking-widest">Masuk</p>
             <h2 className="font-display text-4xl leading-tight text-white font-black">Selamat datang kembali</h2>
             <div className="gold-rule-short mt-4 lg:mx-0 mx-auto" />
-            <p className="text-white text-sm mt-4 font-bold">Pilih peran lalu masukkan password.</p>
+            <p className="text-white text-sm mt-4 font-normal">Pilih peran lalu masukkan password.</p>
           </div>
 
           {/* Role selection */}
