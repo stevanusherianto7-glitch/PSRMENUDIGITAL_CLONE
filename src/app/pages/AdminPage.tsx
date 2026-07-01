@@ -277,10 +277,10 @@ export default function AdminPage() {
   // Clock
   useEffect(() => { const t = setInterval(() => setTime(new Date()), 30000); return () => clearInterval(t); }, []);
 
+  // Load orders from server
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
-      console.log("[TTS-DEBUG] Raw orders fetched from DB:", orders.map(o => ({ id: o.id, status: o.status, created_at: o.created_at })));
       // Filter: hanya order hari ini & belum lewat 4 jam (untuk active orders).
       // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
       const now = Date.now();
@@ -296,7 +296,6 @@ export default function AdminPage() {
         // Active orders (pending/cooking/ready): maks 4 jam
         return (now - createdAt) < MAX_AGE_MS;
       });
-      console.log("[TTS-DEBUG] Active orders after filter:", active.map(o => o.id));
       setLiveOrders(active);
     } catch (e: any) { console.log("Error loading orders:", e?.message || e || "Unknown error"); }
     finally { setOrdersLoaded(true); }

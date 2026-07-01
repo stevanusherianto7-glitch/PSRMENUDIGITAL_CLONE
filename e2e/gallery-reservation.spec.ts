@@ -10,10 +10,34 @@
 import { test, expect, type Page } from "@playwright/test";
 
 // --- Helper: bypass welcome modal with PIN ---
+// We stub geolocation.getCurrentPosition to fail immediately (permission denied),
+// so the PIN input appears right away instead of waiting 15s for timeout.
 async function bypassWelcomeModal(page: Page) {
   await page.addInitScript(() => {
     (window as any).__skip_seed = true;
+
+    // Override getCurrentPosition to immediately call error callback.
+    // Must be done on the prototype to survive any caching.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition = (
+        _success: PositionCallback,
+        error?: PositionErrorCallback | null
+      ) => {
+        if (error) {
+          setTimeout(() => {
+            error({
+              code: 1,
+              message: "Permission denied (test stub)",
+              PERMISSION_DENIED: 1,
+              POSITION_UNAVAILABLE: 2,
+              TIMEOUT: 3,
+            } as GeolocationPositionError);
+          }, 50);
+        }
+      };
+    }
   });
+
   await page.goto("/#/menu/1");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(2000);
@@ -28,11 +52,11 @@ async function bypassWelcomeModal(page: Page) {
   await startBtn.waitFor({ state: "visible", timeout: 10000 });
   await startBtn.click();
 
-  // Step 3: Wait for PIN input (geolocation fails) and enter PIN "PAWON"
+  // Step 3: Geolocation immediately errors → PIN input appears
   const pinInput = page.locator("input[placeholder='Masukkan PIN']");
-  await pinInput.waitFor({ state: "visible", timeout: 15000 });
+  await pinInput.waitFor({ state: "visible", timeout: 5000 });
   await pinInput.fill("PAWON");
-  
+
   const cekBtn = page.getByRole('button', { name: /^cek$/i }).last();
   await cekBtn.click();
 
@@ -43,8 +67,7 @@ async function bypassWelcomeModal(page: Page) {
 // --- [NAV] Tab Navigation ---
 
 test.describe("[NAV] Guest Navigation Tabs", () => {
-  test("All three tabs (MENU, GALERI, RESERVASI) are visible after login", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("All three tabs (MENU, GALERI, RESERVASI) are visible after login", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     // Use getByText with partial match (buttons contain SVG icon + text)
@@ -57,8 +80,7 @@ test.describe("[NAV] Guest Navigation Tabs", () => {
     await expect(reservasiTab).toBeVisible({ timeout: 5000 });
   });
 
-  test("Clicking tabs switches the active view", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Clicking tabs switches the active view", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     // Click GALERI tab
@@ -93,8 +115,7 @@ test.describe("[NAV] Guest Navigation Tabs", () => {
 // --- [GALERI] Gallery Module ---
 
 test.describe("[GALERI] Event Gallery Module", () => {
-  test("Gallery shows event cards with images and descriptions", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Gallery shows event cards with images and descriptions", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const galeriTab = page.getByText("GALERI", { exact: false }).first();
@@ -108,8 +129,7 @@ test.describe("[GALERI] Event Gallery Module", () => {
     expect(body).toMatch(/corporate|rapat/i);
   });
 
-  test("Gallery event cards have badge labels", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Gallery event cards have badge labels", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const galeriTab = page.getByText("GALERI", { exact: false }).first();
@@ -125,8 +145,7 @@ test.describe("[GALERI] Event Gallery Module", () => {
 // --- [RESERVASI] Reservation Module ---
 
 test.describe("[RESERVASI] Reservation Module", () => {
-  test("Reservation form shows all required fields", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Reservation form shows all required fields", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const reservasiTab = page.getByText("RESERVASI", { exact: false }).first();
@@ -144,8 +163,7 @@ test.describe("[RESERVASI] Reservation Module", () => {
     expect(body).toMatch(/catatan khusus/i);
   });
 
-  test("Reservation form has submit button", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Reservation form has submit button", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const reservasiTab = page.getByText("RESERVASI", { exact: false }).first();
@@ -156,8 +174,7 @@ test.describe("[RESERVASI] Reservation Module", () => {
     await expect(submitBtn).toBeVisible({ timeout: 5000 });
   });
 
-  test("Reservation form can be filled and submitted", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Reservation form can be filled and submitted", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const reservasiTab = page.getByText("RESERVASI", { exact: false }).first();
@@ -195,8 +212,7 @@ test.describe("[RESERVASI] Reservation Module", () => {
     await page.waitForTimeout(1500);
   });
 
-  test("Reservation form validates required fields", async ({ page, context }) => {
-    await context.clearPermissions();
+  test("Reservation form validates required fields", async ({ page }) => {
     await bypassWelcomeModal(page);
 
     const reservasiTab = page.getByText("RESERVASI", { exact: false }).first();
