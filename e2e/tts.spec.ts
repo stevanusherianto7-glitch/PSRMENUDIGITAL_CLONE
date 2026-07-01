@@ -255,8 +255,15 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     expect(error).toBeNull();
     console.log(`--- INSERTED order ${orderId} ---`);
     
-    // Wait for realtime or polling interval (30s) to pick it up
-    await page.waitForTimeout(35000);
+    // Actively wait for TTS announcement console log (event-driven, not passive timer)
+    // CI environments have higher latency; 90s covers 2+ polling cycles (30s each)
+    await page.waitForEvent('console', {
+      predicate: msg => msg.text().includes('Announcing order:'),
+      timeout: 90_000,
+    });
+    
+    // Small buffer for speechSynthesis stub to record the spoken text
+    await page.waitForTimeout(1000);
     
     // Check console logs for TTS announcement
     const announceLogs = ttsLogs.filter(l => l.includes('Announcing order:'));
@@ -334,8 +341,9 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     const { orderId, error } = await insertTestOrder(page);
     expect(error).toBeNull();
     
-    // Wait for polling cycle
-    await page.waitForTimeout(35000);
+    // Wait for 2 polling cycles to confirm no announcement happens
+    // CI environments need more time; 60s covers 2x 30s polling cycles
+    await page.waitForTimeout(60_000);
     
     // Should NOT have any announcement
     const announceLogs = ttsLogs.filter(l => l.includes('Announcing order:'));
@@ -377,8 +385,12 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     });
     expect(error).toBeNull();
     
-    // Wait for detection + announcement
-    await page.waitForTimeout(35000);
+    // Actively wait for TTS announcement (event-driven, reliable in CI)
+    await page.waitForEvent('console', {
+      predicate: msg => msg.text().includes('Announcing order:'),
+      timeout: 90_000,
+    });
+    await page.waitForTimeout(1000);
     
     const spoken = await getSpokenTexts(page);
     const orderSpeech = spoken.find(t => t.includes('Meja 3'));
