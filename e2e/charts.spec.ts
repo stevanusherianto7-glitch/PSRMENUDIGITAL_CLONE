@@ -16,9 +16,18 @@ async function loginAsAdmin(page: Page) {
   await page.waitForTimeout(3000);
 }
 
+async function openMobileSidebar(page: Page) {
+  const hamburger = page.locator("button[title='Buka menu mobile']");
+  if (await hamburger.isVisible()) {
+    await hamburger.click();
+    await page.waitForTimeout(500);
+  }
+}
+
 test.describe("Charts Verification (Summary & Laporan Modules)", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await openMobileSidebar(page);
     // Go to "Transaksi" module
     const transaksiBtn = page.locator("button").filter({ hasText: /transaksi/i }).first();
     await expect(transaksiBtn).toBeVisible({ timeout: 10000 });

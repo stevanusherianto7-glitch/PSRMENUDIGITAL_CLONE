@@ -11,6 +11,15 @@
 
 import { test, expect, type Page } from "@playwright/test";
 
+// --- Helper: open mobile sidebar if on narrow viewport ---
+async function openMobileSidebar(page: Page) {
+  const hamburger = page.locator("button[title='Buka menu mobile']");
+  if (await hamburger.isVisible()) {
+    await hamburger.click();
+    await page.waitForTimeout(500);
+  }
+}
+
 // --- Helper: login as admin and navigate to Buku Menu Digital ---
 async function loginAndGoToGallery(page: Page) {
   await page.addInitScript(() => {
@@ -28,6 +37,9 @@ async function loginAndGoToGallery(page: Page) {
   await page.locator("button[type=submit]").click();
   await page.waitForURL(/\/#\/admin/, { timeout: 45000 });
   await page.waitForTimeout(3000);
+
+  // Open sidebar on mobile first
+  await openMobileSidebar(page);
 
   // Navigate to "Buku Menu Digital" sidebar item
   const bukuMenuBtn = page.locator("button").filter({ hasText: /buku menu/i }).first();
