@@ -165,7 +165,7 @@ export default function LoginPage() {
         }}
       >
         {/* Elegant overlay to integrate the photo professionally */}
-        <div className="absolute inset-0 bg-[#120D0A]/35 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-[#120D0A]/30" />
 
         <div className="w-full max-w-md bg-[#F7F1E6]/95 dark:bg-[#181310]/95 backdrop-blur-md p-8 lg:p-10 rounded-2xl border border-[#EADDCF]/80 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.25)] relative z-10 animate-in fade-in zoom-in-95 duration-700">
           {/* Mobile logo */}
