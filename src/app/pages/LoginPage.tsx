@@ -167,7 +167,7 @@ export default function LoginPage() {
         {/* Elegant overlay to integrate the photo professionally */}
         <div className="absolute inset-0 bg-[#120D0A]/30" />
 
-        <div className="w-full max-w-md bg-white/20 dark:bg-black/35 relative p-8 lg:p-10 rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.35)] z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-700 antialiased transform-gpu">
+        <div className="w-full max-w-md bg-white/20 dark:bg-black/35 relative p-8 lg:p-10 rounded-2xl border border-white/10 dark:border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.35)] z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-700 antialiased transform-gpu">
           {/* Glassmorphic backdrop blur layer isolated from text with matching rounded corners */}
           <div className="absolute inset-0 backdrop-blur-2xl rounded-2xl z-[-1] pointer-events-none" />
           {/* Mobile logo */}
