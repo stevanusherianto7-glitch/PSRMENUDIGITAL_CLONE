@@ -180,10 +180,10 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8 text-center lg:text-left">
-            <p className="eyebrow mb-3 text-[#C2410C] dark:text-[#F97316] font-black tracking-widest">Masuk</p>
+            <p className="eyebrow mb-3 font-black tracking-widest">Masuk</p>
             <h2 className="font-display text-4xl leading-tight text-white font-black">Selamat datang kembali</h2>
             <div className="gold-rule-short mt-4 lg:mx-0 mx-auto" />
-            <p className="text-[#C2410C] dark:text-[#F97316] text-sm mt-4 font-normal antialiased">Pilih peran lalu masukkan password.</p>
+            <p className="text-gold text-sm mt-4 font-normal antialiased">Pilih peran lalu masukkan password.</p>
           </div>
 
           {/* Role selection */}
@@ -198,7 +198,7 @@ export default function LoginPage() {
                   onClick={() => { setRole(r.id); setError(""); setPassword(""); }}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md ${
                     active
-                      ? "bg-[#C2410C] dark:bg-[#F97316] border-[#C2410C] dark:border-[#F97316] text-white font-black shadow-[0_4px_20px_rgba(181,70,42,0.4)]"
+                      ? "bg-primary border-primary text-white font-black shadow-[0_4px_20px_rgba(181,70,42,0.4)]"
                       : "bg-white/50 dark:bg-black/45 border-slate-300 dark:border-white/15 hover:bg-white/60 dark:hover:bg-white/10 hover:border-slate-400 text-slate-955 dark:text-white font-extrabold"
                   }`}
                 >
@@ -223,7 +223,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError(""); }}
                   placeholder={`Password ${roles.find(r => r.id === role)?.label}`}
-                  className="w-full bg-white/90 dark:bg-black/60 border border-slate-450 dark:border-white/20 rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-[#C2410C]/80 dark:focus:border-[#F97316]/80 focus:ring-2 focus:ring-[#C2410C]/20 transition-all text-slate-955 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-extrabold shadow-sm"
+                  className="w-full bg-white/90 dark:bg-black/60 border border-slate-450 dark:border-white/20 rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-primary/80 focus:ring-2 focus:ring-primary/20 transition-all text-slate-955 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-extrabold shadow-sm"
                   autoFocus
                 />
                 <button
@@ -256,9 +256,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-10 pt-6 border-t border-slate-350 dark:border-white/10 text-center">
-            <p className="eyebrow mb-3 text-[#C2410C] dark:text-[#F97316] font-black uppercase tracking-wider">Untuk Tamu</p>
+            <p className="eyebrow mb-3 font-black uppercase tracking-wider">Untuk Tamu</p>
             <div className="flex items-center justify-center gap-2 text-xs text-slate-900 dark:text-slate-100 font-bold drop-shadow-[0_0.5px_0.5px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              <Scan size={12} className="text-[#C2410C] dark:text-[#F97316]" />
+              <Scan size={12} className="text-gold" />
               <span>Scan QR di meja untuk memesan langsung</span>
             </div>
           </div>
