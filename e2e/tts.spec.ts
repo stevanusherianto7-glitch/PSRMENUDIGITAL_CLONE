@@ -83,6 +83,14 @@ async function getSpokenTexts(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as any).__ttsSpokenTexts || []);
 }
 
+/** Wait for useTTS first load marking to complete in the app */
+async function waitForFirstLoad(page: Page) {
+  await page.waitForEvent('console', {
+    filter: msg => msg.text().includes('First load - marking'),
+    timeout: 30000
+  });
+}
+
 // Supabase project config — used for direct REST API calls in tests
 // (works in both dev and production preview build, unlike dynamic TS import)
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://pbitlwrgainrcippjuwd.supabase.co';
@@ -237,7 +245,7 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await stubSpeechSynthesis(page);
     
     // Wait for first load to complete (marks existing orders as known)
-    await page.waitForTimeout(6000);
+    await waitForFirstLoad(page);
     console.log('--- CLEARED ttsLogs ---');
     ttsLogs.length = 0;
     
@@ -289,7 +297,7 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await stubSpeechSynthesis(page);
     
     // Wait for first load
-    await page.waitForTimeout(6000);
+    await waitForFirstLoad(page);
     
     // The pre-existing order should NOT be announced
     const announceLogs = ttsLogs.filter(l => l.includes('Announcing order:') && l.includes(orderId));
@@ -316,7 +324,7 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
     
-    await page.waitForTimeout(6000);
+    await waitForFirstLoad(page);
     ttsLogs.length = 0;
     
     // Insert a new order
@@ -348,7 +356,7 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await stubSpeechSynthesis(page);
     
     // Wait for first load
-    await page.waitForTimeout(6000);
+    await waitForFirstLoad(page);
     ttsLogs.length = 0;
     
     // Insert order with specific items for text verification

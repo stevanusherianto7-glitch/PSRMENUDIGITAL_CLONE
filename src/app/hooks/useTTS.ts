@@ -236,11 +236,19 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     timeoutsRef.current.push(cleanupId);
 
     return () => {
-      // Bersihkan semua timeout jika dependencies berubah atau unmount
+      // Bersihkan semua timeout jika dependencies berubah
       timeoutsRef.current.forEach(window.clearTimeout);
       timeoutsRef.current = [];
     };
   }, [orders, announceOrder, isLoaded, enabled]);
+
+  // Reset modul-level flags ketika hook benar-benar unmounted (pindah halaman / logout)
+  useEffect(() => {
+    return () => {
+      firstLoadDone = false;
+      globalKnownIds.clear();
+    };
+  }, []);
 
   return { speak };
 }
