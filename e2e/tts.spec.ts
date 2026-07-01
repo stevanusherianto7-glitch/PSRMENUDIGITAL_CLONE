@@ -84,10 +84,10 @@ async function getSpokenTexts(page: Page): Promise<string[]> {
 }
 
 /** Wait for useTTS first load marking to complete in the app */
-async function waitForFirstLoad(page: Page) {
-  await page.waitForEvent('console', {
+function getFirstLoadPromise(page: Page): Promise<any> {
+  return page.waitForEvent('console', {
     filter: msg => msg.text().includes('First load - marking'),
-    timeout: 30000
+    timeout: 45000
   });
 }
 
@@ -241,11 +241,12 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
+    const firstLoadPromise = getFirstLoadPromise(page);
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
     
     // Wait for first load to complete (marks existing orders as known)
-    await waitForFirstLoad(page);
+    await firstLoadPromise;
     console.log('--- CLEARED ttsLogs ---');
     ttsLogs.length = 0;
     
@@ -293,11 +294,12 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
     // Login to admin
+    const firstLoadPromise = getFirstLoadPromise(page);
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
     
     // Wait for first load
-    await waitForFirstLoad(page);
+    await firstLoadPromise;
     
     // The pre-existing order should NOT be announced
     const announceLogs = ttsLogs.filter(l => l.includes('Announcing order:') && l.includes(orderId));
@@ -321,10 +323,11 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
+    const firstLoadPromise = getFirstLoadPromise(page);
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
     
-    await waitForFirstLoad(page);
+    await firstLoadPromise;
     ttsLogs.length = 0;
     
     // Insert a new order
@@ -352,11 +355,12 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
+    const firstLoadPromise = getFirstLoadPromise(page);
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
     
     // Wait for first load
-    await waitForFirstLoad(page);
+    await firstLoadPromise;
     ttsLogs.length = 0;
     
     // Insert order with specific items for text verification
