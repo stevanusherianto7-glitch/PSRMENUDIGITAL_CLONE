@@ -18,30 +18,26 @@ async function bypassWelcomeModal(page: Page) {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(2000);
 
-  // Step 1: Click "Lanjut" if visible
-  const lanjutBtn = page.getByText(/lanjut/i).first();
-  if (await lanjutBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await lanjutBtn.click();
-    await page.waitForTimeout(500);
-  }
+  // Step 1: Click "Lanjut"
+  const lanjutBtn = page.getByRole('button', { name: /lanjut/i }).first();
+  await lanjutBtn.waitFor({ state: "visible", timeout: 10000 });
+  await lanjutBtn.click();
 
   // Step 2: Click "Mulai Pesan Sekarang"
-  const startBtn = page.getByText(/mulai pesan sekarang/i).first();
-  if (await startBtn.isVisible()) {
-    await startBtn.click();
-  }
+  const startBtn = page.getByRole('button', { name: /mulai pesan/i }).first();
+  await startBtn.waitFor({ state: "visible", timeout: 10000 });
+  await startBtn.click();
 
   // Step 3: Wait for PIN input (geolocation fails) and enter PIN "PAWON"
-  const pinInput = page.locator("input[type=password]").last();
-  try {
-    await pinInput.waitFor({ state: "visible", timeout: 15000 });
-    await pinInput.fill("PAWON");
-    const cekBtn = page.getByText(/^cek$/i).last();
-    await cekBtn.click();
-    await page.waitForTimeout(2000);
-  } catch (e) {
-    console.warn("PIN input welcome bypass did not appear:", e);
-  }
+  const pinInput = page.locator("input[placeholder='Masukkan PIN']");
+  await pinInput.waitFor({ state: "visible", timeout: 15000 });
+  await pinInput.fill("PAWON");
+  
+  const cekBtn = page.getByRole('button', { name: /^cek$/i }).last();
+  await cekBtn.click();
+
+  // Wait for welcome modal to be fully closed/detached
+  await page.locator(".backdrop-blur-sm").waitFor({ state: "detached", timeout: 10000 });
 }
 
 // --- [NAV] Tab Navigation ---
