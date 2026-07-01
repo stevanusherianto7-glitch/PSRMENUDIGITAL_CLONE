@@ -71,15 +71,6 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'supabase-assets',
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {

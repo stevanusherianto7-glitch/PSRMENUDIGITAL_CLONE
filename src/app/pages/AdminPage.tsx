@@ -281,6 +281,7 @@ export default function AdminPage() {
   const loadOrders = useCallback(async () => {
     try {
       const orders = await fetchOrders();
+      console.log("[TTS-DEBUG] loadOrders fetched:", orders.map(o => o.id));
       // Filter: hanya order hari ini & belum lewat 4 jam (untuk active orders).
       // Order "served" tetap disimpan untuk referensi kasir, tapi juga hanya hari ini.
       const now = Date.now();
@@ -437,8 +438,14 @@ export default function AdminPage() {
 
         ordersChannel = supabase.channel("orders-admin-" + Date.now())
           .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, payload => {
-            loadOrders();
-          }).subscribe();
+            console.log("[TTS-DEBUG] ordersChannel event received:", payload.eventType, payload.new?.id || payload.old?.id);
+            setTimeout(() => {
+              loadOrders();
+            }, 300);
+          })
+          .subscribe((status) => {
+            console.log("[TTS-DEBUG] ordersChannel status:", status);
+          });
 
       } catch (err: any) {
         console.warn("Supabase tidak terhubung:", err?.message || err || "Unknown error");
