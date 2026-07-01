@@ -80,19 +80,19 @@ async function getSpokenTexts(page: Page): Promise<string[]> {
   return page.evaluate(() => (window as any).__ttsSpokenTexts || []);
 }
 
-/** Insert a test order directly via the app's Supabase client */
+// Supabase project config — used for direct REST API calls in tests
+// (works in both dev and production preview build, unlike dynamic TS import)
+const SUPABASE_URL = 'https://pbitlwrgainrcippjuwd.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
+
+/** Insert a test order via Supabase REST API (works in dev & production build) */
 async function insertTestOrder(page: Page, overrides: Record<string, any> = {}) {
   const orderId = `ORD-TEST-${Date.now().toString(36).toUpperCase()}`;
   
-  const result = await page.evaluate(async ({ orderId, overrides }) => {
-    // Access Supabase client via the app's module system
-    // @ts-ignore — runs in browser context where Vite resolves this
-    const mod = await import('/src/lib/supabase.ts');
-    const supabase = mod.supabase;
-    
+  const result = await page.evaluate(async ({ orderId, overrides, url, key }) => {
     const order = {
       id: orderId,
-      table_id: overrides.table_id || 'A1',
+      table_id: overrides.table_id || '1',   // Meja 1 (numeric ID, bukan A1)
       status: overrides.status || 'pending',
       type: overrides.type || 'guest',
       items: overrides.items || [
@@ -106,20 +106,38 @@ async function insertTestOrder(page: Page, overrides: Record<string, any> = {}) 
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase.from('orders').insert(order).select().single();
-    return { data, error: error?.message || null };
-  }, { orderId, overrides });
+    const res = await fetch(`${url}/rest/v1/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify(order),
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      return { data: null, error: errText };
+    }
+    const data = await res.json();
+    return { data, error: null };
+  }, { orderId, overrides, url: SUPABASE_URL, key: SUPABASE_ANON_KEY });
   
   return { orderId, ...result };
 }
 
-/** Delete a test order */
+/** Delete a test order via Supabase REST API */
 async function deleteTestOrder(page: Page, orderId: string) {
-  await page.evaluate(async (id) => {
-    // @ts-ignore — runs in browser context where Vite resolves this
-    const mod = await import('/src/lib/supabase.ts');
-    await mod.supabase.from('orders').delete().eq('id', id);
-  }, orderId);
+  await page.evaluate(async ({ id, url, key }) => {
+    await fetch(`${url}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+      },
+    });
+  }, { id: orderId, url: SUPABASE_URL, key: SUPABASE_ANON_KEY });
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -202,6 +220,9 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
 
   // ── Test 4: New order triggers TTS auto-announce ──────────────────────
   test('4. New order triggers auto-announce with [TTS] console log', async ({ page }) => {
+    // Extra time: login(~16s) + first-load wait(6s) + poll wait(35s) = ~57s
+    test.slow(); // 3x timeout = 180s
+    
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
     await loginAsAdmin(page);
@@ -211,11 +232,11 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await page.waitForTimeout(6000);
     ttsLogs.length = 0;
     
-    // Insert a new order directly into Supabase
+    // Insert a new order via REST API
     const { orderId, error } = await insertTestOrder(page);
     expect(error).toBeNull();
     
-    // Wait for polling interval (30s) or realtime to pick it up
+    // Wait for realtime or polling interval (30s) to pick it up
     await page.waitForTimeout(35000);
     
     // Check console logs for TTS announcement
@@ -235,6 +256,8 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
 
   // ── Test 5: First-load suppression ─────────────────────────────────────
   test('5. First-load suppression — pre-existing orders are NOT announced', async ({ page }) => {
+    test.slow(); // login + waits can exceed 60s
+    
     // Clear any existing session/TTS state
     await page.goto('/#/');
     await page.evaluate(() => {
@@ -270,6 +293,8 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
 
   // ── Test 6: TTS disabled — no announcement ────────────────────────────
   test('6. TTS disabled — new orders are NOT announced', async ({ page }) => {
+    test.slow(); // login + 35s poll wait
+    
     // Disable TTS before login
     await page.goto('/#/');
     await page.evaluate(() => localStorage.setItem('pawon_tts_enabled', 'false'));
@@ -303,6 +328,8 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
 
   // ── Test 7: Announcement text format correctness ──────────────────────
   test('7. Announcement text matches expected Indonesian format', async ({ page }) => {
+    test.slow(); // login + 35s poll wait
+    
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
     await loginAsAdmin(page);
@@ -313,8 +340,9 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     ttsLogs.length = 0;
     
     // Insert order with specific items for text verification
+    // Note: table_id '3' = Meja 3 (A3 sudah dihapus, pakai ID numerik)
     const { orderId, error } = await insertTestOrder(page, {
-      table_id: 'A3',
+      table_id: '3',
       type: 'waiter',
       order_mode: 'take-away',
       notes: 'tidak pedas',
@@ -329,7 +357,7 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     await page.waitForTimeout(35000);
     
     const spoken = await getSpokenTexts(page);
-    const orderSpeech = spoken.find(t => t.includes('Meja A3'));
+    const orderSpeech = spoken.find(t => t.includes('Meja 3'));
     expect(orderSpeech).toBeDefined();
     
     if (orderSpeech) {
