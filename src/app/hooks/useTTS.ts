@@ -165,10 +165,10 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
     speak(fullText);
   }, [speak]);
 
-  // Detect pesanan baru ketika orders berubah
   useEffect(() => {
-    if (!isLoaded) return; // Tunggu sampai data awal selesai dimuat
-    if (!enabled) return;  // Jangan proses jika TTS dimatikan
+    if (!enabled || !isLoaded) return;
+
+    console.log("[TTS-DEBUG] useEffect triggered with orders:", orders.map(o => o.id), "globalKnownIds:", Array.from(globalKnownIds));
 
     // FIRST LOAD: Tandai semua order yang sudah ada — jangan diumumkan
     if (!firstLoadDone) {
