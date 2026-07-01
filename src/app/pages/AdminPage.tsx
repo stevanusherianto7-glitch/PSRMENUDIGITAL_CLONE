@@ -297,7 +297,7 @@ export default function AdminPage() {
         return (now - createdAt) < MAX_AGE_MS;
       });
       setLiveOrders(active);
-    } catch (e) { console.log("Error loading orders:", e); }
+    } catch (e: any) { console.log("Error loading orders:", e?.message || e || "Unknown error"); }
     finally { setOrdersLoaded(true); }
   }, []);
 
@@ -352,20 +352,22 @@ export default function AdminPage() {
           setTables(mejaRows.map((r: any) => ({ id: r.id, seat: r.seat, status: r.status, pax: r.pax, total: r.total, duration: r.duration, orders: r.orders })));
         }
 
-        // Upsert semua seed: update nama/harga yang berubah, insert yang baru
-        await supabase.from("menu_items").upsert(
-          SEED_MENU.map(m => ({
-            id: m.id,
-            name: m.name,
-            category: m.category,
-            price: m.price,
-            image: m.image && (m.image as string).startsWith("http") ? m.image : m.id,
-            available: m.available,
-            tag: m.tag || null,
-            description: m.description || null,
-          })),
-          { onConflict: "id", ignoreDuplicates: false }
-        );
+        // Upsert semua seed: update nama/harga yang berubah, insert yang baru (skip jika E2E test)
+        if (!(window as any).__skip_seed) {
+          await supabase.from("menu_items").upsert(
+            SEED_MENU.map(m => ({
+              id: m.id,
+              name: m.name,
+              category: m.category,
+              price: m.price,
+              image: m.image && (m.image as string).startsWith("http") ? m.image : m.id,
+              available: m.available,
+              tag: m.tag || null,
+              description: m.description || null,
+            })),
+            { onConflict: "id", ignoreDuplicates: false }
+          );
+        }
 
         const { data: menuRows } = await supabase.from("menu_items").select("*");
         if (menuRows && menuRows.length > 0) {
@@ -437,8 +439,8 @@ export default function AdminPage() {
             loadOrders();
           }).subscribe();
 
-      } catch (err) {
-        console.warn("Supabase tidak terhubung:", err);
+      } catch (err: any) {
+        console.warn("Supabase tidak terhubung:", err?.message || err || "Unknown error");
         setConnected(false);
       }
       setSeeding(false);

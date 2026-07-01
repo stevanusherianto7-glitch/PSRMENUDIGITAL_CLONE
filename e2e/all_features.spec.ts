@@ -22,6 +22,10 @@ import { test, expect, type Page } from "@playwright/test";
 // --- Helpers ---
 
 async function loginAsAdmin(page: Page) {
+  // Disable heavy database seeding during E2E testing
+  await page.addInitScript(() => {
+    (window as any).__skip_seed = true;
+  });
   await page.goto("/#/");
   await page.waitForLoadState("networkidle");
   const adminBtn = page.locator("button").filter({ hasText: /^Admin$/i }).first();
@@ -34,7 +38,10 @@ async function loginAsAdmin(page: Page) {
   await page.waitForTimeout(3000);
 }
 
-async function gotoGuestMenu(page: Page, table = "A1") {
+async function gotoGuestMenu(page: Page, table = "1") {
+  await page.addInitScript(() => {
+    (window as any).__skip_seed = true;
+  });
   await page.goto(`/#/menu/${table}`);
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(2000);

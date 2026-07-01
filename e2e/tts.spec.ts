@@ -20,6 +20,9 @@ import { test, expect, type Page, type ConsoleMessage } from '@playwright/test';
 
 /** Login as Admin using actual form flow */
 async function loginAsAdmin(page: Page) {
+  await page.addInitScript(() => {
+    (window as any).__skip_seed = true;
+  });
   await page.goto('/#/');
   await page.waitForLoadState('networkidle');
 
@@ -223,6 +226,11 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     // Extra time: login(~16s) + first-load wait(6s) + poll wait(35s) = ~57s
     test.slow(); // 3x timeout = 180s
     
+    // Forward page console logs to terminal for debugging
+    page.on('console', msg => {
+      console.log(`[BROWSER CONSOLE] [${msg.type()}] ${msg.text()}`);
+    });
+    
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
     await loginAsAdmin(page);
@@ -230,17 +238,21 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
     
     // Wait for first load to complete (marks existing orders as known)
     await page.waitForTimeout(6000);
+    console.log('--- CLEARED ttsLogs ---');
     ttsLogs.length = 0;
     
     // Insert a new order via REST API
     const { orderId, error } = await insertTestOrder(page);
     expect(error).toBeNull();
+    console.log(`--- INSERTED order ${orderId} ---`);
     
     // Wait for realtime or polling interval (30s) to pick it up
     await page.waitForTimeout(35000);
     
     // Check console logs for TTS announcement
     const announceLogs = ttsLogs.filter(l => l.includes('Announcing order:'));
+    console.log('--- TTS LOGS collected:', ttsLogs);
+    console.log('--- ANNOUNCE LOGS:', announceLogs);
     expect(announceLogs.length).toBeGreaterThanOrEqual(1);
     
     // Verify spoken text contains expected fragments

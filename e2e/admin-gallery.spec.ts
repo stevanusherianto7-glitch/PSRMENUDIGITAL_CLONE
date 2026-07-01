@@ -13,6 +13,9 @@ import { test, expect, type Page } from "@playwright/test";
 
 // --- Helper: login as admin and navigate to Buku Menu Digital ---
 async function loginAndGoToGallery(page: Page) {
+  await page.addInitScript(() => {
+    (window as any).__skip_seed = true;
+  });
   await page.goto("/#/");
   await page.waitForLoadState("networkidle");
 

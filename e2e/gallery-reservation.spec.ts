@@ -11,7 +11,10 @@ import { test, expect, type Page } from "@playwright/test";
 
 // --- Helper: bypass welcome modal with PIN ---
 async function bypassWelcomeModal(page: Page) {
-  await page.goto("/#/menu/A1");
+  await page.addInitScript(() => {
+    (window as any).__skip_seed = true;
+  });
+  await page.goto("/#/menu/1");
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(2000);
 
