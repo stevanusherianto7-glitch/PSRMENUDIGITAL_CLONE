@@ -167,7 +167,7 @@ export default function LoginPage() {
         {/* Elegant overlay to integrate the photo professionally */}
         <div className="absolute inset-0 bg-[#120D0A]/30" />
 
-        <div className="w-full max-w-md bg-[#F7F1E6]/95 dark:bg-[#181310]/95 backdrop-blur-md p-8 lg:p-10 rounded-2xl border border-[#EADDCF]/80 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.25)] relative z-10 animate-in fade-in zoom-in-95 duration-700">
+        <div className="w-full max-w-md bg-white/30 dark:bg-[#120D0A]/35 backdrop-blur-xl p-8 lg:p-10 rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative z-10 animate-in fade-in zoom-in-95 duration-700">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center justify-center gap-3 mb-10">
             <img src={logoImg} alt={BRAND_NAME} className="w-12 h-12 rounded-xl object-cover ring-1 ring-gold/40" />
@@ -196,38 +196,38 @@ export default function LoginPage() {
                   onClick={() => { setRole(r.id); setError(""); setPassword(""); }}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md ${
                     active
-                      ? "bg-primary/8 border-primary text-primary shadow-[0_4px_16px_-8px_rgba(181,70,42,0.4)]"
-                      : "card-premium hover:border-primary/30 text-muted-foreground"
+                      ? "bg-primary/25 border-primary text-primary shadow-[0_4px_20px_rgba(181,70,42,0.25)]"
+                      : "bg-white/20 dark:bg-white/5 border-white/25 dark:border-white/5 hover:bg-white/30 dark:hover:bg-white/10 hover:border-white/45 text-slate-800 dark:text-slate-200"
                   }`}
                 >
-                  <Icon size={22} className={active ? "text-primary" : "text-muted-foreground"} />
+                  <Icon size={22} className={active ? "text-primary" : "text-slate-600 dark:text-slate-400"} />
                   <p className="text-[11px] font-semibold tracking-wide uppercase">{r.label}</p>
                 </button>
               );
             })}
           </div>
 
-          <div className="mb-6 px-4 py-3 rounded-lg bg-secondary/60 border border-border text-xs text-muted-foreground italic">
+          <div className="mb-6 px-4 py-3 rounded-lg bg-white/20 dark:bg-black/20 border border-white/15 dark:border-white/5 text-xs text-slate-800 dark:text-slate-200 italic">
             {roles.find(r => r.id === role)?.desc}
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block mb-2">Password</label>
+              <label className="block mb-2 text-slate-800 dark:text-slate-200 font-semibold text-xs uppercase tracking-wider">Password</label>
               <div className="relative">
-                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-400 pointer-events-none" />
                 <input
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError(""); }}
                   placeholder={`Password ${roles.find(r => r.id === role)?.label}`}
-                  className="w-full bg-input-background border border-border rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition-all"
+                  className="w-full bg-white/40 dark:bg-[#151210]/40 border border-white/25 dark:border-white/10 rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-primary/80 focus:ring-2 focus:ring-primary/20 transition-all text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white"
                 >
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
