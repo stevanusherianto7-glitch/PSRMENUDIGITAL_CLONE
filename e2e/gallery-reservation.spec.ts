@@ -27,18 +27,20 @@ async function bypassWelcomeModal(page: Page) {
 
   // Step 2: Click "Mulai Pesan Sekarang"
   const startBtn = page.getByText(/mulai pesan sekarang/i).first();
-  if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+  if (await startBtn.isVisible()) {
     await startBtn.click();
-    await page.waitForTimeout(6000); // Wait for geolocation timeout
   }
 
-  // Step 3: Enter PIN "PAWON" to bypass location check
+  // Step 3: Wait for PIN input (geolocation fails) and enter PIN "PAWON"
   const pinInput = page.locator("input[type=password]").last();
-  if (await pinInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+  try {
+    await pinInput.waitFor({ state: "visible", timeout: 15000 });
     await pinInput.fill("PAWON");
     const cekBtn = page.getByText(/^cek$/i).last();
     await cekBtn.click();
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(2000);
+  } catch (e) {
+    console.warn("PIN input welcome bypass did not appear:", e);
   }
 }
 

@@ -135,20 +135,18 @@ test.describe("[GUEST] Guest Welcome Screen", () => {
     await context.clearPermissions();
     await gotoGuestMenu(page);
     const startBtn = page.getByText(/mulai pesan sekarang/i).first();
-    if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await startBtn.isVisible()) {
       await startBtn.click();
-      await page.waitForTimeout(4000);
       const pinInput = page.locator("input[type=password]").last();
-      if (await pinInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        const today = new Date();
-        const pin = String(today.getDate()).padStart(2, "0") + String(today.getMonth() + 1).padStart(2, "0");
-        await pinInput.fill(pin);
-        const cekBtn = page.getByText(/^cek$/i).last();
-        await cekBtn.click();
-        await page.waitForTimeout(2000);
-        const body = await page.content();
-        expect(body).toMatch(/terverifikasi|menu|berhasil/i);
-      }
+      await pinInput.waitFor({ state: "visible", timeout: 15000 });
+      const today = new Date();
+      const pin = String(today.getDate()).padStart(2, "0") + String(today.getMonth() + 1).padStart(2, "0");
+      await pinInput.fill(pin);
+      const cekBtn = page.getByText(/^cek$/i).last();
+      await cekBtn.click();
+      await page.waitForTimeout(2000);
+      const body = await page.content();
+      expect(body).toMatch(/terverifikasi|menu|berhasil/i);
     }
   });
 
@@ -156,18 +154,16 @@ test.describe("[GUEST] Guest Welcome Screen", () => {
     await context.clearPermissions();
     await gotoGuestMenu(page);
     const startBtn = page.getByText(/mulai pesan sekarang/i).first();
-    if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await startBtn.isVisible()) {
       await startBtn.click();
-      await page.waitForTimeout(4000);
       const pinInput = page.locator("input[type=password]").last();
-      if (await pinInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await pinInput.fill("0000");
-        const cekBtn = page.getByText(/^cek$/i).last();
-        await cekBtn.click();
-        await page.waitForTimeout(1000);
-        const body = await page.content();
-        expect(body).toMatch(/salah|tanya|pelayan/i);
-      }
+      await pinInput.waitFor({ state: "visible", timeout: 15000 });
+      await pinInput.fill("0000");
+      const cekBtn = page.getByText(/^cek$/i).last();
+      await cekBtn.click();
+      await page.waitForTimeout(1000);
+      const body = await page.content();
+      expect(body).toMatch(/salah|tanya|pelayan/i);
     }
   });
 
@@ -175,18 +171,16 @@ test.describe("[GUEST] Guest Welcome Screen", () => {
     await context.clearPermissions();
     await gotoGuestMenu(page);
     const startBtn = page.getByText(/mulai pesan sekarang/i).first();
-    if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await startBtn.isVisible()) {
       await startBtn.click();
-      await page.waitForTimeout(4000);
       const pinInput = page.locator("input[type=password]").last();
-      if (await pinInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await pinInput.fill("PAWON");
-        const cekBtn = page.getByText(/^cek$/i).last();
-        await cekBtn.click();
-        await page.waitForTimeout(2000);
-        const body = await page.content();
-        expect(body).toMatch(/terverifikasi|menu|berhasil/i);
-      }
+      await pinInput.waitFor({ state: "visible", timeout: 15000 });
+      await pinInput.fill("PAWON");
+      const cekBtn = page.getByText(/^cek$/i).last();
+      await cekBtn.click();
+      await page.waitForTimeout(2000);
+      const body = await page.content();
+      expect(body).toMatch(/terverifikasi|menu|berhasil/i);
     }
   });
 

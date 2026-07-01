@@ -85,8 +85,8 @@ async function getSpokenTexts(page: Page): Promise<string[]> {
 
 // Supabase project config — used for direct REST API calls in tests
 // (works in both dev and production preview build, unlike dynamic TS import)
-const SUPABASE_URL = 'https://pbitlwrgainrcippjuwd.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://pbitlwrgainrcippjuwd.supabase.co';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ';
 
 /** Insert a test order via Supabase REST API (works in dev & production build) */
 async function insertTestOrder(page: Page, overrides: Record<string, any> = {}) {
