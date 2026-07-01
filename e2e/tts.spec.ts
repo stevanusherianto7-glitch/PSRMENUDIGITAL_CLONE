@@ -322,14 +322,16 @@ test.describe('TTS System — PSRMENUDIGITAL', () => {
 
   // ── Test 6: TTS disabled — no announcement ────────────────────────────
   test('6. TTS disabled — new orders are NOT announced', async ({ page }) => {
-    test.slow(); // login + 35s poll wait
+    test.slow(); // login + 60s poll wait
     
-    // Disable TTS before login
-    await page.goto('/#/');
-    await page.evaluate(() => localStorage.setItem('pawon_tts_enabled', 'false'));
+    // Disable TTS via addInitScript — runs before any page JS, no extra navigation
+    await page.addInitScript(() => {
+      localStorage.setItem('pawon_tts_enabled', 'false');
+    });
     
     const ttsLogs = collectConsoleLogs(page, '[TTS]');
     
+    // Register listener BEFORE loginAsAdmin navigates (avoids race condition)
     const firstLoadPromise = getFirstLoadPromise(page);
     await loginAsAdmin(page);
     await stubSpeechSynthesis(page);
