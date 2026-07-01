@@ -775,6 +775,16 @@ export default function GuestMenuPage() {
       {/* Menu View */}
       {view === "menu" && (
         <div>
+          {/* Welcome Banner */}
+          <div className="mx-4 mt-4 p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl -mr-6 -mt-6" />
+            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mb-1">Kedai Elvera 57</p>
+            <h3 className="font-display text-xl text-foreground font-black">Selamat Datang</h3>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              Nikmati kehangatan cita rasa Jawa otentik. Silakan pilih menu di bawah untuk memesan langsung dari meja Anda.
+            </p>
+          </div>
+
           <div className="flex gap-2 px-4 py-3 border-b border-border">
             {menuCategories.map(c => (
               <button
