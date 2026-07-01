@@ -15,7 +15,7 @@ on:
         options: ['true', 'false']
 
 env:
-  # Supabase Kedai Elvera 57 untuk E2E CI
+  # Supabase Kedai Elvera 57
   VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://pbitlwrgainrcippjuwd.supabase.co' }}
   VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ' }}
   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_4fJEkMwBlAmMjBez-6KgXA_eAXRMdsJ' }}
@@ -23,6 +23,13 @@ env:
   VITE_API_USERNAME: ${{ secrets.VITE_API_USERNAME || 'ci-user' }}
   VITE_API_PASSWORD: ${{ secrets.VITE_API_PASSWORD || 'ci-pass' }}
   VITE_API_DB: ${{ secrets.VITE_API_DB || 'ci-db' }}
+  # Kredensial E2E Kedai Elvera 57
+  E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL || 'admin@pawonsalam.id' }}
+  E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD || '[REDACTED_ADMIN_PASSWORD]' }}
+  E2E_WAITER_EMAIL: ${{ secrets.E2E_WAITER_EMAIL || 'waiter@pawonsalam.id' }}
+  E2E_WAITER_PASSWORD: ${{ secrets.E2E_WAITER_PASSWORD || '[REDACTED_WAITER_PASSWORD]' }}
+  E2E_KITCHEN_EMAIL: ${{ secrets.E2E_KITCHEN_EMAIL || 'kitchen@pawonsalam.id' }}
+  E2E_KITCHEN_PASSWORD: ${{ secrets.E2E_KITCHEN_PASSWORD || '[REDACTED_KITCHEN_PASSWORD]' }}
 
 jobs:
   # ── JOB 1: Lint + TypeCheck + Unit Tests ─────────────────────────────────
@@ -94,16 +101,23 @@ jobs:
           VITE_SUPABASE_URL: ${{ env.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ env.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Run Playwright E2E Tests (tanpa Supabase auth — cepat & stabil)
+      - name: Run Playwright E2E Tests (Full Suite — semua role)
         run: |
           npx playwright test \
             e2e/all_features.spec.ts \
             e2e/gallery-reservation.spec.ts \
+            e2e/admin-gallery.spec.ts \
+            e2e/tts.spec.ts \
             --project=chromium \
-            --grep "\\[GUEST\\]|\\[NAV\\]|\\[GALERI\\]|\\[RESERVASI\\]|Login page loads|Wrong password" \
-            --workers=1 --reporter=list
+            --workers=1 --reporter=list --timeout=60000
         env:
           CI: true
+          E2E_ADMIN_EMAIL: ${{ env.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ env.E2E_ADMIN_PASSWORD }}
+          E2E_WAITER_EMAIL: ${{ env.E2E_WAITER_EMAIL }}
+          E2E_WAITER_PASSWORD: ${{ env.E2E_WAITER_PASSWORD }}
+          E2E_KITCHEN_EMAIL: ${{ env.E2E_KITCHEN_EMAIL }}
+          E2E_KITCHEN_PASSWORD: ${{ env.E2E_KITCHEN_PASSWORD }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
