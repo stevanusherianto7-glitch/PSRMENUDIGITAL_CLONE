@@ -167,7 +167,7 @@ export default function LoginPage() {
         {/* Elegant overlay to integrate the photo professionally */}
         <div className="absolute inset-0 bg-[#120D0A]/30" />
 
-        <div className="w-full max-w-md bg-white/80 dark:bg-[#1A1412]/85 backdrop-blur-xl p-8 lg:p-10 rounded-2xl border border-white/50 dark:border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.35)] relative z-10 animate-in fade-in zoom-in-95 duration-700">
+        <div className="w-full max-w-md bg-white/20 dark:bg-black/35 backdrop-blur-2xl p-8 lg:p-10 rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.35)] relative z-10 animate-in fade-in zoom-in-95 duration-700">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center justify-center gap-3 mb-10">
             <img src={logoImg} alt={BRAND_NAME} className="w-12 h-12 rounded-xl object-cover ring-1 ring-gold/40" />
@@ -178,10 +178,10 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8 text-center lg:text-left">
-            <p className="eyebrow mb-3">Masuk</p>
-            <h2 className="font-display text-4xl leading-tight text-slate-950 dark:text-white font-bold">Selamat datang kembali</h2>
+            <p className="eyebrow mb-3 text-primary dark:text-gold font-black tracking-widest">Masuk</p>
+            <h2 className="font-display text-4xl leading-tight text-slate-950 dark:text-white font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">Selamat datang kembali</h2>
             <div className="gold-rule-short mt-4 lg:mx-0 mx-auto" />
-            <p className="text-slate-800 dark:text-slate-200 text-sm mt-4 font-medium">Pilih peran lalu masukkan password.</p>
+            <p className="text-slate-900 dark:text-[#FFF8F2] text-sm mt-4 font-bold drop-shadow-[0_0.5px_0.5px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Pilih peran lalu masukkan password.</p>
           </div>
 
           {/* Role selection */}
@@ -196,38 +196,38 @@ export default function LoginPage() {
                   onClick={() => { setRole(r.id); setError(""); setPassword(""); }}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md ${
                     active
-                      ? "bg-primary/25 border-primary text-primary font-bold shadow-[0_4px_20px_rgba(181,70,42,0.25)]"
-                      : "bg-white/40 dark:bg-white/5 border-slate-300 dark:border-white/10 hover:bg-white/60 dark:hover:bg-white/10 hover:border-slate-400 text-slate-900 dark:text-slate-200 font-bold"
+                      ? "bg-primary border-primary text-white font-black shadow-[0_4px_20px_rgba(181,70,42,0.4)]"
+                      : "bg-white/50 dark:bg-black/45 border-slate-300 dark:border-white/15 hover:bg-white/60 dark:hover:bg-white/10 hover:border-slate-400 text-slate-955 dark:text-white font-extrabold"
                   }`}
                 >
-                  <Icon size={22} className={active ? "text-primary" : "text-slate-700 dark:text-slate-300"} />
+                  <Icon size={22} className={active ? "text-white" : "text-slate-800 dark:text-slate-200"} />
                   <p className="text-[11px] font-bold tracking-wide uppercase">{r.label}</p>
                 </button>
               );
             })}
           </div>
 
-          <div className="mb-6 px-4 py-3 rounded-lg bg-white/30 dark:bg-black/30 border border-slate-250 dark:border-white/10 text-xs text-slate-900 dark:text-slate-100 font-semibold italic">
+          <div className="mb-6 px-4 py-3 rounded-lg bg-white/45 dark:bg-black/45 border border-slate-300 dark:border-white/15 text-xs text-slate-950 dark:text-white font-extrabold italic">
             {roles.find(r => r.id === role)?.desc}
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block mb-2 text-slate-950 dark:text-slate-100 font-bold text-xs uppercase tracking-wider">Password</label>
+              <label className="block mb-2 text-slate-955 dark:text-white font-black text-xs uppercase tracking-wider drop-shadow-[0_0.5px_0.5px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">Password</label>
               <div className="relative">
-                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-300 pointer-events-none" />
+                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-850 dark:text-slate-200 pointer-events-none" />
                 <input
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError(""); }}
                   placeholder={`Password ${roles.find(r => r.id === role)?.label}`}
-                  className="w-full bg-white/80 dark:bg-[#201A17]/80 border border-slate-300 dark:border-white/20 rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-primary/80 focus:ring-2 focus:ring-primary/20 transition-all text-slate-950 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium"
+                  className="w-full bg-white/90 dark:bg-black/60 border border-slate-450 dark:border-white/20 rounded-lg pl-10 pr-11 py-3.5 text-[15px] focus:outline-none focus:border-primary/80 focus:ring-2 focus:ring-primary/20 transition-all text-slate-955 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-extrabold shadow-sm"
                   autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-850 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white"
                 >
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -253,9 +253,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-10 pt-6 border-t border-border text-center">
-            <p className="eyebrow mb-3">Untuk Tamu</p>
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-10 pt-6 border-t border-slate-350 dark:border-white/10 text-center">
+            <p className="eyebrow mb-3 text-slate-800 dark:text-gold font-black uppercase tracking-wider">Untuk Tamu</p>
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-900 dark:text-slate-100 font-bold drop-shadow-[0_0.5px_0.5px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
               <Scan size={12} className="text-gold" />
               <span>Scan QR di meja untuk memesan langsung</span>
             </div>
