@@ -19,7 +19,6 @@ import { toast } from "sonner";
  * Order baru yang masuk SETELAH first load TIDAK boleh dimasukkan ke sini sampai setelah diumumkan.
  */
 const globalKnownIds = new Set<string>();
-let firstLoadDone = false; // Flag modul-level agar first load hanya terjadi SEKALI per tab
 
 /**
  * playNotifBeep — Notifikasi suara beep menggunakan Web Audio API.
@@ -48,6 +47,8 @@ function playNotifBeep() {
  */
 export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boolean = true) {
   const timeoutsRef = useRef<number[]>([]);
+  const firstLoadDoneRef = useRef(false);
+  const sessionStartTimeRef = useRef(Date.now());
 
   const speak = useCallback(async (text: string) => {
     if (!enabled) return;
@@ -170,20 +171,27 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
 
     console.log("[TTS-DEBUG] useEffect triggered with orders:", orders.map(o => o.id), "globalKnownIds:", Array.from(globalKnownIds));
 
-    // FIRST LOAD: Tandai semua order yang sudah ada — jangan diumumkan
-    if (!firstLoadDone) {
+    // 1. FIRST LOAD: Tandai semua order yang sudah ada — jangan diumumkan
+    if (!firstLoadDoneRef.current) {
       console.log("[TTS] First load - marking", orders.length, "existing orders as known");
       orders.forEach(o => globalKnownIds.add(o.id));
-      firstLoadDone = true;
+      firstLoadDoneRef.current = true;
       return;
     }
 
     if (orders.length === 0) return;
 
-    // Cari order baru yang BELUM ADA di globalKnownIds DAN belum di-lock oleh tab lain
+    // 2. Cari order baru yang BELUM ADA di globalKnownIds DAN belum di-lock oleh tab lain
     const now = Date.now();
     const newOrders = orders.filter(o => {
       if (globalKnownIds.has(o.id)) return false;
+
+      // SAFETY NET: Jangan umumkan pesanan yang dibuat SEBELUM halaman ini dibuka (beri margin 15 detik untuk clock skew)
+      const orderTime = o.created_at ? new Date(o.created_at.includes('Z') || o.created_at.includes('+') ? o.created_at : `${o.created_at}Z`).getTime() : now;
+      if (orderTime < sessionStartTimeRef.current - 15000) {
+        globalKnownIds.add(o.id);
+        return false;
+      }
 
       // Cross-tab check: cek apakah tab lain sudah mengklaim order ini (lock 30 detik)
       try {
@@ -245,7 +253,6 @@ export function useTTS(orders: Order[], enabled: boolean = true, isLoaded: boole
   // Reset modul-level flags ketika hook benar-benar unmounted (pindah halaman / logout)
   useEffect(() => {
     return () => {
-      firstLoadDone = false;
       globalKnownIds.clear();
     };
   }, []);
