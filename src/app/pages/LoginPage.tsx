@@ -180,7 +180,7 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8 text-center lg:text-left">
-            <p className="eyebrow mb-3 text-primary dark:text-gold font-black tracking-widest">Masuk</p>
+            <p className="eyebrow mb-3 text-[#C2410C] dark:text-[#F97316] font-black tracking-widest">Masuk</p>
             <h2 className="font-display text-4xl leading-tight text-white font-black">Selamat datang kembali</h2>
             <div className="gold-rule-short mt-4 lg:mx-0 mx-auto" />
             <p className="text-white text-sm mt-4 font-bold">Pilih peran lalu masukkan password.</p>
@@ -256,9 +256,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-10 pt-6 border-t border-slate-350 dark:border-white/10 text-center">
-            <p className="eyebrow mb-3 text-slate-800 dark:text-gold font-black uppercase tracking-wider">Untuk Tamu</p>
+            <p className="eyebrow mb-3 text-[#C2410C] dark:text-[#F97316] font-black uppercase tracking-wider">Untuk Tamu</p>
             <div className="flex items-center justify-center gap-2 text-xs text-slate-900 dark:text-slate-100 font-bold drop-shadow-[0_0.5px_0.5px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-              <Scan size={12} className="text-gold" />
+              <Scan size={12} className="text-[#C2410C] dark:text-[#F97316]" />
               <span>Scan QR di meja untuk memesan langsung</span>
             </div>
           </div>
