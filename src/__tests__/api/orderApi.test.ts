@@ -24,8 +24,6 @@ import { supabase } from '../../lib/supabase';
 
 // ─── MOCK SETUP ───────────────────────────────────────────────────────────────
 
-let mockThen: jest.Mock;
-
 jest.mock('../../lib/supabase', () => {
   const createMockQuery = () => {
     const query: any = {

@@ -1,5 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
+
 
 // Test hanya kalkulasi — mock seluruh Supabase dan context
 jest.mock('../../lib/supabase', () => ({

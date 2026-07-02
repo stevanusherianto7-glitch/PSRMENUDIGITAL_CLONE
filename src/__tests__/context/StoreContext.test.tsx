@@ -11,6 +11,8 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import React from 'react';
 import { StoreProvider, useStore } from '../../app/context/StoreContext';
+import { supabase } from '../../lib/supabase';
+import { SEED_MENU } from '../../app/data';
 
 // ─── MODULE-LEVEL MOCK STATE ──────────────────────────────────────────────────
 
@@ -24,7 +26,6 @@ const mockChannel = {
 // ─── FACTORY THAT RESTORES CORRECT MOCK ──────────────────────────────────────
 
 function setupSupabaseMock() {
-  const { supabase } = require('../../lib/supabase');
   (supabase.from as jest.Mock).mockImplementation((table: string) => ({
     select: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
@@ -208,7 +209,6 @@ describe('StoreContext — menu', () => {
 
   it('merges DB menu items with SEED_MENU (branch: if data && data.length > 0, lines 49-72)', async () => {
     // Provide a seed item with overridden price so the merge branch is taken
-    const { SEED_MENU } = require('../../app/data');
     const firstSeed = SEED_MENU[0];
     mockMenuData = [{ ...firstSeed, price: 99999, available: false }];
 
@@ -235,7 +235,6 @@ describe('StoreContext — menu', () => {
     await waitFor(() => expect(screen.getByTestId('loading-menu').textContent).toBe('done'));
 
     // SEED_MENU + 1 extra
-    const { SEED_MENU } = require('../../app/data');
     const count = parseInt(screen.getByTestId('menu-count').textContent || '0');
     expect(count).toBe(SEED_MENU.length + 1);
   });
