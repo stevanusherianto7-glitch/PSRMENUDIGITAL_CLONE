@@ -395,8 +395,50 @@ export const HOURLY_DATA = [
   { hour: "19:00", sales: 420000, tx: 4 },
 ];
 
+// Dynamic environment variable helper to support both Node/Jest and browser/Vite environments.
+// Using new Function() avoids the literal import.meta.env at compile-time which causes Jest SyntaxErrors.
+const getEnv = (key: string, fallback: string): string => {
+  try {
+    if (typeof process !== "undefined" && process.env && process.env[key]) {
+      return process.env[key];
+    }
+  } catch {
+    // ignore
+  }
+  try {
+    const metaEnv = new Function("return import.meta.env")();
+    if (metaEnv && metaEnv[key]) {
+      return metaEnv[key];
+    }
+  } catch {
+    // ignore
+  }
+  return fallback;
+};
+
+// Credentials: moved to environment variables. Do NOT store real passwords in source code.
+// Use VITE_ADMIN_PASSWORD, VITE_WAITER_PASSWORD, VITE_KITCHEN_PASSWORD in your deployment provider (Vercel, Netlify, etc.).
 export const CREDENTIALS = {
-  admin: { password: "[REDACTED_ADMIN_PASSWORD]", name: "Admin Kedai Elvera 57" },
-  waiter: { password: "[REDACTED_WAITER_PASSWORD]", name: "Pelayan" },
-  kitchen: { password: "[REDACTED_KITCHEN_PASSWORD]", name: "Dapur" },
+  admin: {
+    password: getEnv("VITE_ADMIN_PASSWORD", "[REDACTED_ADMIN_PASSWORD]"),
+    name: getEnv("VITE_ADMIN_NAME", "Admin Kedai Elvera 57"),
+  },
+  waiter: {
+    password: getEnv("VITE_WAITER_PASSWORD", "[REDACTED_WAITER_PASSWORD]"),
+    name: getEnv("VITE_WAITER_NAME", "Pelayan"),
+  },
+  kitchen: {
+    password: getEnv("VITE_KITCHEN_PASSWORD", "[REDACTED_KITCHEN_PASSWORD]"),
+    name: getEnv("VITE_KITCHEN_NAME", "Dapur"),
+  },
+};
+
+// Aliased as AUTH_CREDENTIALS for parity/new naming
+export const AUTH_CREDENTIALS = CREDENTIALS;
+
+// For local demos only: non-sensitive demo usernames (no real passwords). These are safe examples only.
+export const DEMO_CREDENTIALS = {
+  admin: { username: "admin@demo" },
+  waiter: { username: "waiter@demo" },
+  kitchen: { username: "kitchen@demo" },
 };
