@@ -420,15 +420,15 @@ const getEnv = (key: string, fallback: string): string => {
 // Use VITE_ADMIN_PASSWORD, VITE_WAITER_PASSWORD, VITE_KITCHEN_PASSWORD in your deployment provider (Vercel, Netlify, etc.).
 export const CREDENTIALS = {
   admin: {
-    password: getEnv("VITE_ADMIN_PASSWORD", "[REDACTED_ADMIN_PASSWORD]"),
+    password: getEnv("VITE_ADMIN_PASSWORD", "admin123"),
     name: getEnv("VITE_ADMIN_NAME", "Admin Kedai Elvera 57"),
   },
   waiter: {
-    password: getEnv("VITE_WAITER_PASSWORD", "[REDACTED_WAITER_PASSWORD]"),
+    password: getEnv("VITE_WAITER_PASSWORD", "waiter123"),
     name: getEnv("VITE_WAITER_NAME", "Pelayan"),
   },
   kitchen: {
-    password: getEnv("VITE_KITCHEN_PASSWORD", "[REDACTED_KITCHEN_PASSWORD]"),
+    password: getEnv("VITE_KITCHEN_PASSWORD", "dapur123"),
     name: getEnv("VITE_KITCHEN_NAME", "Dapur"),
   },
 };
