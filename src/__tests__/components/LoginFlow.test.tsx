@@ -55,7 +55,7 @@ describe('LoginPage - Integration Test (Jest Simulator)', () => {
     const passwordInput = screen.getByPlaceholderText('Password Admin');
     const submitButton = screen.getByRole('button', { name: /Masuk/i });
 
-    await userEvent.type(passwordInput, '[REDACTED_ADMIN_PASSWORD]');
+    await userEvent.type(passwordInput, 'admin123');
     fireEvent.click(submitButton);
 
     // Wait for redirect
