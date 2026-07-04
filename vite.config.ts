@@ -67,7 +67,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\.co\/storage\/v1\/.*/i,
+            urlPattern: /^https:\/\/ugfpbkjuxrdgveyfbfks\.supabase\.co\/storage\/v1\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'supabase-images',
@@ -76,7 +76,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/pbitlwrgainrcippjuwd\.supabase\/.*/i,
+            urlPattern: /^https:\/\/ugfpbkjuxrdgveyfbfks\.supabase\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'supabase-assets',
