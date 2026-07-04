@@ -1,7 +1,7 @@
 
-  # Dashboard POS untuk Kedai Elvera 57 (Community) (Copy)
+# Dashboard POS untuk Kedai Elvera 57 (Copy)
 
-  This is a code bundle for Dashboard POS untuk Kedai Elvera 57 (Community) (Copy). The original project is available at https://www.figma.com/design/wng4AvPFtVqDBoidHk2LLG/Dashboard-POS-untuk-Pawon-Salam--Community---Copy-.
+This is a code bundle for Dashboard POS untuk Kedai Elvera 57 (Copy). The original project is available at https://www.figma.com/design/wng4AvPFtVqDBoidHk2LLG/Dashboard-POS-untuk-Pawon-Salam--Community---Copy-.
 
   ## Running the code
 
